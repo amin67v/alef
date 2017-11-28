@@ -1,0 +1,12 @@
+bin
+ThirdParty/stb/bin
+ThirdParty/stb/Makefile.win
+ThirdParty/stb/stb.dev
+ThirdParty/stb/stb.layout
+Engine/obj
+Editor/obj
+Game/obj
+SpriteSheetEditor/obj
+Editor/log.txt
+Game/log.txt
+SpriteSheetEditor/log.txt
