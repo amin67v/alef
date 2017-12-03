@@ -7,10 +7,10 @@ namespace Engine
 {
     public class Texture : Resource
     {
+        internal uint id = 0;
         FilterMode filter = FilterMode.Point;
         int width = 0;
         int height = 0;
-        uint id = 0;
         bool mipmap = false;
         bool repeat = false;
 
@@ -35,8 +35,6 @@ namespace Engine
         /// The texture size in vector2(width, height)
         /// </summary>
         public Vector2 Size => new Vector2(Width, Height);
-
-        internal uint Id => id;
 
         /// <summary>
         /// Determines how to sample texture when coordinate is out of range 0, 1
@@ -132,13 +130,13 @@ namespace Engine
         protected override void OnDisposeUnmanaged()
         {
             base.OnDisposeUnmanaged();
-            glDeleteTexture(Id);
+            glDeleteTexture(id);
             id = 0;
         }
 
         void set_filter(FilterMode value)
         {
-            glBindTexture(TextureTarget.Texture2D, Id);
+            glBindTexture(TextureTarget.Texture2D, id);
 
             if (value != FilterMode.Point && !HasMipmaps)
             {
@@ -165,7 +163,7 @@ namespace Engine
 
         void set_repeat(bool value)
         {
-            glBindTexture(TextureTarget.Texture2D, Id);
+            glBindTexture(TextureTarget.Texture2D, id);
             if (value)
             {
                 glTexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameter.Repeat);

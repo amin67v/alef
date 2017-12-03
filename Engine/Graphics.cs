@@ -93,15 +93,11 @@ namespace Engine
             }
         }
 
-        public static void Viewport(int x, int y, int w, int h)
-        {
-            glViewport(x, y, w, h);
-        }
+        public static void Viewport(Rect rect) => glViewport((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
 
-        public static void Scissor(int x, int y, int w, int h)
-        {
-            glScissor(x, y, w, h);
-        }
+        public static void Viewport(int x, int y, int w, int h) => glViewport(x, y, w, h);
+
+        public static void Scissor(int x, int y, int w, int h) => glScissor(x, y, w, h);
 
         public static void SetView(Vector2 pos, float rot, Vector2 size)
         {
@@ -139,7 +135,7 @@ namespace Engine
 #endif
         }
 
-        internal static void Init()
+        internal static void init()
         {
             LoadFunctions();
 
@@ -162,7 +158,7 @@ namespace Engine
             glDisable(EnableCap.Blend);
         }
 
-        internal static void Shutdown()
+        internal static void shut_down()
         {
             instance.driver_info = null;
         }

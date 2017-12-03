@@ -9,7 +9,7 @@ namespace Engine
     public static class Extensions
     {
         /// <summary>
-        /// Generate Knuth hash code for the given string.
+        /// Generate Knuth hash code for the string.
         /// </summary>
         public static uint KnuthHash(this string str)
         {

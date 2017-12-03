@@ -47,9 +47,9 @@ namespace Engine
             }
         }
 
-        internal static void SwapBuffers() => sfWindow_display(wnd_ptr);
+        internal static void swap_buffers() => sfWindow_display(wnd_ptr);
 
-        internal static void DoEvents()
+        internal static void do_events()
         {
             Event e;
             while (sfWindow_pollEvent(wnd_ptr, out e))
@@ -96,7 +96,7 @@ namespace Engine
             }
         }
 
-        internal static void Init(AppConfig cfg)
+        internal static void init(AppConfig cfg)
         {
             var mode = new VideoMode();
             mode.Width = (uint)cfg.Width;
@@ -125,7 +125,7 @@ namespace Engine
             keys_state = new bool[(int)Keys.KeyCount];
         }
 
-        internal static void Shutdown()
+        internal static void shut_down()
         {
             sfWindow_close(wnd_ptr);
             sfWindow_destroy(wnd_ptr);

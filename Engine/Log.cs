@@ -79,13 +79,13 @@ namespace Engine
             }
         }
 
-        internal static void Init()
+        internal static void init()
         {
             var fstream = File.Create("log.txt");
             instance.writer = new StreamWriter(fstream);
         }
 
-        internal static void Shutdown()
+        internal static void shut_down()
         {
             instance.writer.Dispose();
             instance.writer = null;

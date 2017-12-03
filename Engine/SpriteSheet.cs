@@ -8,14 +8,15 @@ namespace Engine
     public class SpriteSheet
     {
         public static int PixelPerUnit = 24;
+        FrameData[] frames;
 
         SpriteSheet() { }
 
-        public struct Frame
+        public class FrameData
         {
-            internal string Name;
+            string name;
 
-            internal Vertex Vertex0;
+            internal Vertex[] Vertices;
             internal Vertex Vertex1;
             internal Vertex Vertex2;
             internal Vertex Vertex3;

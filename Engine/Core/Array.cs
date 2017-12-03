@@ -108,19 +108,6 @@ namespace Engine
         }
 
         /// <summary>
-        /// Find index of item that matches the condition.
-        /// </summary>
-        public int FindIndex(Predicate<T> match) => FindIndex(0, count, match);
-
-        /// <summary>
-        /// Find index of item that matches the condition, starting from index with the given lenght.
-        /// </summary>
-        public int FindIndex(int index, int length, Predicate<T> match)
-        {
-            return Array.FindIndex(array, index, length, match);
-        }
-
-        /// <summary>
         /// Index of the first item that match the given value.
         /// </summary>
         public int IndexOf(T item) => Array.IndexOf(array, item, 0, count);

@@ -6,9 +6,9 @@ namespace Engine
     public abstract class AppState
     {
         /// <summary>
-        /// Called at the beginning of each frame.
+        /// Called at the start of each frame.
         /// </summary>
-        public virtual void OnBeginFrame() { }
+        public virtual void OnNewFrame() { }
 
         /// <summary>
         /// Called each time the game needs to be updated.

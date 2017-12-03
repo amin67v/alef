@@ -45,7 +45,7 @@ namespace Engine
             set => update_dt = MathF.Max(0, value);
         }
 
-        internal static void Init()
+        internal static void init()
         {
             start_clock = sfClock_create();
             frame_time = 0;
@@ -54,7 +54,7 @@ namespace Engine
             update_dt = 1f / 60f;
         }
 
-        internal static void Process()
+        internal static void process()
         {
             var now = SinceStart;
             frame_time = now - last_time;
@@ -62,7 +62,7 @@ namespace Engine
             frame_idx++;
         }
 
-        internal static void Shutdown()
+        internal static void shut_down()
         {
             sfClock_destroy(start_clock);
             start_clock = IntPtr.Zero;

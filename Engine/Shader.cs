@@ -168,7 +168,7 @@ namespace Engine
         {
             Assert.IsTrue(active == this, assert_msg);
             glActiveTexture(TextureUnit.Texture0 + index);
-            glBindTexture(TextureTarget.Texture2D, value.Id);
+            glBindTexture(TextureTarget.Texture2D, value.id);
             SetInt(id, index);
         }
 

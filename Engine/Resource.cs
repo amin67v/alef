@@ -40,7 +40,16 @@ namespace Engine
             }
         }
 
-        internal static void Init()
+        protected override void OnDisposeUnmanaged()
+        {
+            if (!string.IsNullOrEmpty(file))
+            {
+                res_map.Remove(file);
+                file = null;
+            }
+        }
+
+        internal static void init()
         {
             res_map = new Dictionary<string, Resource>(50);
             root_path = System.IO.Path.Combine(App.ExePath, "Data");
@@ -56,7 +65,7 @@ namespace Engine
             }
         }
 
-        internal static void Shutdown()
+        internal static void shut_down()
         {
             List<Resource> tmp_all_res = new List<Resource>(res_map.Values);
             for (int i = 0; i < tmp_all_res.Count; i++)
@@ -64,15 +73,6 @@ namespace Engine
 
             tmp_all_res.Clear();
             res_map.Clear();
-        }
-
-        protected override void OnDisposeUnmanaged()
-        {
-            if (!string.IsNullOrEmpty(file))
-            {
-                res_map.Remove(file);
-                file = null;
-            }
         }
 
         protected delegate Resource LoadHandler(string abs_path);

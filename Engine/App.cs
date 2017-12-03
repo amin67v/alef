@@ -46,8 +46,10 @@ namespace Engine
         public static void Run(AppConfig cfg, AppState state)
         {
             if (running)
-                throw new Exception("App is already running.");
-
+            {
+                Log.Warning("App is already running.");
+                return;
+            }
             running = true;
 
             // detect runtime platform
@@ -63,11 +65,11 @@ namespace Engine
             // determine and store executable path
             exe_path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-            Time.Init();
-            Log.Init();
-            Window.Init(cfg);
-            Graphics.Init();
-            Resource.Init();
+            Time.init();
+            Log.init();
+            Window.init(cfg);
+            Graphics.init();
+            Resource.init();
 
             if (state != null)
             {
@@ -82,8 +84,8 @@ namespace Engine
             float accum = 0;
             while (running)
             {
-                Time.Process();
-                ActiveState.OnBeginFrame();
+                Time.process();
+                ActiveState.OnNewFrame();
 
                 accum += Time.FrameTime;
                 var update_dt = Time.UpdateDeltaTime;
@@ -95,8 +97,8 @@ namespace Engine
                 }
                 ActiveState.OnRender();
 
-                Window.SwapBuffers();
-                Window.DoEvents();
+                Window.swap_buffers();
+                Window.do_events();
 
                 if (nxt_state != null)
                 {
@@ -110,11 +112,11 @@ namespace Engine
             ActiveState.OnEnd();
             nxt_state = act_state = null;
 
-            Resource.Shutdown();
-            Graphics.Shutdown();
-            Window.Shutdown();
-            Log.Shutdown();
-            Time.Shutdown();
+            Resource.shut_down();
+            Graphics.shut_down();
+            Window.shut_down();
+            Log.shut_down();
+            Time.shut_down();
         }
     }
 }

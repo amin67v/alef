@@ -65,7 +65,7 @@ namespace Engine
             for (int i = 0; i < count; i++)
             {
                 texs[i] = Texture.Create(width, height, filter, false, IntPtr.Zero);
-                glFramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + i, TextureTarget.Texture2D, texs[i].Id, 0);
+                glFramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + i, TextureTarget.Texture2D, texs[i].id, 0);
             }
             glBindFramebuffer(FramebufferTarget.Framebuffer, 0);
 

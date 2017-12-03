@@ -41,7 +41,7 @@ namespace Game
 
         public override void OnRender()
         {
-            Graphics.Clear(Color.Black);
+            Graphics.Clear(Color.DeepSkyBlue);
 
             var rect = new Rect(Vector2.Zero, Window.Size);
             Graphics.SetView(rect.X, rect.XMax, rect.YMax, rect.Y);
