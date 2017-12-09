@@ -60,37 +60,37 @@ namespace Engine
                         App.Quit();
                         break;
                     case EventType.Resized:
-                        App.ActiveState.OnResize((int)e.Size.Width, (int)e.Size.Height);
+                        AppState.Active.OnResize((int)e.Size.Width, (int)e.Size.Height);
                         break;
                     case EventType.KeyPressed:
                         if (!keys_state[e.Key.Code])
                         {
                             keys_state[e.Key.Code] = true;
-                            App.ActiveState.OnKeyDown((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
+                            AppState.Active.OnKeyDown((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
                         }
                         break;
                     case EventType.KeyReleased:
                         keys_state[e.Key.Code] = false;
-                        App.ActiveState.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
+                        AppState.Active.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
                         break;
                     case EventType.MouseButtonPressed:
-                        App.ActiveState.OnMouseDown((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
+                        AppState.Active.OnMouseDown((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
                         break;
                     case EventType.MouseButtonReleased:
-                        App.ActiveState.OnMouseUp((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
+                        AppState.Active.OnMouseUp((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
                         break;
                     case EventType.TextEntered:
-                        App.ActiveState.OnKeyChar(char.ConvertFromUtf32((int)e.Text.Unicode));
+                        AppState.Active.OnKeyChar(char.ConvertFromUtf32((int)e.Text.Unicode));
                         break;
                     case EventType.MouseWheelScrolled:
                         if (e.MouseWheelScroll.Wheel == 0)
-                            App.ActiveState.OnMouseScroll(new Vector2(0, e.MouseWheelScroll.Delta)); // vertical wheel
+                            AppState.Active.OnMouseScroll(new Vector2(0, e.MouseWheelScroll.Delta)); // vertical wheel
                         else
-                            App.ActiveState.OnMouseScroll(new Vector2(e.MouseWheelScroll.Delta, 0)); // horizontal wheel
-
+                            AppState.Active.OnMouseScroll(new Vector2(e.MouseWheelScroll.Delta, 0)); // horizontal wheel
+                            
                         break;
                     case EventType.MouseMoved:
-                        App.ActiveState.OnMouseMove(new Vector2(e.MouseMove.X, e.MouseMove.Y));
+                        AppState.Active.OnMouseMove(new Vector2(e.MouseMove.X, e.MouseMove.Y));
                         break;
                 }
             }

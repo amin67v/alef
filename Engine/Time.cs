@@ -1,10 +1,9 @@
 using System;
 using static CSFML;
 
-
 namespace Engine
 {
-    public class Time
+    public static class Time
     {
         const float to_seconds = 0.000001f;
 

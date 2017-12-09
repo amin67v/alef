@@ -6,23 +6,19 @@ namespace Engine
     /// <summary>
     /// Simple logging class
     /// </summary>
-    public class Log
+    public static class Log
     {
-        static readonly Log instance = new Log();
-
-        readonly object sync_obj = new object();
-        StreamWriter writer = null;
-        LogLevel lvl;
-
-        Log() { }
+        static readonly object sync_obj = new object();
+        static StreamWriter writer = null;
+        static LogLevel level;
 
         /// <summary>
         /// Get or set the logging level
         /// </summary>
         public static LogLevel Level
         {
-            get => instance.lvl;
-            set => instance.lvl = value;
+            get => level;
+            set => level = value;
         }
 
         public static event LogHandler LogEvent;
@@ -32,7 +28,7 @@ namespace Engine
         /// </summary>
         public static void Debug(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Debug, msg, file, line);
+            write(LogLevel.Debug, msg, file, line);
         }
 
         /// <summary>
@@ -40,7 +36,7 @@ namespace Engine
         /// </summary>
         public static void Error(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Error, msg, file, line);
+            write(LogLevel.Error, msg, file, line);
         }
 
         /// <summary>
@@ -48,7 +44,7 @@ namespace Engine
         /// </summary>
         public static void Info(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Info, msg, file, line);
+            write(LogLevel.Info, msg, file, line);
         }
 
         /// <summary>
@@ -56,10 +52,10 @@ namespace Engine
         /// </summary>
         public static void Warning(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Warning, msg, file, line);
+            write(LogLevel.Warning, msg, file, line);
         }
 
-        void write(LogLevel lvl, string message, string file, int line)
+        static void write(LogLevel lvl, string message, string file, int line)
         {
             lock (sync_obj)
             {
@@ -82,13 +78,13 @@ namespace Engine
         internal static void init()
         {
             var fstream = File.Create("log.txt");
-            instance.writer = new StreamWriter(fstream);
+            writer = new StreamWriter(fstream);
         }
 
         internal static void shut_down()
         {
-            instance.writer.Dispose();
-            instance.writer = null;
+            writer.Dispose();
+            writer = null;
         }
     }
 

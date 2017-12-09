@@ -15,13 +15,7 @@ namespace Engine
         public class FrameData
         {
             string name;
-
-            internal Vertex[] Vertices;
-            internal Vertex Vertex1;
-            internal Vertex Vertex2;
-            internal Vertex Vertex3;
-            internal Vertex Vertex4;
-            internal Vertex Vertex5;
+            Vertex[] verts;
 
             //public Frame(Rect rect, Vector2 origin)
             //{

@@ -7,25 +7,28 @@ namespace Engine
     public class Scene : AppState
     {
         Camera cam;
-        Actor first;
+        Entity root;
+        Array<IDrawable> draw_list;
+        bool inside_draw_loop;
 
-        Scene()
+        public Scene()
         {
             cam = new Camera();
+            draw_list = new Array<IDrawable>(50);
         }
 
         public Camera Camera => cam;
 
         /// <summary>
-        /// Finds first actor whose name match the given value
+        /// Finds first entity whose name match the given value
         /// </summary>
-        public Actor Find(string name)
+        public Entity Find(string name)
         {
             var hash = name.KnuthHash();
-            var current = first;
+            var current = root;
             while (current != null)
             {
-                if (current.hash_name == hash && current.Name == name)
+                if (current.get_name_hash() == hash && current.Name == name)
                     return current;
 
                 current = current.next;
@@ -35,42 +38,54 @@ namespace Engine
         }
 
         /// <summary>
-        /// Spawns a new actor of type T
+        /// Spawns a new entity of type T
         /// </summary>
-        public T Spawn<T>() where T : Actor, new()
+        public T Spawn<T>(string name) where T : Entity, new()
         {
-            var new_actor = new T();
-            new_actor.owner = this;
-            new_actor.next = first;
-            first = new_actor;
-            new_actor.OnBegin();
-            return new_actor;
+            if (inside_draw_loop)
+                throw new Exception("You can't spawn entity inside draw method");
+
+            var entity = new T();
+            entity.owner = this;
+            entity.Name = name;
+            entity.next = root;
+            root = entity;
+            entity.OnBegin();
+            if (entity is IDrawable)
+                draw_list.Push(entity as IDrawable);
+            return entity;
         }
 
         /// <summary>
-        /// Destroys the given actor
+        /// Destroys the given entity
         /// </summary>
-        public void Destroy(Actor actor)
+        public void Destroy(Entity entity)
         {
-            if (actor.is_destroyed == false)
+            if (inside_draw_loop)
+                throw new Exception("You can't destroy entity inside draw method");
+
+            if (entity.IsDestroyed == false)
             {
-                if (first == actor)
-                    first = actor.next;
+                if (root == entity)
+                    root = entity.next;
 
-                actor.OnDestroy();
-                if (actor.prev != null)
-                    actor.prev.next = actor.next;
+                entity.OnDestroy();
+                if (entity.prev != null)
+                    entity.prev.next = entity.next;
 
-                if (actor.next != null)
-                    actor.next.prev = actor.prev;
+                if (entity.next != null)
+                    entity.next.prev = entity.prev;
 
-                actor.is_destroyed = true;
+                if (entity is IDrawable)
+                    draw_list.Remove(entity as IDrawable);
+
+                entity.set_destroyed();
             }
         }
 
         public void Unload()
         {
-            var current = first;
+            var current = root;
             while (current != null)
             {
                 Destroy(current);
@@ -78,39 +93,49 @@ namespace Engine
             }
         }
 
-        public override void OnNewFrame()
+        public override void OnFrame()
         {
-            var current = first;
-            while (current != null)
-            {
-                current.OnNewFrame();
-                current = current.next;
-            }
-        }
+            float dt = Time.FrameTime;
 
-        public override void OnUpdate(float dt)
-        {
-            var current = first;
+            // update all entities
+            var current = root;
             while (current != null)
             {
                 current.OnUpdate(dt);
                 current = current.next;
             }
-        }
 
-        public override void OnRender()
-        {
-            Graphics.Viewport(cam.Viewport);
+            // sort and render drawables
+            inside_draw_loop = true;
+            var wnd_size = Window.Size;
+            var viewport = cam.Viewport * wnd_size;
+            Graphics.Viewport(viewport);
             Graphics.Clear(cam.ClearColor);
 
-            var current = first;
-            while (current != null)
+            Vector2 view_size;
+            if (cam.SizeMode == Camera.ViewSizeMode.Width)
             {
-                current.OnRender();
-                current = current.next;
+                view_size.X = cam.ViewSize;
+                view_size.Y = view_size.X * (viewport.Height / viewport.Width);
+            }
+            else
+            {
+                view_size.Y = cam.ViewSize;
+                view_size.X = view_size.Y * (viewport.Width / viewport.Height);
+            }
+            Graphics.SetView(cam.Position, cam.Rotation, view_size);
+
+            int comparsion(IDrawable x, IDrawable y) => x.SortKey - y.SortKey;
+            draw_list.Sort(comparsion);
+
+            for (int i = 0; i < draw_list.Count; i++)
+            {
+                if (draw_list[i].IsVisible())
+                    draw_list[i].Draw();
             }
 
             Graphics.Display();
+            inside_draw_loop = false;
         }
     }
 

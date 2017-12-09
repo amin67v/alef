@@ -18,55 +18,48 @@ namespace Game
         }
     }
 
-    public class MyGame : AppState
+    public class MyGame : Scene
     {
-        Shader shader;
-        Text text;
-
-        public override void OnResize(int width, int height)
+        public override void OnBegin()
         {
-            Graphics.Viewport(0, 0, width, height);
+            Camera.ViewSize = 10;
+            Camera.SizeMode = Camera.ViewSizeMode.Height;
+            Spawn<SimpleEntity>("New Sprite entity !!!");
         }
+    }
+
+    public class SimpleEntity : Entity, IDrawable
+    {
+        Texture heart;
+        Shader shader;
+        MeshBuffer mesh;
+
+        public bool IsVisible() => true;
+
+        public int SortKey => 0;
 
         public override void OnBegin()
         {
-            var fnt = Font.Load("fonts/roboto_light_8.json");
+            heart = Texture.Load("heart.png");
             shader = Shader.Load("shaders/default.glsl");
-
-            text = new Text("The quick brown fox jumps over the lazy dog.\n1234567890\n~!@#$%^&*()_+|", fnt, Color.Black);
-            text.Color = Color.White;
-
-            text.Transform.Position = new Vector2(200, 200);
+            shader = Shader.Load("shaders/default.glsl");
+            Array<Vertex> vertices = new Array<Vertex>(6);
+            vertices.Push(new Vertex(-.5f, -.5f, 0, 0, Color.White));
+            vertices.Push(new Vertex(0.5f, 0.5f, 1, 1, Color.White));
+            vertices.Push(new Vertex(0.5f, -.5f, 1, 0, Color.White));
+            vertices.Push(new Vertex(-.5f, -.5f, 0, 0, Color.White));
+            vertices.Push(new Vertex(0.5f, 0.5f, 1, 1, Color.White));
+            vertices.Push(new Vertex(-.5f, 0.5f, 0, 1, Color.White));
+            mesh = MeshBuffer.Create(vertices);
         }
 
-        public override void OnRender()
+        public void Draw()
         {
-            Graphics.Clear(Color.DeepSkyBlue);
-
-            var rect = new Rect(Vector2.Zero, Window.Size);
-            Graphics.SetView(rect.X, rect.XMax, rect.YMax, rect.Y);
-            text.Draw();
-            Graphics.Display();
-        }
-
-        public override void OnKeyDown(Keys key, bool alt, bool ctrl, bool shift)
-        {
-
-        }
-
-        public override void OnMouseMove(Vector2 pos)
-        {
-
-        }
-
-        public override void OnKeyChar(string code)
-        {
-            if (code[0] == '\b' && text.Content != null && text.Content.Length > 0)
-                text.Content = text.Content.Substring(0, text.Content.Length - 1);
-            else if (code[0] == '\r')
-                text.Content += '\n';
-            else
-                text.Content += code;
+            Graphics.BlendMode = BlendMode.AlphaBlend;
+            Shader.Active = shader;
+            shader.SetTexture("tex", 0, heart);
+            shader.SetMatrix4x4("view", Graphics.ViewMatrix);
+            mesh.Draw(PrimitiveType.Triangles);
         }
     }
 }

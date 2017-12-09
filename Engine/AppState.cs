@@ -5,20 +5,23 @@ namespace Engine
 {
     public abstract class AppState
     {
+        static AppState act_state = null;
+        static AppState nxt_state = null;
+
+        /// <summary>
+        /// Gets or sets the active state of the app.
+        /// Note that setting active state does happen at the end of the frame and not immediately.
+        /// </summary>
+        public static AppState Active
+        {
+            get => act_state;
+            set => nxt_state = value;
+        }
+
         /// <summary>
         /// Called at the start of each frame.
         /// </summary>
-        public virtual void OnNewFrame() { }
-
-        /// <summary>
-        /// Called each time the game needs to be updated.
-        /// </summary>
-        public virtual void OnUpdate(float dt) { }
-
-        /// <summary>
-        /// Called when the game needs to be rendered.
-        /// </summary>
-        public virtual void OnRender() { }
+        public virtual void OnFrame() { }
 
         /// <summary>
         /// Called when a key is pressed.
@@ -69,5 +72,35 @@ namespace Engine
         /// Called when quiting this state.
         /// </summary>
         public virtual void OnEnd() { }
+
+        internal static void init(AppState state)
+        {
+            if (state != null)
+            {
+                act_state = state;
+                act_state.OnBegin();
+            }
+            else
+            {
+                throw new Exception("Initial state cant be null.");
+            }
+        }
+
+        internal static void shut_down()
+        {
+            Active.OnEnd();
+            nxt_state = act_state = null;
+        }
+
+        internal static void process()
+        {
+            if (nxt_state != null)
+            {
+                act_state.OnEnd();
+                act_state = nxt_state;
+                act_state.OnBegin();
+                nxt_state = null;
+            }
+        }
     }
 }

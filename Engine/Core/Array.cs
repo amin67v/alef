@@ -110,12 +110,30 @@ namespace Engine
         /// <summary>
         /// Index of the first item that match the given value.
         /// </summary>
-        public int IndexOf(T item) => Array.IndexOf(array, item, 0, count);
+        public int IndexOf(T item)
+        {
+            var eq = EqualityComparer<T>.Default;
+            for (int i = 0; i < count; ++i)
+            {
+                if (eq.Equals(array[i], item))
+                    return i;
+            }
+            return -1;
+        }
 
         /// <summary>
         /// Index of the last item that match the given value.
         /// </summary>
-        public int LastIndexOf(T item) => Array.LastIndexOf(array, item, 0, count);
+        public int LastIndexOf(T item)
+        {
+            var eq = EqualityComparer<T>.Default;
+            for (int i = count - 1; i >= 0; --i)
+            {
+                if (eq.Equals(array[i], item))
+                    return i;
+            }
+            return -1;
+        }
 
         /// <summary>
         /// Returns true of array contains item.
@@ -179,18 +197,35 @@ namespace Engine
         public void Sort() => Sort(0, count, null);
 
         /// <summary>
-        /// Sorts items in this array with the given comparer.
+        /// Sorts items in this array with the given comparison delegate.
         /// </summary>
-        public void Sort(IComparer<T> comparer) => Sort(0, count, comparer);
+        public void Sort(Comparison<T> compare) => Sort(0, count, compare);
 
         /// <summary>
-        /// Sorts items in this array with the given comparer.
+        /// Sorts items in this array with the given comparison delegate.
         /// </summary>
-        public void Sort(int index, int length, IComparer<T> comparer)
+        public void Sort(int index, int length, Comparison<T> compare)
         {
-            Assert.IsTrue(index > 0, "Index cant be negative.");
+            Assert.IsTrue((uint)index < count, "Index is out of range.");
             Assert.IsTrue(count - index >= length, "Length cant exceed array count.");
-            Array.Sort<T>(array, index, count, comparer);
+
+            if (compare == null)
+                compare = Comparer<T>.Default.Compare;
+
+            var i = index;
+            var hi = index + length - 1;
+            while (i < hi)
+            {
+                var x = array[i + 1];
+                var j = i;
+                while (j >= index && compare(x, array[j]) < 0)
+                {
+                    array[j + 1] = array[j];
+                    j--;
+                }
+                array[j + 1] = x;
+                i++;
+            }
         }
 
         /// <summary>

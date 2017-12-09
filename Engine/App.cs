@@ -9,8 +9,6 @@ namespace Engine
 {
     public static class App
     {
-        static AppState act_state = null;
-        static AppState nxt_state = null;
         static string exe_path = null;
         static Platform platform = Platform.Windows;
         static bool running = false;
@@ -24,16 +22,6 @@ namespace Engine
         /// Current runtime platform.
         /// </summary>
         public static Platform Platform => platform;
-
-        /// <summary>
-        /// Gets or sets the active state of the app.
-        /// Note that setting active state does happen at the end of the frame and not immediately.
-        /// </summary>
-        public static AppState ActiveState
-        {
-            get => act_state;
-            set => nxt_state = value;
-        }
 
         /// <summary>
         /// Quit the app.
@@ -70,48 +58,18 @@ namespace Engine
             Window.init(cfg);
             Graphics.init();
             Resource.init();
+            AppState.init(state);
 
-            if (state != null)
-            {
-                act_state = state;
-                act_state.OnBegin();
-            }
-            else
-            {
-                throw new Exception("Initial state cant be null.");
-            }
-
-            float accum = 0;
             while (running)
             {
                 Time.process();
-                ActiveState.OnNewFrame();
-
-                accum += Time.FrameTime;
-                var update_dt = Time.UpdateDeltaTime;
-                while (accum >= update_dt)
-                {
-                    var dt = update_dt * Time.Speed;
-                    ActiveState.OnUpdate(dt);
-                    accum -= update_dt;
-                }
-                ActiveState.OnRender();
-
+                AppState.Active.OnFrame();
                 Window.swap_buffers();
                 Window.do_events();
-
-                if (nxt_state != null)
-                {
-                    act_state.OnEnd();
-                    act_state = nxt_state;
-                    act_state.OnBegin();
-                    nxt_state = null;
-                }
+                AppState.process();
             }
 
-            ActiveState.OnEnd();
-            nxt_state = act_state = null;
-
+            AppState.shut_down();
             Resource.shut_down();
             Graphics.shut_down();
             Window.shut_down();
