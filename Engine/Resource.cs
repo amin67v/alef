@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Json;
+using System.IO.Compression;
 using System.Collections.Generic;
 
 namespace Engine
@@ -9,33 +9,45 @@ namespace Engine
     {
         static Dictionary<string, Resource> res_map;
         static string root_path = null;
+        static ZipArchive archive = null;
 
         string file;
 
         /// <summary>
         /// The file which used to load this resource.
         /// </summary>
-        public string File => file;
+        public string FileName => file;
 
-        protected static Resource FromCacheOrFile(string file, LoadHandler load_func)
+        protected static Resource FromCacheOrFile(string file_name, LoadHandler load_func)
         {
-            file = file.TrimStart('/');
+            file_name = file_name.TrimStart('/');
             Resource res;
-            if (res_map.TryGetValue(file, out res))
+            if (res_map.TryGetValue(file_name, out res))
             {
                 return res;
             }
             else
             {
-                var absPath = System.IO.Path.Combine(root_path, file);
-                if (!System.IO.File.Exists(absPath))
+                if (archive == null)
                 {
-                    Log.Info($"Asset does not exist at path '{file}'.");
-                    return null;
+                    var abs_path = Path.Combine(root_path, file_name);
+                    if (!File.Exists(abs_path))
+                    {
+                        Log.Info($"Asset does not exist at path '{file_name}'.");
+                        return null;
+                    }
+                    var stream = File.OpenRead(abs_path);
+                    res = load_func(stream);
                 }
-                res = load_func(absPath);
-                res.file = file;
-                res_map[file] = res;
+                else
+                {
+                    var entry = archive.GetEntry(file_name);
+                    var stream = entry.Open();
+                    res = load_func(stream);
+                }
+
+                res.file = file_name;
+                res_map[file_name] = res;
                 return res;
             }
         }
@@ -49,20 +61,31 @@ namespace Engine
             }
         }
 
-        internal static void init()
+        internal static void init(bool use_archive)
         {
-            res_map = new Dictionary<string, Resource>(50);
-            root_path = System.IO.Path.Combine(App.ExePath, "Data");
-            if (Directory.Exists(root_path))
+            if (use_archive)
             {
-                Log.Info($"Resource manager initialized, root directory set to '{root_path}'.");
+                var archive_path = Path.Combine(App.ExePath, "data.pak");;
+                if (!File.Exists(archive_path))
+                {
+                    string msg = "Invalid path for data pak.";
+                    Log.Error(msg);
+                    throw new FileNotFoundException(msg);
+                }
+                archive = ZipFile.OpenRead(archive_path);
             }
             else
             {
-                string msg = "Invalid path for root directory.";
-                Log.Error(msg);
-                throw new DirectoryNotFoundException(msg);
+                root_path = Path.Combine(App.ExePath, "data");;
+                if (!Directory.Exists(root_path))
+                {
+                    string msg = "Invalid path for root directory.";
+                    Log.Error(msg);
+                    throw new DirectoryNotFoundException(msg);
+                }
             }
+
+            res_map = new Dictionary<string, Resource>(50);
         }
 
         internal static void shut_down()
@@ -75,6 +98,6 @@ namespace Engine
             res_map.Clear();
         }
 
-        protected delegate Resource LoadHandler(string abs_path);
+        protected delegate Resource LoadHandler(Stream stream);
     }
 }

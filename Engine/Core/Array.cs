@@ -206,7 +206,7 @@ namespace Engine
         /// </summary>
         public void Sort(int index, int length, Comparison<T> compare)
         {
-            Assert.IsTrue((uint)index < count, "Index is out of range.");
+            Assert.IsTrue((uint)index <= count, "Index is out of range.");
             Assert.IsTrue(count - index >= length, "Length cant exceed array count.");
 
             if (compare == null)
@@ -244,7 +244,7 @@ namespace Engine
 
             if (array.Length < new_item_count)
             {
-                var new_size = new_item_count + new_item_count / 2;
+                var new_size = new_item_count * 2;
                 new_size = Math.Max(min_capacity, new_size);
                 T[] new_arr = new T[new_size];
                 Array.Copy(array, 0, new_arr, 0, count);

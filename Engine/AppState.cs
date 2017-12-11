@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Engine
 {
-    public abstract class AppState
+    public abstract class AppState : Disposable
     {
         static AppState act_state = null;
         static AppState nxt_state = null;

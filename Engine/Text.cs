@@ -27,7 +27,7 @@ namespace Engine
             int vtx_count = string.IsNullOrEmpty(content) ? 0 : content.Length * 6;
             vert_arr = new Array<Vertex>(vtx_count);
             mesh = MeshBuffer.Create(IntPtr.Zero, vtx_count);
-            font_fx = Shader.Load("shaders/font.glsl");
+            font_fx = DefaultShaders.Font;
         }
 
         public string Content

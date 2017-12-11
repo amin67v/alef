@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using static OpenGL;
@@ -116,12 +117,23 @@ namespace Engine
         /// </summary>
         public static Texture Load(string file, FilterMode filter, bool repeat)
         {
-            Resource load_file(string abs_path)
+            Resource load_file(Stream stream)
             {
-                int w = 0, h = 0, c = 0;
-                IntPtr data = Stb.LoadImage(abs_path, ref w, ref h, ref c, 4);
-                var tex = Texture.Create(w, h, filter, repeat, data);
-                return tex;
+                BinaryReader reader = new BinaryReader(stream);
+                try
+                {
+                    byte[] buffer = reader.ReadBytes((int)stream.Length);
+                    int w = 0, h = 0, c = 0;
+                    IntPtr data = Stb.LoadFromMemory(buffer, ref w, ref h, ref c, 4);
+                    var tex = Texture.Create(w, h, filter, repeat, data);
+                    Stb.FreeImage(data);
+                    return tex;
+                }
+                finally
+                {
+                    reader.Dispose();
+                }
+
             }
 
             return FromCacheOrFile(file, load_file) as Texture;

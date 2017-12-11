@@ -11,12 +11,18 @@ namespace Engine
         Array<IDrawable> draw_list;
         bool inside_draw_loop;
 
+        public event Action OnPreRender;
+        public event Action OnPostRender;
+
         public Scene()
         {
             cam = new Camera();
             draw_list = new Array<IDrawable>(50);
         }
 
+        /// <summary>
+        /// Gets scene camera
+        /// </summary>
         public Camera Camera => cam;
 
         /// <summary>
@@ -46,13 +52,10 @@ namespace Engine
                 throw new Exception("You can't spawn entity inside draw method");
 
             var entity = new T();
-            entity.owner = this;
             entity.Name = name;
             entity.next = root;
             root = entity;
             entity.OnBegin();
-            if (entity is IDrawable)
-                draw_list.Push(entity as IDrawable);
             return entity;
         }
 
@@ -76,22 +79,11 @@ namespace Engine
                 if (entity.next != null)
                     entity.next.prev = entity.prev;
 
-                if (entity is IDrawable)
-                    draw_list.Remove(entity as IDrawable);
-
                 entity.set_destroyed();
             }
         }
 
-        public void Unload()
-        {
-            var current = root;
-            while (current != null)
-            {
-                Destroy(current);
-                current = current.next;
-            }
-        }
+        public void RegisterForDraw(IDrawable drawable) => draw_list.Push(drawable);
 
         public override void OnFrame()
         {
@@ -107,6 +99,7 @@ namespace Engine
 
             // sort and render drawables
             inside_draw_loop = true;
+            OnPreRender?.Invoke();
             var wnd_size = Window.Size;
             var viewport = cam.Viewport * wnd_size;
             Graphics.Viewport(viewport);
@@ -129,13 +122,30 @@ namespace Engine
             draw_list.Sort(comparsion);
 
             for (int i = 0; i < draw_list.Count; i++)
+                draw_list[i].Draw();
+
+            draw_list.Clear();
+            Graphics.Display();
+            OnPostRender?.Invoke();
+            inside_draw_loop = false;
+        }
+
+        protected override void OnDisposeManaged()
+        {
+            var current = root;
+            while (current != null)
             {
-                if (draw_list[i].IsVisible())
-                    draw_list[i].Draw();
+                Destroy(current);
+                current = current.next;
             }
 
-            Graphics.Display();
-            inside_draw_loop = false;
+            OnPostRender = null;
+            OnPreRender = null;
+
+            draw_list.Clear();
+            draw_list = null;
+
+            root = null;
         }
     }
 

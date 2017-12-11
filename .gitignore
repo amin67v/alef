@@ -1,4 +1,5 @@
-bin
+bin/netcoreapp2.0/*
+!bin/netcoreapp2.0/data/
 ThirdParty/stb/bin
 ThirdParty/stb/Makefile.win
 ThirdParty/stb/stb.dev

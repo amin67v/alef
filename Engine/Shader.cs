@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -118,14 +119,23 @@ namespace Engine
                 return source.Substring(i0, end - i0);
             }
 
-            Resource load_file(string abs_path)
+            Resource load_file(Stream stream)
             {
-                var src = System.IO.File.ReadAllText(abs_path);
-                var vert_src = extract(src, "vert");
-                var frag_src = extract(src, "frag");
-                var shader = Shader.Create(vert_src, frag_src);
-                return shader;
+                TextReader reader = new StreamReader(stream);
+                try
+                {
+                    var src = reader.ReadToEnd();
+                    var vert_src = extract(src, "vert");
+                    var frag_src = extract(src, "frag");
+                    var shader = Shader.Create(vert_src, frag_src);
+                    return shader;
+                }
+                finally
+                {
+                    reader.Dispose();
+                }
             }
+
             return FromCacheOrFile(file, load_file) as Shader;
         }
 

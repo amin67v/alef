@@ -57,7 +57,7 @@ namespace Engine
             Log.init();
             Window.init(cfg);
             Graphics.init();
-            Resource.init();
+            Resource.init(false);
             AppState.init(state);
 
             while (running)

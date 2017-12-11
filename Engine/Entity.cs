@@ -2,12 +2,16 @@ namespace Engine
 {
     public abstract class Entity
     {
-        internal Scene owner;
         internal Entity next, prev;
-        
+
         string name;
         uint name_hash;
         bool is_destroyed = false;
+
+        /// <summary>
+        /// Gets the active scene
+        /// </summary>
+        public static Scene Scene => AppState.Active as Scene;
 
         /// <summary>
         /// Name of the entity
@@ -26,11 +30,6 @@ namespace Engine
         /// Returns true if the entity is destroyed and invalid, otherwise true
         /// </summary>
         public bool IsDestroyed => is_destroyed;
-
-        /// <summary>
-        /// The scene which entity exist inside.
-        /// </summary>
-        public Scene Scene => owner;
 
         /// <summary>
         /// Called as soon as entity is spawned

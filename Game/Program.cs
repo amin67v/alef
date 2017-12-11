@@ -28,38 +28,22 @@ namespace Game
         }
     }
 
-    public class SimpleEntity : Entity, IDrawable
+    public class SimpleEntity : Entity
     {
-        Texture heart;
-        Shader shader;
-        MeshBuffer mesh;
-
-        public bool IsVisible() => true;
-
+        SpriteSheet test_sheet;
+        Transform xform = new Transform();
         public int SortKey => 0;
 
         public override void OnBegin()
         {
-            heart = Texture.Load("heart.png");
-            shader = Shader.Load("shaders/default.glsl");
-            shader = Shader.Load("shaders/default.glsl");
-            Array<Vertex> vertices = new Array<Vertex>(6);
-            vertices.Push(new Vertex(-.5f, -.5f, 0, 0, Color.White));
-            vertices.Push(new Vertex(0.5f, 0.5f, 1, 1, Color.White));
-            vertices.Push(new Vertex(0.5f, -.5f, 1, 0, Color.White));
-            vertices.Push(new Vertex(-.5f, -.5f, 0, 0, Color.White));
-            vertices.Push(new Vertex(0.5f, 0.5f, 1, 1, Color.White));
-            vertices.Push(new Vertex(-.5f, 0.5f, 0, 1, Color.White));
-            mesh = MeshBuffer.Create(vertices);
+            test_sheet = SpriteSheet.Load("sprites/test.json");
         }
 
-        public void Draw()
+        public override void OnUpdate(float dt)
         {
-            Graphics.BlendMode = BlendMode.AlphaBlend;
-            Shader.Active = shader;
-            shader.SetTexture("tex", 0, heart);
-            shader.SetMatrix4x4("view", Graphics.ViewMatrix);
-            mesh.Draw(PrimitiveType.Triangles);
+            DynamicBatch.Draw(xform, test_sheet, 0);
         }
+
+
     }
 }

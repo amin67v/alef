@@ -52,23 +52,33 @@ namespace Engine
         /// </summary>
         public static Font Load(string file)
         {
-            Resource load_file(string abs_path)
+            Resource load_file(Stream stream)
             {
-                var src = System.IO.File.ReadAllText(abs_path);
-                var json = JsonValue.Parse(src);
-                var texName = json["texure"];
-                JsonArray arr = json["glyphs"] as JsonArray;
-                var glyphs = new Glyph[arr.Count];
-                for (int i = 0; i < arr.Count; i++)
+                TextReader reader = new StreamReader(stream);
+                try
                 {
-                    var rect = JsonHelper.ParseRect(arr[i]["rect"]);
-                    var offset = JsonHelper.ParseVector2(arr[i]["offset"]);
-                    glyphs[i] = new Glyph(rect, offset, arr[i]["width"], arr[i]["code"]);
+                    var src = reader.ReadToEnd();
+                    var json = JsonValue.Parse(src);
+                    var tex_name = json["texture"];
+                    JsonArray arr = json["glyphs"] as JsonArray;
+                    var glyphs = new Glyph[arr.Count];
+                    for (int i = 0; i < arr.Count; i++)
+                    {
+                        var rect = JsonHelper.ParseRect(arr[i]["rect"]);
+                        var offset = JsonHelper.ParseVector2(arr[i]["offset"]);
+                        glyphs[i] = new Glyph(rect, offset, arr[i]["width"], arr[i]["code"]);
 
+                    }
+                    var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
+                    var tex = Texture.Load(tex_file, FilterMode.Bilinear, false);
+                    var font = Font.Create(glyphs, tex, json["space"], json["height"]);
+                    return font;
                 }
-                var tex = Texture.Load(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(abs_path), texName), FilterMode.Bilinear, false);
-                var font = Font.Create(glyphs, tex, json["space"], json["height"]);
-                return font;
+                finally
+                {
+                    reader.Dispose();
+                }
+
             }
 
             return FromCacheOrFile(file, load_file) as Font;
