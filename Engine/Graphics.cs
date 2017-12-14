@@ -6,10 +6,8 @@ using static OpenGL;
 
 namespace Engine
 {
-    public class Graphics
+    public sealed class Graphics
     {
-        static readonly Graphics instance = new Graphics();
-
         string driver_info = null;
         BlendMode blend_mode = BlendMode.Disabled;
         Matrix4x4 view_mx = Matrix4x4.Identity;
@@ -17,19 +15,42 @@ namespace Engine
         float line_width = 1f;
         bool scissor = false;
 
-        public static string DriverInfo => instance.driver_info;
-
-        public static Matrix4x4 ViewMatrix => instance.view_mx;
-
-        public static BlendMode BlendMode
+        internal Graphics()
         {
-            get => instance.blend_mode;
+            LoadFunctions();
+
+            var vendor = glGetString(StringName.Vendor);
+            var renderer = glGetString(StringName.Renderer);
+            var version = glGetString(StringName.Version);
+            driver_info = $"{vendor} - {renderer} : {version} ";
+            App.Log.Info($"Graphics Driver:\n{DriverInfo}\n");
+
+            // disable culling
+            glDisable(EnableCap.CullFace);
+
+            // no depth write
+            glDepthMask(false);
+
+            // no depth test
+            glDisable(EnableCap.DepthTest);
+
+            // disable blending
+            glDisable(EnableCap.Blend);
+        }
+
+        public string DriverInfo => driver_info;
+
+        public Matrix4x4 ViewMatrix => view_mx;
+
+        public BlendMode BlendMode
+        {
+            get => blend_mode;
             set
             {
-                if (instance.blend_mode == value)
+                if (blend_mode == value)
                     return;
 
-                instance.blend_mode = value;
+                blend_mode = value;
                 switch (value)
                 {
                     case BlendMode.Disabled:
@@ -51,41 +72,41 @@ namespace Engine
             }
         }
 
-        public static float LineWidth
+        public float LineWidth
         {
-            get => instance.line_width;
+            get => line_width;
             set
             {
-                if (instance.line_width == value)
+                if (line_width == value)
                     return;
 
-                instance.line_width = value;
+                line_width = value;
                 glLineWidth(value);
             }
         }
 
-        public static float PointSize
+        public float PointSize
         {
-            get => instance.point_size;
+            get => point_size;
             set
             {
-                if (instance.point_size == value)
+                if (point_size == value)
                     return;
 
-                instance.point_size = value;
+                point_size = value;
                 glPointSize(value);
             }
         }
 
-        public static bool ScissorEnabled
+        public bool ScissorEnabled
         {
-            get => instance.scissor;
+            get => scissor;
             set
             {
-                if (instance.scissor == value)
+                if (scissor == value)
                     return;
 
-                instance.scissor = value;
+                scissor = value;
                 if (value)
                     glEnable(EnableCap.ScissorTest);
                 else
@@ -93,34 +114,34 @@ namespace Engine
             }
         }
 
-        public static void Viewport(Rect rect) => glViewport((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+        public void Viewport(Rect rect) => glViewport((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
 
-        public static void Viewport(int x, int y, int w, int h) => glViewport(x, y, w, h);
+        public void Viewport(int x, int y, int w, int h) => glViewport(x, y, w, h);
 
-        public static void Scissor(int x, int y, int w, int h) => glScissor(x, y, w, h);
+        public void Scissor(int x, int y, int w, int h) => glScissor(x, y, w, h);
 
-        public static void SetView(Vector2 pos, float rot, Vector2 size)
+        public void SetView(Vector2 pos, float rot, Vector2 size)
         {
             var proj = Matrix4x4.CreateOrthographic(size.X, size.Y, -1, 1);
             var view = Matrix4x4.CreateFromYawPitchRoll(0, 0, rot);
             view.Translation = new Vector3(pos.X, pos.Y, 0);
             Matrix4x4.Invert(view, out view);
-            instance.view_mx = view * proj;
+            view_mx = view * proj;
         }
 
-        public static void SetView(float left, float right, float bottom, float top)
+        public void SetView(float left, float right, float bottom, float top)
         {
-            instance.view_mx = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, -1, 1);
+            view_mx = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, -1, 1);
         }
 
-        public static void Clear(Color color)
+        public void Clear(Color color)
         {
             var c = color.ToVector4();
             glClearColor(c.X, c.Y, c.Z, c.W);
             glClear(ClearBufferMask.ColorBufferBit);
         }
 
-        public static void Display()
+        public void Display()
         {
             glFlush();
             ScissorEnabled = false;
@@ -128,39 +149,15 @@ namespace Engine
             var err = glGetError();
             if (err != ErrorCode.NoError)
             {
-                var msg = $"Opengl error at frame '{Time.FrameIndex}', {err.ToString()}.";
-                Log.Error(msg);
+                var msg = $"Opengl error at frame '0', {err.ToString()}.";
+                App.Log.Error(msg);
                 throw new Exception(msg);
             }
 #endif
         }
-
-        internal static void init()
+        internal void shutdown()
         {
-            LoadFunctions();
-
-            var vendor = glGetString(StringName.Vendor);
-            var renderer = glGetString(StringName.Renderer);
-            var version = glGetString(StringName.Version);
-            instance.driver_info = $"{vendor} - {renderer} : {version} ";
-            Log.Info(DriverInfo);
-
-            // disable culling
-            glDisable(EnableCap.CullFace);
-
-            // no depth write
-            glDepthMask(false);
-
-            // no depth test
-            glDisable(EnableCap.DepthTest);
-
-            // disable blending
-            glDisable(EnableCap.Blend);
-        }
-
-        internal static void shut_down()
-        {
-            instance.driver_info = null;
+            driver_info = null;
         }
     }
 

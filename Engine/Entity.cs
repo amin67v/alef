@@ -11,7 +11,7 @@ namespace Engine
         /// <summary>
         /// Gets the active scene
         /// </summary>
-        public static Scene Scene => AppState.Active as Scene;
+        public static Scene Scene => App.ActiveState as Scene;
 
         /// <summary>
         /// Name of the entity

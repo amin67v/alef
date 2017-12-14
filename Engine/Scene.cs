@@ -87,7 +87,8 @@ namespace Engine
 
         public override void OnFrame()
         {
-            float dt = Time.FrameTime;
+            float dt = App.Time.FrameTime;
+            var gfx = App.Graphics;
 
             // update all entities
             var current = root;
@@ -100,10 +101,10 @@ namespace Engine
             // sort and render drawables
             inside_draw_loop = true;
             OnPreRender?.Invoke();
-            var wnd_size = Window.Size;
+            var wnd_size = App.Window.Size;
             var viewport = cam.Viewport * wnd_size;
-            Graphics.Viewport(viewport);
-            Graphics.Clear(cam.ClearColor);
+            gfx.Viewport(viewport);
+            gfx.Clear(cam.ClearColor);
 
             Vector2 view_size;
             if (cam.SizeMode == Camera.ViewSizeMode.Width)
@@ -116,16 +117,16 @@ namespace Engine
                 view_size.Y = cam.ViewSize;
                 view_size.X = view_size.Y * (viewport.Width / viewport.Height);
             }
-            Graphics.SetView(cam.Position, cam.Rotation, view_size);
+            gfx.SetView(cam.Position, cam.Rotation, view_size);
 
-            int comparsion(IDrawable x, IDrawable y) => x.SortKey - y.SortKey;
+            int comparsion(IDrawable x, IDrawable y) => x.Layer - y.Layer;
             draw_list.Sort(comparsion);
 
             for (int i = 0; i < draw_list.Count; i++)
                 draw_list[i].Draw();
 
             draw_list.Clear();
-            Graphics.Display();
+            gfx.Display();
             OnPostRender?.Invoke();
             inside_draw_loop = false;
         }

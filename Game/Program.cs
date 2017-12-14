@@ -32,7 +32,7 @@ namespace Game
     {
         SpriteSheet test_sheet;
         Transform xform = new Transform();
-        public int SortKey => 0;
+        public int Layer => 0;
 
         public override void OnBegin()
         {
@@ -41,7 +41,8 @@ namespace Game
 
         public override void OnUpdate(float dt)
         {
-            DynamicBatch.Draw(xform, test_sheet, 0);
+            //for (int i = 0; i < 50000; i++)
+                DynamicBatch.Draw(xform, test_sheet, 0);
         }
 
 

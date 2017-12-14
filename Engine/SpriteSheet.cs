@@ -65,7 +65,7 @@ namespace Engine
                 }
             }
 
-            return FromCacheOrFile(file, load_file) as SpriteSheet;
+            return App.ResourceManager.FromCacheOrFile(file, load_file) as SpriteSheet;
         }
 
         public int GetFrameIndex(string name) => Array.FindIndex(frames, (f) => f.Name == name);

@@ -54,6 +54,16 @@ namespace Engine
         public int Count => count;
 
         /// <summary>
+        /// Gets or sets first item inside the array
+        /// </summary>
+        public ref T First => ref array[0];
+
+        /// <summary>
+        /// Gets or sets last item inside the array
+        /// </summary>
+        public ref T Last => ref array[count - 1];
+
+        /// <summary>
         /// Pushes an object as the last item to this array.
         /// </summary>
         public void Push(T item)

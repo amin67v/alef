@@ -5,98 +5,13 @@ using static CSFML;
 
 namespace Engine
 {
-    public class Window
+    public sealed class Window
     {
-        static string title;
-        static IntPtr wnd_ptr;
-        static bool[] keys_state;
+        string title;
+        IntPtr wnd_ptr;
+        bool[] keys_state;
 
-        public static string Title
-        {
-            get => title;
-            set
-            {
-                title = value;
-                sfWindow_setTitle(wnd_ptr, value);
-            }
-        }
-
-        public static Vector2 CursorPos
-        {
-            get
-            {
-                Vec2i pos = sfMouse_getPosition(wnd_ptr);
-                return new Vector2(pos.X, pos.Y);
-            }
-            set
-            {
-                sfMouse_setPosition(new Vec2i((int)value.X, (int)value.Y), wnd_ptr);
-            }
-        }
-
-        public static Vector2 Size
-        {
-            get
-            {
-                var size = sfWindow_getSize(wnd_ptr);
-                return new Vector2(size.X, size.Y);
-            }
-            set
-            {
-                sfWindow_setSize(wnd_ptr, new Vec2u((uint)value.X, (uint)value.Y));
-            }
-        }
-
-        internal static void swap_buffers() => sfWindow_display(wnd_ptr);
-
-        internal static void do_events()
-        {
-            Event e;
-            while (sfWindow_pollEvent(wnd_ptr, out e))
-            {
-                switch (e.Type)
-                {
-                    case EventType.Closed:
-                        App.Quit();
-                        break;
-                    case EventType.Resized:
-                        AppState.Active.OnResize((int)e.Size.Width, (int)e.Size.Height);
-                        break;
-                    case EventType.KeyPressed:
-                        if (!keys_state[e.Key.Code])
-                        {
-                            keys_state[e.Key.Code] = true;
-                            AppState.Active.OnKeyDown((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
-                        }
-                        break;
-                    case EventType.KeyReleased:
-                        keys_state[e.Key.Code] = false;
-                        AppState.Active.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
-                        break;
-                    case EventType.MouseButtonPressed:
-                        AppState.Active.OnMouseDown((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
-                        break;
-                    case EventType.MouseButtonReleased:
-                        AppState.Active.OnMouseUp((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
-                        break;
-                    case EventType.TextEntered:
-                        AppState.Active.OnKeyChar(char.ConvertFromUtf32((int)e.Text.Unicode));
-                        break;
-                    case EventType.MouseWheelScrolled:
-                        if (e.MouseWheelScroll.Wheel == 0)
-                            AppState.Active.OnMouseScroll(new Vector2(0, e.MouseWheelScroll.Delta)); // vertical wheel
-                        else
-                            AppState.Active.OnMouseScroll(new Vector2(e.MouseWheelScroll.Delta, 0)); // horizontal wheel
-                            
-                        break;
-                    case EventType.MouseMoved:
-                        AppState.Active.OnMouseMove(new Vector2(e.MouseMove.X, e.MouseMove.Y));
-                        break;
-                }
-            }
-        }
-
-        internal static void init(AppConfig cfg)
+        internal Window(AppConfig cfg)
         {
             var mode = new VideoMode();
             mode.Width = (uint)cfg.Width;
@@ -125,7 +40,92 @@ namespace Engine
             keys_state = new bool[(int)Keys.KeyCount];
         }
 
-        internal static void shut_down()
+        public string Title
+        {
+            get => title;
+            set
+            {
+                title = value;
+                sfWindow_setTitle(wnd_ptr, value);
+            }
+        }
+
+        public Vector2 CursorPos
+        {
+            get
+            {
+                Vec2i pos = sfMouse_getPosition(wnd_ptr);
+                return new Vector2(pos.X, pos.Y);
+            }
+            set
+            {
+                sfMouse_setPosition(new Vec2i((int)value.X, (int)value.Y), wnd_ptr);
+            }
+        }
+
+        public Vector2 Size
+        {
+            get
+            {
+                var size = sfWindow_getSize(wnd_ptr);
+                return new Vector2(size.X, size.Y);
+            }
+            set
+            {
+                sfWindow_setSize(wnd_ptr, new Vec2u((uint)value.X, (uint)value.Y));
+            }
+        }
+
+        internal void swap_buffers() => sfWindow_display(wnd_ptr);
+
+        internal void do_events()
+        {
+            Event e;
+            while (sfWindow_pollEvent(wnd_ptr, out e))
+            {
+                switch (e.Type)
+                {
+                    case EventType.Closed:
+                        App.Quit();
+                        break;
+                    case EventType.Resized:
+                        App.ActiveState.OnResize((int)e.Size.Width, (int)e.Size.Height);
+                        break;
+                    case EventType.KeyPressed:
+                        if (!keys_state[e.Key.Code])
+                        {
+                            keys_state[e.Key.Code] = true;
+                            App.ActiveState.OnKeyDown((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
+                        }
+                        break;
+                    case EventType.KeyReleased:
+                        keys_state[e.Key.Code] = false;
+                        App.ActiveState.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
+                        break;
+                    case EventType.MouseButtonPressed:
+                        App.ActiveState.OnMouseDown((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
+                        break;
+                    case EventType.MouseButtonReleased:
+                        App.ActiveState.OnMouseUp((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
+                        break;
+                    case EventType.TextEntered:
+                        App.ActiveState.OnKeyChar(char.ConvertFromUtf32((int)e.Text.Unicode));
+                        break;
+                    case EventType.MouseWheelScrolled:
+                        if (e.MouseWheelScroll.Wheel == 0)
+                            App.ActiveState.OnMouseScroll(new Vector2(0, e.MouseWheelScroll.Delta)); // vertical wheel
+                        else
+                            App.ActiveState.OnMouseScroll(new Vector2(e.MouseWheelScroll.Delta, 0)); // horizontal wheel
+
+                        break;
+                    case EventType.MouseMoved:
+                        App.ActiveState.OnMouseMove(new Vector2(e.MouseMove.X, e.MouseMove.Y));
+                        break;
+                }
+            }
+        }
+
+        internal void shut_down()
         {
             sfWindow_close(wnd_ptr);
             sfWindow_destroy(wnd_ptr);

@@ -56,5 +56,41 @@ namespace Engine
                 return matrix;
             }
         }
+
+        public Vector2 LocalToWorld(Vector2 pos)
+        {
+            return Vector2.Transform(pos, Matrix);
+        }
+
+        public Vector2 WorldToLocal(Vector2 pos)
+        {
+            Matrix3x2 inv_mat;
+            if (Matrix3x2.Invert(Matrix, out inv_mat))
+            {
+                return Vector2.Transform(pos,inv_mat);
+            }
+            else
+            {
+                return pos;
+            }
+        }
+
+        public Vector2 LocalToWorldNormal(Vector2 pos)
+        {
+            return Vector2.TransformNormal(pos, Matrix);
+        }
+
+        public Vector2 WorldToLocalNormal(Vector2 pos)
+        {
+            Matrix3x2 inv_mat;
+            if (Matrix3x2.Invert(Matrix, out inv_mat))
+            {
+                return Vector2.TransformNormal(pos,inv_mat);
+            }
+            else
+            {
+                return pos;
+            }
+        }
     }
 }

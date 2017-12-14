@@ -52,7 +52,7 @@ namespace Engine
             if (glGetShaderiv(vertID, ShaderParameter.CompileStatus) == 0)
             {
                 var msg = glGetShaderInfoLog(vertID);
-                Log.Error(msg);
+                App.Log.Error(msg);
                 throw new Exception(msg);
             }
 
@@ -63,7 +63,7 @@ namespace Engine
             if (glGetShaderiv(fragID, ShaderParameter.CompileStatus) == 0)
             {
                 var msg = glGetShaderInfoLog(fragID);
-                Log.Error(msg);
+                App.Log.Error(msg);
                 throw new Exception(msg);
             }
 
@@ -79,7 +79,7 @@ namespace Engine
                 {
                     var msg = glGetProgramInfoLog(program);
                     glDeleteProgram(program);
-                    Log.Error(msg);
+                    App.Log.Error(msg);
                     throw new Exception(msg);
                 }
             }
@@ -136,7 +136,7 @@ namespace Engine
                 }
             }
 
-            return FromCacheOrFile(file, load_file) as Shader;
+            return App.ResourceManager.FromCacheOrFile(file, load_file) as Shader;
         }
 
 
@@ -227,7 +227,7 @@ namespace Engine
                 if (id == -1)
                 {
                     string msg = $"Shader does not contain uniform with name '{name}'";
-                    Log.Error(msg);
+                    App.Log.Error(msg);
                     throw new Exception(msg);
                 }
                 else

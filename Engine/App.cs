@@ -7,38 +7,89 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public static class App
+    public class App
     {
-        static string exe_path = null;
-        static Platform platform = Platform.Windows;
-        static bool running = false;
+        static App current;
+
+        AppState act_state = null;
+        AppState nxt_state = null;
+        Platform platform = Platform.Windows;
+        string exe_path = null;
+        ResourceManager res_mgr;
+        Graphics gfx;
+        Window window;
+        Time time;
+        Log log;
+        bool is_running = false;
+
+        App() { }
 
         /// <summary>
-        /// Path to the running app.
+        /// Gets or sets the active state for the current app
+        /// Note: changing active state does happen at the end of the frame and not immediately.
         /// </summary>
-        public static string ExePath => exe_path;
+        public static AppState ActiveState
+        {
+            get => current.act_state;
+            set => current.nxt_state = value;
+        }
 
         /// <summary>
-        /// Current runtime platform.
+        /// Gets the window for the current app
         /// </summary>
-        public static Platform Platform => platform;
+        public static Window Window => current.window;
 
         /// <summary>
-        /// Quit the app.
+        /// Gets the resource manager for the current app
         /// </summary>
-        public static void Quit() => running = false;
+        public static ResourceManager ResourceManager => current.res_mgr;
+
+        /// <summary>
+        /// Gets time info for the current app
+        /// </summary>
+        public static Time Time => current.time;
+
+        /// <summary>
+        /// Logger object used to log current app
+        /// </summary>
+        public static Log Log => current.log;
+
+        /// <summary>
+        /// Gets graphics devices for the current app
+        /// </summary>
+        public static Graphics Graphics => current.gfx;
+
+        /// <summary>
+        /// Path to the app
+        /// </summary>
+        public static string ExePath => current.exe_path;
+
+        /// <summary>
+        /// Current runtime platform
+        /// </summary>
+        public static Platform Platform => current.platform;
 
         /// <summary>
         /// Running the app with the specified config and the initial state.
         /// </summary>
         public static void Run(AppConfig cfg, AppState state)
         {
-            if (running)
-            {
-                Log.Warning("App is already running.");
-                return;
-            }
-            running = true;
+            if (current != null)
+                throw new Exception("App is already running!");
+
+            current = new App();
+            current.run(cfg, state); // runs main loop
+            current = null;
+        }
+
+        /// <summary>
+        /// Quit the app.
+        /// </summary>
+        public static void Quit() => current.is_running = false;
+
+        void run(AppConfig cfg, AppState state)
+        {
+            is_running = true;
 
             // detect runtime platform
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -53,28 +104,44 @@ namespace Engine
             // determine and store executable path
             exe_path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-            Time.init();
-            Log.init();
-            Window.init(cfg);
-            Graphics.init();
-            Resource.init(false);
-            AppState.init(state);
-
-            while (running)
+            log = new Log("log.txt");
+            time = new Time();
+            window = new Window(cfg);
+            gfx = new Graphics();
+            res_mgr = new ResourceManager();
+            if (state != null)
             {
-                Time.process();
-                AppState.Active.OnFrame();
-                Window.swap_buffers();
-                Window.do_events();
-                AppState.process();
+                act_state = state;
+                act_state.OnBegin();
+            }
+            else
+            {
+                throw new Exception("Initial state cant be null.");
             }
 
-            AppState.shut_down();
-            Resource.shut_down();
-            Graphics.shut_down();
-            Window.shut_down();
-            Log.shut_down();
-            Time.shut_down();
+            while (is_running)
+            {
+                time.process();
+                ActiveState.OnFrame();
+                window.swap_buffers();
+                window.do_events();
+                
+                if (nxt_state != null)
+                {
+                    act_state.OnEnd();
+                    act_state = nxt_state;
+                    act_state.OnBegin();
+                    nxt_state = null;
+                }
+            }
+
+            ActiveState.OnEnd();
+            nxt_state = act_state = null;
+            ResourceManager.shutdown();
+            Graphics.shutdown();
+            window.shut_down();
+            time.shutdown();
+            Log.Dispose();
         }
     }
 }

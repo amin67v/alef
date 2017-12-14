@@ -136,7 +136,7 @@ namespace Engine
 
             }
 
-            return FromCacheOrFile(file, load_file) as Texture;
+            return App.ResourceManager.FromCacheOrFile(file, load_file) as Texture;
         }
 
         protected override void OnDisposeUnmanaged()

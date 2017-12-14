@@ -12,27 +12,27 @@ namespace Engine
         Shader shader;
         MeshBuffer mb;
         BlendMode blend;
-        int sort_key;
+        int layer;
         bool dirty;
 
-        public SpriteBatch(SpriteSheet sheet, int sort_key)
-            : this(sheet, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, sort_key) { }
+        public SpriteBatch(SpriteSheet sheet, int layer)
+            : this(sheet, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, layer) { }
 
-        public SpriteBatch(SpriteSheet sheet, Shader shader, Transform xform, BlendMode blend_mode, int sort_key)
+        public SpriteBatch(SpriteSheet sheet, Shader shader, Transform xform, BlendMode blend_mode, int layer)
         {
             verts = new Array<Vertex>(20 * 6); // <-- make enough room for 20 sprites by default!
             this.sheet = sheet;
-            this.sort_key = sort_key;
+            this.layer = layer;
             this.shader = shader;
             this.xform = xform;
             this.blend = blend_mode;
             mb = MeshBuffer.Create();
         }
 
-        public int SortKey
+        public int Layer
         {
-            get => sort_key;
-            set => sort_key = value;
+            get => layer;
+            set => layer = value;
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Engine
             var sprite_verts = sheet[frame].Vertices;
             for (int i = 0; i < sprite_verts.Length; i++)
             {
-                var pos = Vector2.Transform(sprite_verts[i].Position, xform.Matrix);
+                var pos = xform.LocalToWorld(sprite_verts[i].Position);
                 verts.Push(new Vertex(pos, sprite_verts[i].Texcoord, color));
             }
             dirty = true;
@@ -99,7 +99,7 @@ namespace Engine
         {
             if (verts.Count > 0)
             {
-                Graphics.BlendMode = blend;
+                App.Graphics.BlendMode = blend;
                 Shader.Active = shader;
                 OnSetUniforms();
 
@@ -116,7 +116,7 @@ namespace Engine
         protected virtual void OnSetUniforms()
         {
             shader.SetTexture("main_tex", 0, sheet.Texture);
-            shader.SetMatrix4x4("view_mat", Graphics.ViewMatrix);
+            shader.SetMatrix4x4("view_mat", App.Graphics.ViewMatrix);
             if (xform != null)
                 shader.SetMatrix3x2("model_mat", xform.Matrix);
             else

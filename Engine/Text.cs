@@ -92,10 +92,11 @@ namespace Engine
         {
             if (dirty)
                 build_mesh();
-
-            Graphics.BlendMode = BlendMode.AlphaBlend;
+            
+            var gfx = App.Graphics;
+            gfx.BlendMode = BlendMode.AlphaBlend;
             Shader.Active = font_fx;
-            font_fx.SetMatrix4x4("view", Graphics.ViewMatrix);
+            font_fx.SetMatrix4x4("view", gfx.ViewMatrix);
             font_fx.SetMatrix3x2("model", xform.Matrix);
             font_fx.SetTexture("tex", 0, font.Texture);
             font_fx.SetColor("color", color);

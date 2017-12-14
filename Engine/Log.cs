@@ -6,16 +6,22 @@ namespace Engine
     /// <summary>
     /// Simple logging class
     /// </summary>
-    public static class Log
+    public class Log : Disposable
     {
-        static readonly object sync_obj = new object();
-        static StreamWriter writer = null;
-        static LogLevel level;
+        readonly object sync_obj = new object();
+        StreamWriter writer = null;
+        LogLevel level;
+
+        public Log(string file)
+        {
+            var fstream = File.Create(file);
+            writer = new StreamWriter(fstream);
+        }
 
         /// <summary>
         /// Get or set the logging level
         /// </summary>
-        public static LogLevel Level
+        public LogLevel Level
         {
             get => level;
             set => level = value;
@@ -26,7 +32,7 @@ namespace Engine
         /// <summary>
         /// prints a debug message to the output.
         /// </summary>
-        public static void Debug(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public void Debug(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             write(LogLevel.Debug, msg, file, line);
         }
@@ -34,7 +40,7 @@ namespace Engine
         /// <summary>
         /// prints an error message to the output.
         /// </summary>
-        public static void Error(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public void Error(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             write(LogLevel.Error, msg, file, line);
         }
@@ -42,7 +48,7 @@ namespace Engine
         /// <summary>
         /// prints an info message to the output.
         /// </summary>
-        public static void Info(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public void Info(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             write(LogLevel.Info, msg, file, line);
         }
@@ -50,12 +56,12 @@ namespace Engine
         /// <summary>
         /// prints a warning message to the output.
         /// </summary>
-        public static void Warning(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public void Warning(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             write(LogLevel.Warning, msg, file, line);
         }
 
-        static void write(LogLevel lvl, string message, string file, int line)
+        void write(LogLevel lvl, string message, string file, int line)
         {
             lock (sync_obj)
             {
@@ -75,14 +81,8 @@ namespace Engine
             }
         }
 
-        internal static void init()
-        {
-            var fstream = File.Create("log.txt");
-            writer = new StreamWriter(fstream);
-        }
-
-        internal static void shut_down()
-        {
+        protected override void OnDisposeManaged() 
+        { 
             writer.Dispose();
             writer = null;
         }

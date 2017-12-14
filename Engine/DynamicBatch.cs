@@ -14,12 +14,12 @@ namespace Engine
             Draw(xform, sheet, frame, 0, DefaultShaders.ColorMult, BlendMode.AlphaBlend, Color.White);
         }
 
-        public static void Draw(Transform xform, SpriteSheet sheet, int frame, int sort_key, Color color)
+        public static void Draw(Transform xform, SpriteSheet sheet, int frame, int layer, Color color)
         {
-            Draw(xform, sheet, frame, sort_key, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
+            Draw(xform, sheet, frame, layer, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
         }
 
-        public static void Draw(Transform xform, SpriteSheet sheet, int frame, int sort_key, Shader shader, BlendMode blend_mode, Color color)
+        public static void Draw(Transform xform, SpriteSheet sheet, int frame, int layer, Shader shader, BlendMode blend_mode, Color color)
         {
             if (instance == null)
                 instance = Scene.Spawn<DynamicBatch>("DynamicBatch");
@@ -29,13 +29,13 @@ namespace Engine
                 Sheet = sheet,
                 Shader = shader,
                 BlendMode = blend_mode,
-                SortKey = sort_key
+                Layer = layer
             };
 
             SpriteBatch target;
             if (!instance.batch_map.TryGetValue(key, out target))
             {
-                target = new SpriteBatch(sheet, shader, null, blend_mode, sort_key);
+                target = new SpriteBatch(sheet, shader, null, blend_mode, layer);
                 instance.batch_map.Add(key, target);
             }
 
@@ -68,12 +68,25 @@ namespace Engine
             Scene.OnPreRender -= on_pre_render;
         }
 
-        struct BatchKey
+        struct BatchKey : IEquatable<BatchKey>
         {
             public SpriteSheet Sheet;
             public BlendMode BlendMode;
             public Shader Shader;
-            public int SortKey;
+            public int Layer;
+
+            public bool Equals(BatchKey other)
+            {
+                return other.Layer == Layer &&
+                other.BlendMode == BlendMode &&
+                other.Shader == Shader &&
+                other.Sheet == Sheet;
+            }
+
+            public override int GetHashCode()
+            {
+                return Sheet.GetHashCode() * (int)BlendMode * Shader.GetHashCode() * Layer;
+            }
         }
     }
 }

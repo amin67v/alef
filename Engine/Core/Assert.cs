@@ -18,7 +18,6 @@ namespace Engine
             {
                 file = Path.GetFileName(file);
                 var msg = $"({file}:{line}) Assertion failed. {fail_msg}";
-                Log.Error(msg);
                 throw new Exception(msg);
             }
         }
