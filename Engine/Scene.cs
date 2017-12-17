@@ -122,7 +122,7 @@ namespace Engine
             draw_list.Clear();
             App.Graphics.Display();
             OnPostRender?.Invoke();
-            DebugDraw.DrawAll();
+            DebugDraw.Clear();
             is_render = false;
         }
 

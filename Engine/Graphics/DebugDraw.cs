@@ -125,7 +125,11 @@ namespace Engine
             // draw points
             mbuffer.UpdateVertices(points);
             mbuffer.Draw(PrimitiveType.Points);
+        }
 
+        [Conditional("DEBUG")]
+        public void Clear()
+        {
             points.Clear(false);
             lines.Clear(false);
             triangles.Clear(false);

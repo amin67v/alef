@@ -103,5 +103,11 @@ namespace Engine
                 glTexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureParameter.ClampToEdge);
             }
         }
+
+        protected override void OnDisposeUnmanaged()
+        {
+            glDeleteTexture(id);
+            id = 0;
+        }
     }
 }

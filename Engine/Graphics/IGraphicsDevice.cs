@@ -21,7 +21,9 @@ namespace Engine
         void SetRenderTarget(RenderTarget value);
         void SetShader(Shader value);
         void SetViewport(int x, int y, int w, int h);
+        void SetViewport(Rect rect);
         void SetScissor(int x, int y, int w, int h);
+        void SetScissor(Rect rect);
         void SetScissorOff();
         void SetPointSize(float value);
         void SetLineWidth(float value);

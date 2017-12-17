@@ -9,6 +9,28 @@ namespace Engine
         Vector4 vec;
 
         /// <summary>
+        /// Create rect with the specified (x, y, w, h).
+        /// </summary>
+        public Rect(float x, float y, float w, float h)
+        {
+            vec.X = x;
+            vec.Y = y;
+            vec.Z = MathF.Max(0, w);
+            vec.W = MathF.Max(0, h);
+        }
+
+        /// <summary>
+        /// Create rect with the specified pos and size.
+        /// </summary>.
+        public Rect(Vector2 pos, Vector2 size)
+        {
+            vec.X = pos.X;
+            vec.Y = pos.Y;
+            vec.Z = MathF.Max(0, size.X);
+            vec.W = MathF.Max(0, size.Y);
+        }
+
+        /// <summary>
         /// The x coord of the rect.
         /// </summary>
         public float X
@@ -196,36 +218,6 @@ namespace Engine
                 XMax = value.X;
                 YMax = value.Y;
             }
-        }
-
-        /// <summary>
-        /// Create rect with the specified (x, y, w, h).
-        /// </summary>
-        public Rect(float x, float y, float w, float h)
-        {
-            vec.X = x;
-            vec.Y = y;
-            vec.Z = w;
-            vec.W = h;
-        }
-
-        /// <summary>
-        /// Create rect with the specified pos and size.
-        /// </summary>.
-        public Rect(Vector2 pos, Vector2 size)
-        {
-            vec.X = pos.X;
-            vec.Y = pos.Y;
-            vec.Z = size.X;
-            vec.W = size.Y;
-        }
-
-        /// <summary>
-        /// Create rect with the specified Vector4.
-        /// </summary>
-        public Rect(Vector4 vector)
-        {
-            vec = vector;
         }
 
         /// <summary>

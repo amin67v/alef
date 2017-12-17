@@ -43,6 +43,8 @@ namespace Engine
 
         public void SetViewport(int x, int y, int w, int h) => glViewport(x, y, w, h);
 
+        public void SetViewport(Rect rect) => glViewport((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+
         public void SetScissor(int x, int y, int w, int h)
         {
             if (scissor == false)
@@ -52,6 +54,8 @@ namespace Engine
             }
             glScissor(x, y, w, h);
         }
+
+        public void SetScissor(Rect rect) => SetScissor((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
 
         public void SetScissorOff()
         {

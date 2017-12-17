@@ -7,10 +7,10 @@ using System.Text;
 unsafe internal static partial class OpenGL
 {
     static getProcAddress get_proc_address = null;
-    static string[]       str_arr          = new string[1];
-    static uint[]         uint_arr         = new uint[1];
-    static int[]          int_arr          = new int[1];
-    static bool           init             = false;
+    static string[] str_arr = new string[1];
+    static uint[] uint_arr = new uint[1];
+    static int[] int_arr = new int[1];
+    static bool init = false;
 
     public static void LoadFunctions()
     {
@@ -206,6 +206,11 @@ unsafe internal static partial class OpenGL
     internal static void glCreateVertexArrays(int n, uint[] arrays) { Delegates.glCreateVertexArrays(n, arrays); }
     internal static void glCullFace(CullFaceMode mode) { Delegates.glCullFace(mode); }
     internal static void glDeleteBuffers(int n, uint[] buffers) { Delegates.glDeleteBuffers(n, buffers); }
+    internal static void glDeleteBuffer(uint buffer)
+    {
+        uint_arr[0] = buffer;
+        Delegates.glDeleteBuffers(1, uint_arr);
+    }
     internal static void glDeleteFramebuffers(int n, uint[] framebuffers) { Delegates.glDeleteFramebuffers(n, framebuffers); }
     internal static void glDeleteFramebuffer(uint framebuffer)
     {
@@ -227,6 +232,11 @@ unsafe internal static partial class OpenGL
     }
     internal static void glDeleteTransformFeedbacks(int n, uint[] ids) { Delegates.glDeleteTransformFeedbacks(n, ids); }
     internal static void glDeleteVertexArrays(int n, uint[] arrays) { Delegates.glDeleteVertexArrays(n, arrays); }
+    internal static void glDeleteVertexArray(uint array)
+    {
+        uint_arr[0] = array;
+        Delegates.glDeleteVertexArrays(1, uint_arr);
+    }
     internal static void glDepthFunc(DepthFunction func) { Delegates.glDepthFunc(func); }
     internal static void glDepthMask(bool flag) { Delegates.glDepthMask(flag); }
     internal static void glDepthRange(double nearVal, double farVal) { Delegates.glDepthRange(nearVal, farVal); }

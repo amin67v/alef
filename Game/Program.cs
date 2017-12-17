@@ -14,18 +14,50 @@ namespace Game
         static void Main(string[] args)
         {
             var cfg = new AppConfig("Game App!!", 800, 600);
+            cfg.Vsync = true;
             App.Run(cfg, new MyGame());
         }
     }
 
     public class MyGame : Scene
     {
+        Camera cam2;
+        MeshBuffer mb;
+
         public override void OnBegin()
         {
             base.OnBegin();
-            MainCamera.ViewSize = 10;
-            MainCamera.SizeMode = Camera.ViewSizeMode.Height;
             Spawn<SimpleEntity>("New Sprite entity !!!");
+            MainCamera.Viewport = new Rect(0, 0, .25f, .5f);
+            cam2 = new Camera();
+            cam2.Viewport = new Rect(.5f, .5f, .5f, .25f);
+            cam2.ClearColor = Color.Green;
+            cam2.Target = RenderTarget.Create(cam2.PixelViewport.Size);
+
+            Array<Vertex> a = new Array<Vertex>(6);
+            a.Push(new Vertex(0, 0, 0, 0, Color.White));
+            a.Push(new Vertex(1, 1, 0, 0, Color.White));
+            a.Push(new Vertex(1, 0, 0, 0, Color.White));
+
+            a.Push(new Vertex(0, 0, 0, 0, Color.White));
+            a.Push(new Vertex(1, 1, 0, 0, Color.White));
+            a.Push(new Vertex(0, 1, 0, 0, Color.White));
+
+            mb = MeshBuffer.Create(a);
+        }
+
+        protected override void OnRender()
+        {
+            base.OnRender();
+            cam2.Render(this);
+
+            var gfx = App.Graphics;
+            gfx.ViewMatrix = MainCamera.ViewMatrix;
+            gfx.SetViewport(MainCamera.PixelViewport);
+            gfx.SetShader(DefaultShaders.ColorMult);
+            DefaultShaders.ColorMult.SetTexture("main_tex", 0, cam2.Target[0]);
+            DefaultShaders.ColorMult.SetMatrix4x4("view_mat", gfx.ViewMatrix);
+            mb.Draw(PrimitiveType.Triangles);
         }
     }
 
@@ -43,6 +75,7 @@ namespace Game
         public override void OnUpdate(float dt)
         {
             var cam = Scene.MainCamera;
+
             float x = 0;
             float y = 0;
             float r = 0;
@@ -76,9 +109,9 @@ namespace Game
             cam.Rotation += r;
             cam.ViewSize += z;
 
-            Scene.DebugDraw.FillRect(new Rect(0, 0, 1, 1), Color.Red);
-            Scene.DebugDraw.FillRect(new Rect(2, 2, 1, 2), Color.White);
-            DynamicBatch.Draw(xform, test_sheet, 0);
+           // Scene.DebugDraw.FillRect(new Rect(0, 0, 1, 1), Color.Red);
+           // Scene.DebugDraw.FillRect(new Rect(2, 2, 1, 2), Color.White);
+            //DynamicBatch.Draw(xform, test_sheet, 0);
         }
 
 

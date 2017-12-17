@@ -26,7 +26,18 @@ namespace Engine
                 var tex_id = (textures[i] as OpenglTexture).id;
                 glFramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + i, TextureTarget.Texture2D, tex_id, 0);
             }
-            glBindFramebuffer(FramebufferTarget.Framebuffer, current.id);
+            glBindFramebuffer(FramebufferTarget.Framebuffer, current == null ? 0 : current.id);
+        }
+
+        public override Texture this[int i] => textures[i];
+
+        protected override void OnDisposeManaged()
+        {
+            for (int i = 0; i < textures.Length; i++)
+                textures[i].Dispose();
+
+            textures = null;
+
         }
 
         protected override void OnDisposeUnmanaged()

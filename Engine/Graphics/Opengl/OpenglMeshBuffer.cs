@@ -98,5 +98,13 @@ namespace Engine
             }
             idx_count = count;
         }
+
+        protected override void OnDisposeUnmanaged()
+        {
+            glDeleteVertexArray(vao);
+            glDeleteBuffer(vbo);
+            glDeleteBuffer(ibo);
+            vao = vbo = ibo = 0;
+        }
     }
 }

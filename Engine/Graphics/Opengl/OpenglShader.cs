@@ -156,7 +156,6 @@ namespace Engine
 
         protected override void OnDisposeUnmanaged()
         {
-            base.OnDisposeUnmanaged();
             glDeleteProgram(this.id);
             this.id = 0;
         }
