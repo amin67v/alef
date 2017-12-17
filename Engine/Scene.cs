@@ -6,24 +6,29 @@ namespace Engine
 {
     public class Scene : AppState
     {
+        internal Array<IDrawable> draw_list;
         Camera cam;
         Entity root;
-        Array<IDrawable> draw_list;
-        bool inside_draw_loop;
+        bool is_render;
+        DebugDraw debug_draw;
 
         public event Action OnPreRender;
         public event Action OnPostRender;
 
-        public Scene()
-        {
-            cam = new Camera();
-            draw_list = new Array<IDrawable>(50);
-        }
+        /// <summary>
+        /// Gets scene main camera
+        /// </summary>
+        public Camera MainCamera => cam;
 
         /// <summary>
-        /// Gets scene camera
+        /// Returns true if we are inside rendering function, otherwide false
         /// </summary>
-        public Camera Camera => cam;
+        public bool IsRendering => is_render;
+
+        /// <summary>
+        /// Use to draw visual stuff for debugging purposes
+        /// </summary>
+        public DebugDraw DebugDraw => debug_draw;
 
         /// <summary>
         /// Finds first entity whose name match the given value
@@ -48,7 +53,7 @@ namespace Engine
         /// </summary>
         public T Spawn<T>(string name) where T : Entity, new()
         {
-            if (inside_draw_loop)
+            if (is_render)
                 throw new Exception("You can't spawn entity inside draw method");
 
             var entity = new T();
@@ -64,7 +69,7 @@ namespace Engine
         /// </summary>
         public void Destroy(Entity entity)
         {
-            if (inside_draw_loop)
+            if (is_render)
                 throw new Exception("You can't destroy entity inside draw method");
 
             if (entity.IsDestroyed == false)
@@ -83,12 +88,21 @@ namespace Engine
             }
         }
 
-        public void RegisterForDraw(IDrawable drawable) => draw_list.Push(drawable);
+        public override void OnBegin()
+        {
+            cam = new Camera();
+            draw_list = new Array<IDrawable>(50);
+            debug_draw = new DebugDraw();
+        }
 
+        /// <summary>
+        /// Note: dont override this method, use OnUpdate and OnRender instead
+        /// </summary>
         public override void OnFrame()
         {
             float dt = App.Time.FrameTime;
-            var gfx = App.Graphics;
+
+            OnUpdate(dt);
 
             // update all entities
             var current = root;
@@ -99,37 +113,30 @@ namespace Engine
             }
 
             // sort and render drawables
-            inside_draw_loop = true;
+            is_render = true;
             OnPreRender?.Invoke();
-            var wnd_size = App.Window.Size;
-            var viewport = cam.Viewport * wnd_size;
-            gfx.Viewport(viewport);
-            gfx.Clear(cam.ClearColor);
-
-            Vector2 view_size;
-            if (cam.SizeMode == Camera.ViewSizeMode.Width)
-            {
-                view_size.X = cam.ViewSize;
-                view_size.Y = view_size.X * (viewport.Height / viewport.Width);
-            }
-            else
-            {
-                view_size.Y = cam.ViewSize;
-                view_size.X = view_size.Y * (viewport.Width / viewport.Height);
-            }
-            gfx.SetView(cam.Position, cam.Rotation, view_size);
-
+            // sort draw list based on their layer
             int comparsion(IDrawable x, IDrawable y) => x.Layer - y.Layer;
             draw_list.Sort(comparsion);
-
-            for (int i = 0; i < draw_list.Count; i++)
-                draw_list[i].Draw();
-
+            OnRender();
             draw_list.Clear();
-            gfx.Display();
+            App.Graphics.Display();
             OnPostRender?.Invoke();
-            inside_draw_loop = false;
+            DebugDraw.DrawAll();
+            is_render = false;
         }
+
+        public void RegisterForDraw(IDrawable drawable) => draw_list.Push(drawable);
+
+        /// <summary>
+        /// Called at the start of each frame
+        /// </summary>
+        protected virtual void OnUpdate(float dt) { }
+
+        /// <summary>
+        /// Called when scene needs to be rendered
+        /// </summary>
+        protected virtual void OnRender() => MainCamera.Render(this);
 
         protected override void OnDisposeManaged()
         {

@@ -7,6 +7,7 @@ namespace Engine
 {
     public sealed class Window
     {
+        const uint KeyCount = (uint)Keys.KeyCount;
         string title;
         IntPtr wnd_ptr;
         bool[] keys_state;
@@ -76,6 +77,8 @@ namespace Engine
             }
         }
 
+        public bool IsKeyDown(Keys key) => get_key_state((int)key);
+
         internal void swap_buffers() => sfWindow_display(wnd_ptr);
 
         internal void do_events()
@@ -92,14 +95,14 @@ namespace Engine
                         App.ActiveState.OnResize((int)e.Size.Width, (int)e.Size.Height);
                         break;
                     case EventType.KeyPressed:
-                        if (!keys_state[e.Key.Code])
+                        if (get_key_state(e.Key.Code) == false)
                         {
-                            keys_state[e.Key.Code] = true;
+                            set_key_state(e.Key.Code, true);
                             App.ActiveState.OnKeyDown((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
                         }
                         break;
                     case EventType.KeyReleased:
-                        keys_state[e.Key.Code] = false;
+                        set_key_state(e.Key.Code, false);
                         App.ActiveState.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
                         break;
                     case EventType.MouseButtonPressed:
@@ -125,11 +128,25 @@ namespace Engine
             }
         }
 
-        internal void shut_down()
+        internal void shutdown()
         {
             sfWindow_close(wnd_ptr);
             sfWindow_destroy(wnd_ptr);
             wnd_ptr = IntPtr.Zero;
+        }
+
+        bool get_key_state(int code)
+        {
+            if ((uint)code < KeyCount)
+                return keys_state[code];
+            else
+                return false;
+        }
+
+        void set_key_state(int code, bool value)
+        {
+            if ((uint)code < KeyCount)
+                keys_state[code] = value;
         }
     }
 }

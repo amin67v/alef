@@ -7,6 +7,11 @@ namespace Engine
         /// </summary>
         int Layer { get; }
 
+        //   /// <summary>
+        //   /// Axis aligned bounding rect
+        //   /// </summary>
+        //   Rect Bounds { get; }
+
         /// <summary>
         /// The render function used to draw object
         /// </summary>

@@ -16,7 +16,7 @@ namespace Engine
         Platform platform = Platform.Windows;
         string exe_path = null;
         ResourceManager res_mgr;
-        Graphics gfx;
+        IGraphicsDevice gfx;
         Window window;
         Time time;
         Log log;
@@ -57,7 +57,7 @@ namespace Engine
         /// <summary>
         /// Gets graphics devices for the current app
         /// </summary>
-        public static Graphics Graphics => current.gfx;
+        public static IGraphicsDevice Graphics => current.gfx;
 
         /// <summary>
         /// Path to the app
@@ -107,7 +107,8 @@ namespace Engine
             log = new Log("log.txt");
             time = new Time();
             window = new Window(cfg);
-            gfx = new Graphics();
+            gfx = new OpenglDevice();
+            App.Log.Info($"Graphics Driver:\n{gfx.DriverInfo}\n");
             res_mgr = new ResourceManager();
             if (state != null)
             {
@@ -138,8 +139,8 @@ namespace Engine
             ActiveState.OnEnd();
             nxt_state = act_state = null;
             ResourceManager.shutdown();
-            Graphics.shutdown();
-            window.shut_down();
+            //Graphics.shutdown();
+            window.shutdown();
             time.shutdown();
             Log.Dispose();
         }

@@ -30,10 +30,10 @@ namespace Editor
 
         static Gui()
         {
-            shader = ResourceManager.LoadShader("shaders/default.glsl");
+            shader = DefaultShaders.ColorMult;
             tex = Texture.Create(1, 1, FilterMode.Point, true, new Color[] { Color.White });
             mesh = MeshBuffer.Create();
-            text = new Text("", ResourceManager.LoadFont("fonts/roboto_light_8.json"), Color.White);
+            text = new Text("", Font.Load("fonts/roboto_light_8.json"), Color.White);
         }
 
         public static Vector2 MousePos
@@ -50,9 +50,9 @@ namespace Editor
 
         public static void NewFrame()
         {
-            Graphics.BlendMode = BlendMode.AlphaBlend;
-            var wnd_size = Window.Size;
-            Graphics.SetView(0, wnd_size.X, wnd_size.Y, 0);
+            App.Graphics.BlendMode = BlendMode.AlphaBlend;
+            var wnd_size = App.Window.Size;
+            App.Graphics.SetView(0, wnd_size.X, wnd_size.Y, 0);
         }
 
         public static void EndRender()
@@ -211,8 +211,8 @@ namespace Editor
         public static void draw_rect(Rect rect, Color c)
         {
             Shader.Active = shader;
-            shader.SetMatrix4x4("view", Graphics.ViewMatrix);
-            shader.SetTexture("tex", 0, tex);
+            shader.SetMatrix4x4("view_mat", App.Graphics.ViewMatrix);
+            shader.SetTexture("main_tex", 0, tex);
 
             verts.Clear();
             verts.Push(new Vertex(rect.XMinYMin, Vector2.Zero, c));

@@ -241,9 +241,10 @@ namespace Engine
         /// <summary>
         /// Clears the array from all items.
         /// </summary>
-        public void Clear()
+        public void Clear(bool reset = true)
         {
-            Array.Clear(array, 0, count);
+            if (reset)
+                Array.Clear(array, 0, count);
             count = 0;
         }
 

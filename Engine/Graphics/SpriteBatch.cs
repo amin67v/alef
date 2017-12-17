@@ -91,7 +91,7 @@ namespace Engine
         /// </summary>
         public void Clear()
         {
-            verts.Clear();
+            verts.Clear(false);
             dirty = true;
         }
 
@@ -99,8 +99,9 @@ namespace Engine
         {
             if (verts.Count > 0)
             {
-                App.Graphics.BlendMode = blend;
-                Shader.Active = shader;
+                var gfx = App.Graphics;
+                gfx.SetBlendMode(blend);
+                gfx.SetShader(shader);
                 OnSetUniforms();
 
                 if (dirty)
@@ -125,7 +126,7 @@ namespace Engine
 
         protected override void OnDisposeManaged()
         {
-            verts.Clear();
+            verts.Clear(false);
             verts = null;
             xform = null;
             sheet = null;

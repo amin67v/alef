@@ -12,15 +12,16 @@ namespace Editor
 
         public override void OnResize(int width, int height)
         {
-            Graphics.Viewport(0, 0, width, height);
+            App.Graphics.Viewport(0, 0, width, height);
         }
-
-        public override void OnRender()
+        
+        public override void OnFrame()
         {
-            Graphics.Clear(clear_color);
+            var gfx = App.Graphics;
+            gfx.Clear(clear_color);
 
-            var rect = new Rect(Vector2.Zero, Window.Size);
-            Graphics.SetView(rect.X, rect.XMax, rect.YMax, rect.Y);
+            var rect = new Rect(Vector2.Zero, App.Window.Size);
+            gfx.SetView(rect.X, rect.XMax, rect.YMax, rect.Y);
 
             Gui.NewFrame();
 
@@ -41,7 +42,7 @@ namespace Editor
             str = Gui.TextInput(6, new Rect(100, 250, 100, 20), str);
 
             Gui.EndRender();
-            Graphics.Display();
+            gfx.Display();
         }
 
         public override void OnMouseMove(Vector2 pos)

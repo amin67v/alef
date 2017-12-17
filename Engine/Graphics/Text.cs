@@ -12,9 +12,9 @@ namespace Engine
         Font font = null;
         Color color = Color.White;
         float line = 1;
-        Array<Vertex> vert_arr = null;
+        Array<Vertex> verts = null;
         MeshBuffer mesh = null;
-        Shader font_fx = null;
+        Shader shader = null;
         bool dirty = true;
 
         public Text(string content, Font font, Color color)
@@ -25,9 +25,9 @@ namespace Engine
             this.color = color;
 
             int vtx_count = string.IsNullOrEmpty(content) ? 0 : content.Length * 6;
-            vert_arr = new Array<Vertex>(vtx_count);
+            verts = new Array<Vertex>(vtx_count);
             mesh = MeshBuffer.Create(IntPtr.Zero, vtx_count);
-            font_fx = DefaultShaders.Font;
+            shader = DefaultShaders.Font;
         }
 
         public string Content
@@ -94,16 +94,16 @@ namespace Engine
                 build_mesh();
             
             var gfx = App.Graphics;
-            gfx.BlendMode = BlendMode.AlphaBlend;
-            Shader.Active = font_fx;
-            font_fx.SetMatrix4x4("view", gfx.ViewMatrix);
-            font_fx.SetMatrix3x2("model", xform.Matrix);
-            font_fx.SetTexture("tex", 0, font.Texture);
-            font_fx.SetColor("color", color);
+            gfx.SetBlendMode(BlendMode.AlphaBlend);
+            gfx.SetShader(shader);
+            shader.SetMatrix4x4("view_mat", gfx.ViewMatrix);
+            shader.SetMatrix3x2("model_mat", xform.Matrix);
+            shader.SetTexture("main_tex", 0, font.Texture);
+            shader.SetColor("color", color);
 
             mesh.Draw(PrimitiveType.Triangles);
         }
-
+ 
         void build_mesh()
         {
             if (font == null || string.IsNullOrEmpty(content))
@@ -112,7 +112,7 @@ namespace Engine
                 return;
             }
 
-            vert_arr.Clear();
+            verts.Clear(false);
             var tex_size = font.Texture.Size;
 
             Vector2 pos = Vector2.Zero;
@@ -127,7 +127,7 @@ namespace Engine
                 float xpush = MathF.Round((float)align_x * .5f * pos.X);
 
                 for (int i = line_start_idx; i < line_end_idx; i++)
-                    vert_arr.Items[i].Position.X -= xpush;
+                    verts.Items[i].Position.X -= xpush;
             }
 
             void aling_v()
@@ -136,8 +136,8 @@ namespace Engine
                     return;
 
                 float ypush = MathF.Round(((float)align_y * .5f * pos.Y) + (font.Height * .5f));
-                for (int i = 0; i < vert_arr.Count; i++)
-                    vert_arr.Items[i].Position.Y -= ypush;
+                for (int i = 0; i < verts.Count; i++)
+                    verts.Items[i].Position.Y -= ypush;
             }
 
             for (int i = 0; i < content.Length; i++)
@@ -165,19 +165,19 @@ namespace Engine
                 var vert_pos = glyph.Rect;
                 vert_pos.Position = glyph.Offset + pos;
 
-                vert_arr.Push(new Vertex(vert_pos.XMinYMin, vert_uv.XMinYMax, Color.White));
-                vert_arr.Push(new Vertex(vert_pos.XMinYMax, vert_uv.XMinYMin, Color.White));
-                vert_arr.Push(new Vertex(vert_pos.XMaxYMax, vert_uv.XMaxYMin, Color.White));
-                vert_arr.Push(new Vertex(vert_pos.XMinYMin, vert_uv.XMinYMax, Color.White));
-                vert_arr.Push(new Vertex(vert_pos.XMaxYMax, vert_uv.XMaxYMin, Color.White));
-                vert_arr.Push(new Vertex(vert_pos.XMaxYMin, vert_uv.XMaxYMax, Color.White));
-                line_end_idx = vert_arr.Count;
+                verts.Push(new Vertex(vert_pos.XMinYMin, vert_uv.XMinYMax, Color.White));
+                verts.Push(new Vertex(vert_pos.XMinYMax, vert_uv.XMinYMin, Color.White));
+                verts.Push(new Vertex(vert_pos.XMaxYMax, vert_uv.XMaxYMin, Color.White));
+                verts.Push(new Vertex(vert_pos.XMinYMin, vert_uv.XMinYMax, Color.White));
+                verts.Push(new Vertex(vert_pos.XMaxYMax, vert_uv.XMaxYMin, Color.White));
+                verts.Push(new Vertex(vert_pos.XMaxYMin, vert_uv.XMaxYMax, Color.White));
+                line_end_idx = verts.Count;
                 pos.X += glyph.Width;
             }
             align_h();
             aling_v();
 
-            mesh.UpdateVertices(vert_arr);
+            mesh.UpdateVertices(verts);
             dirty = false;
         }
     }
