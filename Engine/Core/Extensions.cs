@@ -9,18 +9,41 @@ namespace Engine
     public static class Extensions
     {
         /// <summary>
-        /// Generate Knuth hash code for the string.
+        /// Generates hash code for the given string
         /// </summary>
-        public static uint KnuthHash(this string str)
+        public static int GetFastHash(this string str)
         {
-            uint h = 2654435761u;
-            int len = str.Length;
-            for (int i = 0; i < len; i++)
+            unchecked
             {
-                h += str[i];
-                h *= 2654435761u;
+                const int prime = 486187739;
+                int h = prime;
+                int len = str.Length;
+                for (int i = 0; i < len; i++)
+                {
+                    h += str[i];
+                    h *= prime;
+                }
+                return h;
             }
-            return h;
+        }
+
+        /// <summary>
+        /// Generates hash code for the given byte array
+        /// </summary>
+        public static int GetFastHash(this byte[] bytes)
+        {
+            unchecked
+            {
+                const int prime = 486187739;
+                int h = prime;
+                int len = bytes.Length;
+                for (int i = 0; i < len; i++)
+                {
+                    h += bytes[i];
+                    h *= prime;
+                }
+                return h;
+            }
         }
 
         /// <summary>
@@ -53,6 +76,6 @@ namespace Engine
             return MathF.Min(max, MathF.Max(min, value));
         }
 
-        
+
     }
 }

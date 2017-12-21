@@ -2,11 +2,11 @@ namespace Engine
 {
     public abstract class Entity
     {
-        internal Entity next, prev;
-
         string name;
-        uint name_hash;
-        bool is_destroyed = false;
+        internal int name_hash;
+        internal Entity next, prev;
+        internal bool is_destroyed = false;
+
 
         /// <summary>
         /// Gets the active scene
@@ -22,7 +22,7 @@ namespace Engine
             set
             {
                 name = value;
-                name_hash = name.KnuthHash();
+                name_hash = name.GetFastHash();
             }
         }
 
@@ -45,9 +45,5 @@ namespace Engine
         /// Called when entity is going to be destroyed
         /// </summary>
         public virtual void OnDestroy() { }
-
-        internal void set_destroyed() => is_destroyed = true;
-
-        internal uint get_name_hash() => name_hash;
     }
 }

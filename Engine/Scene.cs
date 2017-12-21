@@ -35,11 +35,11 @@ namespace Engine
         /// </summary>
         public Entity Find(string name)
         {
-            var hash = name.KnuthHash();
+            var hash = name.GetFastHash();
             var current = root;
             while (current != null)
             {
-                if (current.get_name_hash() == hash && current.Name == name)
+                if (current.name_hash == hash && current.Name == name)
                     return current;
 
                 current = current.next;
@@ -72,7 +72,7 @@ namespace Engine
             if (is_render)
                 throw new Exception("You can't destroy entity inside draw method");
 
-            if (entity.IsDestroyed == false)
+            if (entity.is_destroyed == false)
             {
                 if (root == entity)
                     root = entity.next;
@@ -84,7 +84,7 @@ namespace Engine
                 if (entity.next != null)
                     entity.next.prev = entity.prev;
 
-                entity.set_destroyed();
+                entity.is_destroyed = true;
             }
         }
 

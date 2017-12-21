@@ -7,8 +7,7 @@ namespace Engine
     {
         string content = null;
         Transform xform = new Transform();
-        TextAlignX align_x = TextAlignX.Left;
-        TextAlignY align_y = TextAlignY.Top;
+        TextAlignment align = TextAlignment.TopLeft;
         Font font = null;
         Color color = Color.White;
         float line = 1;
@@ -42,23 +41,13 @@ namespace Engine
 
         public Transform Transform => xform;
 
-        public TextAlignX AlignX
+        public TextAlignment Alignment
         {
-            get => align_x;
+            get => align;
             set
             {
+                align = value;
                 dirty = true;
-                align_x = value;
-            }
-        }
-
-        public TextAlignY AlignY
-        {
-            get => align_y;
-            set
-            {
-                dirty = true;
-                align_y = value;
             }
         }
 
@@ -92,7 +81,7 @@ namespace Engine
         {
             if (dirty)
                 build_mesh();
-            
+
             var gfx = App.Graphics;
             gfx.SetBlendMode(BlendMode.AlphaBlend);
             gfx.SetShader(shader);
@@ -103,7 +92,7 @@ namespace Engine
 
             mesh.Draw(PrimitiveType.Triangles);
         }
- 
+
         void build_mesh()
         {
             if (font == null || string.IsNullOrEmpty(content))
@@ -121,10 +110,14 @@ namespace Engine
 
             void align_h()
             {
-                if (align_x == TextAlignX.Left)
-                    return;
+                float xpush = 0;
 
-                float xpush = MathF.Round((float)align_x * .5f * pos.X);
+                if ((align & TextAlignment.Left) != 0)
+                    return;
+                else if ((align & TextAlignment.Right) != 0)
+                    xpush = MathF.Round(pos.X);
+                else
+                    xpush = MathF.Round(pos.X * .5f);
 
                 for (int i = line_start_idx; i < line_end_idx; i++)
                     verts.Items[i].Position.X -= xpush;
@@ -132,10 +125,15 @@ namespace Engine
 
             void aling_v()
             {
-                if (align_y == TextAlignY.Top)
-                    return;
+                float ypush = 0;
 
-                float ypush = MathF.Round(((float)align_y * .5f * pos.Y) + (font.Height * .5f));
+                if ((align & TextAlignment.Top) != 0)
+                    return;
+                else if ((align & TextAlignment.Bottom) != 0)
+                    ypush = MathF.Round(pos.Y + font.Height * .5f);
+                else
+                    ypush = MathF.Round(pos.Y * .5f + font.Height * .5f);
+
                 for (int i = 0; i < verts.Count; i++)
                     verts.Items[i].Position.Y -= ypush;
             }
@@ -182,6 +180,16 @@ namespace Engine
         }
     }
 
-    public enum TextAlignX { Left, Center, Right }
-    public enum TextAlignY { Top, Center, Bottom }
+    public enum TextAlignment
+    {
+        Middle = 0x00,
+        Left = 0x01,
+        Right = 0x02,
+        Top = 0x04,
+        Bottom = 0x08,
+        TopLeft = Top | Left,
+        TopRight = Top | Right,
+        BottomLeft = Bottom | Left,
+        BottomRight = Bottom | Right
+    }
 }

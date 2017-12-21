@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Engine
 {
-    public struct Rect
+    public struct Rect : IEquatable<Rect>
     {
         Vector4 vec;
 
@@ -223,6 +223,7 @@ namespace Engine
         /// <summary>
         /// Checks if point lies within this rect.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(Vector2 point)
         {
             return point.X > X && point.X < XMax &&
@@ -232,6 +233,7 @@ namespace Engine
         /// <summary>
         /// Checks if this rect overlap the other rect.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Overlap(Rect other)
         {
             return X < other.XMax && XMax > other.X &&
@@ -241,6 +243,7 @@ namespace Engine
         /// <summary>
         /// Inflate this rect by x, y
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Inflate(float x, float y)
         {
             X -= x;
@@ -252,17 +255,25 @@ namespace Engine
         /// <summary>
         /// Extends this rect to contain the point.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Extend(Vector2 point)
         {
-            if (point.X < XMin)
-                XMin = point.X;
-            else if (point.X > XMax)
-                XMax = point.X;
+            XMin = MathF.Min(XMin, point.X);
+            XMax = MathF.Max(XMax, point.X);
+            YMin = MathF.Min(YMin, point.Y);
+            YMax = MathF.Max(YMax, point.Y);
+        }
 
-            if (point.Y < YMin)
-                YMin = point.Y;
-            else if (point.Y > YMax)
-                YMax = point.Y;
+        /// <summary>
+        /// Extends this rect to contain the other rect.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Extend(Rect rect)
+        {
+            XMin = MathF.Min(XMin, rect.XMin);
+            XMax = MathF.Max(XMax, rect.XMax);
+            YMin = MathF.Min(YMin, rect.YMin);
+            YMax = MathF.Max(YMax, rect.YMax);
         }
 
         /// <summary>
@@ -271,6 +282,12 @@ namespace Engine
         public override string ToString()
         {
             return $"({vec.X}, {vec.Y}, {vec.Z}, {vec.W})";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Equals(Rect other)
+        {
+            return vec == other.vec;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

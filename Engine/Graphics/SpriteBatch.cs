@@ -12,21 +12,48 @@ namespace Engine
         Shader shader;
         MeshBuffer mb;
         BlendMode blend;
+        Rect bounds;
         int layer;
-        bool dirty;
+        bool mb_dirty = true;
+        bool bounds_dirty = true;
 
         public SpriteBatch(SpriteSheet sheet, int layer)
-            : this(sheet, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, layer) { }
+            : this(sheet, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, layer, 20) { }
 
-        public SpriteBatch(SpriteSheet sheet, Shader shader, Transform xform, BlendMode blend_mode, int layer)
+        public SpriteBatch(SpriteSheet sheet, Shader shader, Transform xform, BlendMode blend_mode, int layer, int capacity)
         {
-            verts = new Array<Vertex>(20 * 6); // <-- make enough room for 20 sprites by default!
+            verts = new Array<Vertex>(capacity * 6);
             this.sheet = sheet;
             this.layer = layer;
             this.shader = shader;
             this.xform = xform;
             this.blend = blend_mode;
             mb = MeshBuffer.Create();
+        }
+
+        public Rect Bounds
+        {
+            get
+            {
+                if (bounds_dirty)
+                {
+                    float xmin = float.MaxValue;
+                    float xmax = float.MinValue;
+                    float ymin = float.MaxValue;
+                    float ymax = float.MinValue;
+                    for (int i = 0; i < verts.Count; i++)
+                    {
+                        var pos = verts[i].Position;
+                        xmin = MathF.Min(xmin, pos.X);
+                        xmax = MathF.Max(xmax, pos.X);
+                        ymin = MathF.Min(ymin, pos.Y);
+                        ymax = MathF.Max(ymax, pos.Y);
+                    }
+                    bounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
+                    bounds_dirty = false;
+                }
+                return bounds;
+            }
         }
 
         public int Layer
@@ -83,7 +110,7 @@ namespace Engine
                 var pos = xform.LocalToWorld(sprite_verts[i].Position);
                 verts.Push(new Vertex(pos, sprite_verts[i].Texcoord, color));
             }
-            dirty = true;
+            mb_dirty = bounds_dirty = true;
         }
 
         /// <summary>
@@ -92,7 +119,7 @@ namespace Engine
         public void Clear()
         {
             verts.Clear(false);
-            dirty = true;
+            mb_dirty = bounds_dirty = true;
         }
 
         public void Draw()
@@ -104,9 +131,13 @@ namespace Engine
                 gfx.SetShader(shader);
                 OnSetUniforms();
 
-                if (dirty)
+                if (mb_dirty)
+                {
                     mb.UpdateVertices(verts);
+                    mb_dirty = false;
+                }
 
+                (App.ActiveState as Scene)?.DebugDraw.Rect(Bounds, Color.Red);
                 mb.Draw(PrimitiveType.Triangles);
             }
         }

@@ -6,13 +6,16 @@ namespace Engine
     public class Camera
     {
         ViewSizeMode size_mode = ViewSizeMode.Height;
-        Color color = new Color(230, 230, 230, 255);
-        Vector2 pos = Vector2.Zero;
-        float rot = 0;
-        float size = 5;
-        Rect viewport = new Rect(0, 0, 1, 1);
-        Matrix4x4 matrix = Matrix4x4.Identity;
         RenderTarget target;
+        DebugDraw debug_draw = new DebugDraw();
+        Matrix4x4 inv_matrix = Matrix4x4.Identity;
+        Matrix4x4 matrix = Matrix4x4.Identity;
+        Vector2 pos = Vector2.Zero;
+        Color color = new Color(230, 230, 230, 255);
+        float rot = 0;
+        float size = 10;
+        Rect viewport = new Rect(0, 0, 1, 1);
+        Rect view_rect;
         bool dirty = true;
 
         /// <summary>
@@ -58,7 +61,7 @@ namespace Engine
             get => size;
             set
             {
-                size = value;
+                size = MathF.Max(0, value);
                 dirty = true;
             }
         }
@@ -80,12 +83,24 @@ namespace Engine
             get => viewport;
             set
             {
-                //value.X = MathF.Max(0, value.X);
-                //value.Y = MathF.Max(0, value.Y);
-                //value.Width = MathF.Min(1, value.Width);
-                //value.Height = MathF.Min(1, value.Height);
+                value.X = MathF.Max(0, value.X);
+                value.Y = MathF.Max(0, value.Y);
+                value.Width = MathF.Min(1, value.Width);
+                value.Height = MathF.Min(1, value.Height);
                 viewport = value;
                 dirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Gets the axis aligned view rect in world space
+        /// </summary>
+        public Rect ViewRect
+        {
+            get
+            {
+                validate();
+                return view_rect;
             }
         }
 
@@ -110,34 +125,26 @@ namespace Engine
         {
             get
             {
-                if (dirty)
-                {
-                    var pixelvp = PixelViewport;
-                    Vector2 size_xy;
-                    if (SizeMode == ViewSizeMode.Width)
-                    {
-                        size_xy.X = ViewSize;
-                        size_xy.Y = size_xy.X * (pixelvp.Height / pixelvp.Width);
-                    }
-                    else
-                    {
-                        size_xy.Y = ViewSize;
-                        size_xy.X = size_xy.Y * (pixelvp.Width / pixelvp.Height);
-                    }
-
-                    var proj = Matrix4x4.CreateOrthographic(size_xy.X, size_xy.Y, -1, 1);
-                    var view = Matrix4x4.CreateFromYawPitchRoll(0, 0, rot);
-                    view.Translation = new Vector3(pos.X, pos.Y, 0);
-                    Matrix4x4.Invert(view, out view);
-                    matrix = view * proj;
-                    dirty = false;
-                }
+                validate();
                 return matrix;
+            }
+        }
+
+        /// <summary>
+        /// Invert of view matrix for the camera
+        /// </summary>
+        public Matrix4x4 InvViewMatrix
+        {
+            get
+            {
+                validate();
+                return inv_matrix;
             }
         }
 
         public Vector2 ScreenToWorld(Vector2 pos)
         {
+            var pixelvp = PixelViewport;
             var ndc = pos / App.Window.Size;
             ndc.X = ndc.X * 2 - 1;
             ndc.Y = ndc.Y * 2 - 1;
@@ -154,9 +161,7 @@ namespace Engine
 
         public Vector2 NdcToWorld(Vector2 pos)
         {
-            Matrix4x4 inv;
-            Matrix4x4.Invert(ViewMatrix, out inv);
-            return Vector2.Transform(pos, inv);
+            return Vector2.Transform(pos, InvViewMatrix);
         }
 
         public Vector2 WorldToNdc(Vector2 pos)
@@ -177,11 +182,65 @@ namespace Engine
             gfx.Clear(ClearColor);
 
             gfx.ViewMatrix = ViewMatrix;
-            
-            for (int i = 0; i < scene.draw_list.Count; i++)
-                scene.draw_list[i].Draw();
 
+            for (int i = 0; i < scene.draw_list.Count; i++)
+            {
+                var item = scene.draw_list[i];
+                if (ViewRect.Overlap(item.Bounds))
+                    item.Draw();
+            }
+
+            debug_draw.Rect(ViewRect, Color.Blue);
             scene.DebugDraw.DrawAll();
+            debug_draw.DrawAll();
+            debug_draw.Clear();
+        }
+
+        void validate()
+        {
+            if (dirty)
+            {
+                // calculate view matrix and inv view matrix
+                {
+                    var pixelvp = PixelViewport;
+                    Vector2 size_xy;
+                    if (SizeMode == ViewSizeMode.Width)
+                    {
+                        size_xy.X = ViewSize;
+                        size_xy.Y = size_xy.X * (pixelvp.Height / pixelvp.Width);
+                    }
+                    else
+                    {
+                        size_xy.Y = ViewSize;
+                        size_xy.X = size_xy.Y * (pixelvp.Width / pixelvp.Height);
+                    }
+
+                    var proj = Matrix4x4.CreateOrthographic(size_xy.X, size_xy.Y, -1, 1);
+                    var view = Matrix4x4.CreateFromYawPitchRoll(0, 0, rot);
+                    view.Translation = new Vector3(pos.X, pos.Y, 0);
+                    Matrix4x4.Invert(view, out view);
+                    matrix = view * proj;
+                    Matrix4x4.Invert(matrix, out inv_matrix);
+                }
+
+                // calculate view rect
+                {
+                    const float s = .8f;
+
+                    var r = new Rect(float.MinValue, float.MinValue, float.MaxValue, float.MaxValue);
+                    var a = Vector2.Transform(new Vector2(-s, -s), inv_matrix);
+                    var b = Vector2.Transform(new Vector2(s, s), inv_matrix);
+                    var c = Vector2.Transform(new Vector2(-s, s), inv_matrix);
+                    var d = Vector2.Transform(new Vector2(s, -s), inv_matrix);
+                    r.XMin = MathF.Min(MathF.Min(a.X, b.X), MathF.Min(c.X, d.X));
+                    r.XMax = MathF.Max(MathF.Max(a.X, b.X), MathF.Max(c.X, d.X));
+                    r.YMin = MathF.Min(MathF.Min(a.Y, b.Y), MathF.Min(c.Y, d.Y));
+                    r.YMax = MathF.Max(MathF.Max(a.Y, b.Y), MathF.Max(c.Y, d.Y));
+                    view_rect = r;
+                }
+
+                dirty = false;
+            }
         }
 
         public enum ViewSizeMode { Width, Height }

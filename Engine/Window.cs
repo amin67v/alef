@@ -10,7 +10,9 @@ namespace Engine
         const uint KeyCount = (uint)Keys.KeyCount;
         string title;
         IntPtr wnd_ptr;
+        Vector2 mpos;
         bool[] keys_state;
+        bool[] mos_state;
 
         internal Window(AppConfig cfg)
         {
@@ -39,6 +41,7 @@ namespace Engine
             sfWindow_setKeyRepeatEnabled(wnd_ptr, true);
 
             keys_state = new bool[(int)Keys.KeyCount];
+            mos_state = new bool[5];
         }
 
         public string Title
@@ -51,17 +54,10 @@ namespace Engine
             }
         }
 
-        public Vector2 CursorPos
+        public Vector2 CursorPosition
         {
-            get
-            {
-                Vec2i pos = sfMouse_getPosition(wnd_ptr);
-                return new Vector2(pos.X, pos.Y);
-            }
-            set
-            {
-                sfMouse_setPosition(new Vec2i((int)value.X, (int)value.Y), wnd_ptr);
-            }
+            get => mpos;
+            set => sfMouse_setPosition(new Vec2i((int)value.X, (int)value.Y), wnd_ptr);
         }
 
         public Vector2 Size
@@ -78,6 +74,8 @@ namespace Engine
         }
 
         public bool IsKeyDown(Keys key) => get_key_state((int)key);
+
+        public bool IsMouseDown(int button) => get_mos_state(button);
 
         internal void swap_buffers() => sfWindow_display(wnd_ptr);
 
@@ -106,9 +104,11 @@ namespace Engine
                         App.ActiveState.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
                         break;
                     case EventType.MouseButtonPressed:
+                        set_mos_state(e.MouseButton.Button, true);
                         App.ActiveState.OnMouseDown((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
                         break;
                     case EventType.MouseButtonReleased:
+                        set_mos_state(e.MouseButton.Button, false);
                         App.ActiveState.OnMouseUp((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
                         break;
                     case EventType.TextEntered:
@@ -119,10 +119,19 @@ namespace Engine
                             App.ActiveState.OnMouseScroll(new Vector2(0, e.MouseWheelScroll.Delta)); // vertical wheel
                         else
                             App.ActiveState.OnMouseScroll(new Vector2(e.MouseWheelScroll.Delta, 0)); // horizontal wheel
-
                         break;
                     case EventType.MouseMoved:
-                        App.ActiveState.OnMouseMove(new Vector2(e.MouseMove.X, e.MouseMove.Y));
+                        mpos = new Vector2(e.MouseMove.X, e.MouseMove.Y);
+                        App.ActiveState.OnMouseMove(mpos);
+                        break;
+                    case EventType.LostFocus:
+                        // set all key state to false after losing focus
+                        for (int i = 0; i < keys_state.Length; i++)
+                            keys_state[i] = false;
+                        
+                        for (int i = 0; i < mos_state.Length; i++)
+                            mos_state[i] = false;
+
                         break;
                 }
             }
@@ -147,6 +156,20 @@ namespace Engine
         {
             if ((uint)code < KeyCount)
                 keys_state[code] = value;
+        }
+
+        bool get_mos_state(int i)
+        {
+            if ((uint)i < 5)
+                return mos_state[i];
+            else
+                return false;
+        }
+
+        void set_mos_state(int i, bool value)
+        {
+            if ((uint)i < 5)
+                mos_state[i] = value;
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "texture" : "test.png",
-    "pixel_per_unit" : 10,
+    "pixel_per_unit" : 12,
     "filter_mode" : "Point",
     "frames": [
         {
