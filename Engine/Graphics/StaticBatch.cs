@@ -91,14 +91,14 @@ namespace Engine
                 unchecked
                 {
                     const int prime = 486187739;
-                    int h = prime;
-                    h = (h + Sheet.GetHashCode()) * prime;
-                    h = (h + (int)BlendMode) * prime;
-                    h = (h + Shader.GetHashCode()) * prime;
-                    h = (h + Layer) * prime;
-                    h = (h + X) * prime;
-                    h = (h + Y) * prime;
-                    return h;
+                    int hash = prime;
+                    hash = (hash + Sheet.GetHashCode()) * prime;
+                    hash = (hash + (int)BlendMode) * prime;
+                    hash = (hash + Shader.GetHashCode()) * prime;
+                    hash = (hash + Layer) * prime;
+                    hash = (hash + X) * prime;
+                    hash = (hash + Y) * prime;
+                    return hash;
                 }
             }
         }

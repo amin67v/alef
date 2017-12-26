@@ -1,9 +1,12 @@
 bin/netcoreapp2.0/*
 !bin/netcoreapp2.0/data/
-ThirdParty/stb/bin
-ThirdParty/stb/Makefile.win
-ThirdParty/stb/stb.dev
-ThirdParty/stb/stb.layout
+ThirdParty/stb/*
+!ThirdParty/stb/stb.c
+!ThirdParty/stb/stb_image.h
+!ThirdParty/stb/stb_image_write.h
+ThirdParty/gui/*
+!ThirdParty/gui/gui.c
+!ThirdParty/gui/nuklear.h
 Engine/obj
 Editor/obj
 Game/obj

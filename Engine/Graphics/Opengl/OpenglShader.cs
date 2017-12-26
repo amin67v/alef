@@ -4,10 +4,10 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-using static OpenGL;
 
 namespace Engine
 {
+    using static OpenGL;
     class OpenglShader : Shader
     {
         const string assert_msg = "You can not set shader's uniform before making it the current shader.";
@@ -16,9 +16,9 @@ namespace Engine
         internal uint id;
         Dictionary<string, int> uniforms = new Dictionary<string, int>();
 
-        public OpenglShader(string vert, string frag) 
-        { 
-            
+        public OpenglShader(string vert, string frag)
+        {
+
             uint program;
 
             uint vertID = glCreateShader(ShaderType.VertexShader);

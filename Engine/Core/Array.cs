@@ -39,23 +39,6 @@ namespace Engine
         }
 
         /// <summary>
-        /// Initialize a new instance of the array and set internal array to the given data.
-        /// Note: you should not modify given data from now on, as the array will take control of it
-        /// </summary>
-        public Array(ref T[] data)
-        {
-            if (data == null)
-            {
-                array = new T[min_capacity];
-            }
-            else
-            {
-                array = data;
-                count = data.Length;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets item at index
         /// </summary>
         public ref T this[int index] => ref array[index];

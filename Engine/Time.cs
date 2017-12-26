@@ -1,31 +1,27 @@
 using System;
-using static CSFML;
+using System.Diagnostics;
 
 namespace Engine
 {
     public sealed class Time
     {
-        IntPtr start_clock;
-        float frame_time;
-        float last_time;
-        float speed;
+        Stopwatch sw = new Stopwatch();
+        float ft;
+        float speed = 1;
+        float time;
+        float utime;
 
-        internal Time()
-        {
-            start_clock = sfClock_create();
-            frame_time = 0;
-            last_time = 0;
-        }
+        internal Time() { }
 
         /// <summary>
         /// Gets the total elapsed time since start of the app, in seconds.
         /// </summary>
-        public float SinceStart => sfClock_getElapsedTime(start_clock) /* <- microseconds */ * 0.000001f;
+        public float Total => time;
 
         /// <summary>
-        /// Total time spent on the last last frame.
+        /// Total time spent on the last frame.
         /// </summary>
-        public float FrameTime => frame_time;
+        public float FrameTime => ft;
 
         /// <summary>
         /// Gets or sets the speed of time.
@@ -38,15 +34,14 @@ namespace Engine
 
         internal void process()
         {
-            var now = SinceStart;
-            frame_time = now - last_time;
-            last_time = now;
+            ft = (float)sw.Elapsed.TotalSeconds;
+            time += ft * speed;
+            sw.Restart();
         }
 
         internal void shutdown()
         {
-            sfClock_destroy(start_clock);
-            start_clock = IntPtr.Zero;
+
         }
     }
 }

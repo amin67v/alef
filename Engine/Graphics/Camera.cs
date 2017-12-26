@@ -7,7 +7,6 @@ namespace Engine
     {
         ViewSizeMode size_mode = ViewSizeMode.Height;
         RenderTarget target;
-        DebugDraw debug_draw = new DebugDraw();
         Matrix4x4 inv_matrix = Matrix4x4.Identity;
         Matrix4x4 matrix = Matrix4x4.Identity;
         Vector2 pos = Vector2.Zero;
@@ -99,7 +98,7 @@ namespace Engine
         {
             get
             {
-                validate();
+                calc_matrix();
                 return view_rect;
             }
         }
@@ -125,7 +124,7 @@ namespace Engine
         {
             get
             {
-                validate();
+                calc_matrix();
                 return matrix;
             }
         }
@@ -137,7 +136,7 @@ namespace Engine
         {
             get
             {
-                validate();
+                calc_matrix();
                 return inv_matrix;
             }
         }
@@ -190,13 +189,10 @@ namespace Engine
                     item.Draw();
             }
 
-            debug_draw.Rect(ViewRect, Color.Blue);
             scene.DebugDraw.DrawAll();
-            debug_draw.DrawAll();
-            debug_draw.Clear();
         }
 
-        void validate()
+        void calc_matrix()
         {
             if (dirty)
             {
@@ -225,7 +221,7 @@ namespace Engine
 
                 // calculate view rect
                 {
-                    const float s = .8f;
+                    const float s = 1;
 
                     var r = new Rect(float.MinValue, float.MinValue, float.MaxValue, float.MaxValue);
                     var a = Vector2.Transform(new Vector2(-s, -s), inv_matrix);

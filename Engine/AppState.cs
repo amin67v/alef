@@ -13,12 +13,12 @@ namespace Engine
         /// <summary>
         /// Called when a key is pressed.
         /// </summary>
-        public virtual void OnKeyDown(Keys key, bool alt, bool ctrl, bool shift) { }
+        public virtual void OnKeyDown(KeyCode key) { }
 
         /// <summary>
         /// Called when a key is released.
         /// </summary>
-        public virtual void OnKeyUp(Keys key, bool alt, bool ctrl, bool shift) { }
+        public virtual void OnKeyUp(KeyCode key) { }
 
         /// <summary>
         /// Called when a mouse key is pressed.
@@ -41,9 +41,9 @@ namespace Engine
         public virtual void OnMouseScroll(Vector2 delta) { }
 
         /// <summary>
-        /// Called when a keychar is pressed.
+        /// Called when a te is pressed.
         /// </summary>
-        public virtual void OnKeyChar(string code) { }
+        public virtual void OnTextInput(string text) { }
 
         /// <summary>
         /// Called when window is resizing.

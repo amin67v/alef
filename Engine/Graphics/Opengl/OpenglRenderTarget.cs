@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static OpenGL;
 
 namespace Engine
 {
+    using static OpenGL;
     class OpenglRenderTarget : RenderTarget
     {
         internal static OpenglRenderTarget current = null;

@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Color
+    [StructLayout(LayoutKind.Explicit)]
+    public struct Color : IEquatable<Color>
     {
         public static readonly Color AliceBlue = new Color(0xF0F8FF);
         public static readonly Color AntiqueWhite = new Color(0xFAEBD7);
@@ -157,12 +157,19 @@ namespace Engine
         public static readonly Color YellowGreen = new Color(0x9ACD32);
         public static readonly Color Transparent = new Color(255, 255, 255, 0);
 
+        [FieldOffset(0)]
         public byte R;
+        [FieldOffset(1)]
         public byte G;
+        [FieldOffset(2)]
         public byte B;
+        [FieldOffset(3)]
         public byte A;
 
-        public Color(byte r, byte g, byte b, byte a)
+        [FieldOffset(0)]
+        int m_value; // used for easy hash and compare
+
+        public Color(byte r, byte g, byte b, byte a) : this()
         {
             R = r;
             G = g;
@@ -170,7 +177,7 @@ namespace Engine
             A = a;
         }
 
-        public Color(int r, int g, int b, int a)
+        public Color(int r, int g, int b, int a) : this()
         {
             R = (byte)r;
             G = (byte)g;
@@ -178,7 +185,7 @@ namespace Engine
             A = (byte)a;
         }
 
-        public Color(float r, float g, float b, float a)
+        public Color(float r, float g, float b, float a) : this()
         {
             R = (byte)(r * 255);
             G = (byte)(g * 255);
@@ -186,7 +193,7 @@ namespace Engine
             A = (byte)(a * 255);
         }
 
-        public Color(byte r, byte g, byte b)
+        public Color(byte r, byte g, byte b) : this()
         {
             R = r;
             G = g;
@@ -194,15 +201,7 @@ namespace Engine
             A = 255;
         }
 
-        public Color(Color other)
-        {
-            R = other.R;
-            G = other.G;
-            B = other.B;
-            A = other.A;
-        }
-
-        public Color(int rgb)
+        public Color(int rgb) : this()
         {
             R = (byte)((rgb & 0x00ff0000u) >> 16);
             G = (byte)((rgb & 0x0000ff00u) >> 8);
@@ -220,5 +219,21 @@ namespace Engine
             const float inv255 = 0.003921568627451f;
             return new Vector4(R * inv255, G * inv255, B * inv255, A * inv255);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Color)
+                return Equals((Color)obj);
+            else
+                return false;
+        }
+
+        public bool Equals(Color other) => m_value == other.m_value;
+        
+        public override int GetHashCode() => m_value;
+
+        public static bool operator ==(Color a, Color b) => a.Equals(b);
+
+        public static bool operator !=(Color a, Color b) => !a.Equals(b);
     }
 }

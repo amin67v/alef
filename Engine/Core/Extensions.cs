@@ -16,14 +16,12 @@ namespace Engine
             unchecked
             {
                 const int prime = 486187739;
-                int h = prime;
+                int hash = prime;
                 int len = str.Length;
                 for (int i = 0; i < len; i++)
-                {
-                    h += str[i];
-                    h *= prime;
-                }
-                return h;
+                    hash = (hash + str[i]) * prime;
+
+                return hash;
             }
         }
 
@@ -35,14 +33,12 @@ namespace Engine
             unchecked
             {
                 const int prime = 486187739;
-                int h = prime;
+                int hash = prime;
                 int len = bytes.Length;
                 for (int i = 0; i < len; i++)
-                {
-                    h += bytes[i];
-                    h *= prime;
-                }
-                return h;
+                    hash = (hash + bytes[i]) * prime;
+
+                return hash;
             }
         }
 

@@ -55,29 +55,22 @@ namespace Engine
             Resource load_file(Stream stream)
             {
                 TextReader reader = new StreamReader(stream);
-                try
+                var src = reader.ReadToEnd();
+                var json = JsonValue.Parse(src);
+                var tex_name = json["texture"];
+                JsonArray arr = json["glyphs"] as JsonArray;
+                var glyphs = new Glyph[arr.Count];
+                for (int i = 0; i < arr.Count; i++)
                 {
-                    var src = reader.ReadToEnd();
-                    var json = JsonValue.Parse(src);
-                    var tex_name = json["texture"];
-                    JsonArray arr = json["glyphs"] as JsonArray;
-                    var glyphs = new Glyph[arr.Count];
-                    for (int i = 0; i < arr.Count; i++)
-                    {
-                        var rect = JsonHelper.ParseRect(arr[i]["rect"]);
-                        var offset = JsonHelper.ParseVector2(arr[i]["offset"]);
-                        glyphs[i] = new Glyph(rect, offset, arr[i]["width"], arr[i]["code"]);
+                    var rect = JsonHelper.ParseRect(arr[i]["rect"]);
+                    var offset = JsonHelper.ParseVector2(arr[i]["offset"]);
+                    glyphs[i] = new Glyph(rect, offset, arr[i]["width"], arr[i]["code"]);
 
-                    }
-                    var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
-                    var tex = Texture.Load(tex_file, FilterMode.Bilinear, false);
-                    var font = Font.Create(glyphs, tex, json["space"], json["height"]);
-                    return font;
                 }
-                finally
-                {
-                    reader.Dispose();
-                }
+                var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
+                var tex = Texture.Load(tex_file, FilterMode.Bilinear, false);
+                var font = Font.Create(glyphs, tex, json["space"], json["height"]);
+                return font;
 
             }
 

@@ -5,10 +5,13 @@ using System.Numerics;
 using System.Diagnostics;
 using System.Collections.Generic;
 
+using System.IO.Compression;
+
 using Engine;
 
 namespace Game
 {
+
     class Program
     {
         static void Main(string[] args)
@@ -38,6 +41,18 @@ namespace Game
         {
             test_sheet = SpriteSheet.Load("sprites/test.json");
 
+            //  var img = new Image(1024, 1024);
+            //  for (int x = 0; x < 1024; x++)
+            //  {
+            //      for (int y = 0; y < 1024; y++)
+            //      {
+            //          byte r = (byte)(Noise.Perlin2D(x / 100f, y / 100f).Remap(-1, 1, 0, 255));
+            //          img[x, y] = new Color(r, r, r);
+            //      }
+            //  }
+            //  img.ToFile("perlin.jpg");
+            //  img.Dispose();
+
             for (int i = 0; i < 100; i++)
             {
                 for (int j = 0; j < 100; j++)
@@ -57,36 +72,36 @@ namespace Game
             float r = 0;
             float z = 0;
 
-            if (App.Window.IsKeyDown(Keys.A))
+            if (App.Window.IsKeyDown(KeyCode.A))
                 x -= dt;
 
-            if (App.Window.IsKeyDown(Keys.D))
+            if (App.Window.IsKeyDown(KeyCode.D))
                 x += dt;
 
-            if (App.Window.IsKeyDown(Keys.S))
+            if (App.Window.IsKeyDown(KeyCode.S))
                 y -= dt;
 
-            if (App.Window.IsKeyDown(Keys.W))
+            if (App.Window.IsKeyDown(KeyCode.W))
                 y += dt;
 
-            if (App.Window.IsKeyDown(Keys.E))
+            if (App.Window.IsKeyDown(KeyCode.E))
                 r += dt;
 
-            if (App.Window.IsKeyDown(Keys.Q))
+            if (App.Window.IsKeyDown(KeyCode.Q))
                 r -= dt;
 
-            if (App.Window.IsKeyDown(Keys.F))
+            if (App.Window.IsKeyDown(KeyCode.F))
                 z += dt * 100;
 
-            if (App.Window.IsKeyDown(Keys.R))
+            if (App.Window.IsKeyDown(KeyCode.R))
                 z -= dt * 100;
 
-            var t = App.Time.SinceStart;
+            var t = App.Time.Total;
             Vector2 noise;
-            noise.X = Noise.Perlin1D(t);
-            noise.Y = Noise.Perlin1D(t + 123);
+            noise.X = Noise.Perlin2D(t, 0);
+            noise.Y = Noise.Perlin2D(t + 123, 0);
 
-            cam.Position += new Vector2(x, y) * cam.ViewSize * (App.Window.IsKeyDown(Keys.LShift) ? 4f : .2f) + noise * .025f;
+            cam.Position += new Vector2(x, y) * cam.ViewSize * (App.Window.IsKeyDown(KeyCode.LShift) ? 4f : .2f) + noise * .1f;
 
             cam.Rotation += r;
             cam.ViewSize += z;

@@ -1,9 +1,9 @@
 using System;
 using System.Numerics;
-using static OpenGL;
 
 namespace Engine
 {
+    using static OpenGL;
     class OpenglDevice : IGraphicsDevice
     {
         string info;

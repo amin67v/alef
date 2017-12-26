@@ -105,8 +105,8 @@ namespace Engine
             exe_path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
             log = new Log("log.txt");
-            time = new Time();
             window = new Window(cfg);
+            time = new Time();
             gfx = new OpenglDevice();
             App.Log.Info($"Graphics Driver:\n{gfx.DriverInfo}\n");
             res_mgr = new ResourceManager();

@@ -1,47 +1,59 @@
 using System;
 using System.Numerics;
 
-using static CSFML;
-
 namespace Engine
 {
+    using static SDL2.SDL;
     public sealed class Window
     {
-        const uint KeyCount = (uint)Keys.KeyCount;
         string title;
-        IntPtr wnd_ptr;
+        IntPtr wnd;
+        IntPtr ctx;
         Vector2 mpos;
-        bool[] keys_state;
-        bool[] mos_state;
+        bool[] keys;
+        bool[] mouse;
 
         internal Window(AppConfig cfg)
         {
-            var mode = new VideoMode();
-            mode.Width = (uint)cfg.Width;
-            mode.Height = (uint)cfg.Height;
-            mode.BitsPerPixel = 24;
-            ContextSettings ctx = new ContextSettings();
-            ctx.AntialiasingLevel = 0;
-            ctx.DepthBits = 0;
-            ctx.MajorVersion = 3;
-            ctx.MinorVersion = 3;
-            ctx.StencilBits = 0;
+            SDL_SetMainReady();
+            SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_VIDEO | SDL_INIT_TIMER);
+            SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 
-            Styles wnd_style = Styles.Close | Styles.Titlebar;
-
+            SDL_WindowFlags flags = 0x00;
             if (cfg.Fullscreen)
-                wnd_style |= Styles.Fullscreen;
+                flags |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
             if (cfg.Resizable)
-                wnd_style |= Styles.Resize;
+                flags |= SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
 
-            wnd_ptr = sfWindow_create(mode, cfg.Title, wnd_style, ref ctx);
-            title = cfg.Title;
-            sfWindow_setVerticalSyncEnabled(wnd_ptr, cfg.Vsync);
-            sfWindow_setKeyRepeatEnabled(wnd_ptr, true);
+            flags |= SDL_WindowFlags.SDL_WINDOW_OPENGL;
 
-            keys_state = new bool[(int)Keys.KeyCount];
-            mos_state = new bool[5];
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_RED_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_ALPHA_SIZE, 0);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_DEPTH_SIZE, 0);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 0);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 0);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, 0);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+            wnd = SDL_CreateWindow(cfg.Title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, cfg.Width, cfg.Height, flags);
+            if (wnd == IntPtr.Zero)
+                throw new Exception($"Failed to create sdl window.\n{SDL_GetError()}");
+
+            ctx = SDL_GL_CreateContext(wnd);
+            if (ctx == IntPtr.Zero)
+                throw new Exception($"Failed to create opengl context.\n{SDL_GetError()}");
+
+            if (SDL_GL_MakeCurrent(wnd, ctx) != 0)
+                throw new Exception($"Failed to make opengl context current.\n{SDL_GetError()}");
+
+            SDL_GL_SetSwapInterval(cfg.Vsync ? 1 : 0);
+
+            keys = new bool[(int)SDL_Scancode.SDL_NUM_SCANCODES];
+            mouse = new bool[3];
         }
 
         public string Title
@@ -50,88 +62,112 @@ namespace Engine
             set
             {
                 title = value;
-                sfWindow_setTitle(wnd_ptr, value);
+                SDL_SetWindowTitle(wnd, value);
             }
         }
 
         public Vector2 CursorPosition
         {
             get => mpos;
-            set => sfMouse_setPosition(new Vec2i((int)value.X, (int)value.Y), wnd_ptr);
+            set => SDL_WarpMouseInWindow(wnd, (int)value.X, (int)value.Y);
         }
 
         public Vector2 Size
         {
             get
             {
-                var size = sfWindow_getSize(wnd_ptr);
-                return new Vector2(size.X, size.Y);
+                int w, h;
+                SDL_GetWindowSize(wnd, out w, out h);
+                return new Vector2(w, h);
             }
             set
             {
-                sfWindow_setSize(wnd_ptr, new Vec2u((uint)value.X, (uint)value.Y));
+                SDL_SetWindowSize(wnd, (int)value.X, (int)value.Y);
             }
         }
 
-        public bool IsKeyDown(Keys key) => get_key_state((int)key);
+        public bool IsKeyDown(KeyCode key) => keys[(int)key];
 
-        public bool IsMouseDown(int button) => get_mos_state(button);
+        public bool IsMouseDown(MouseButton button) => mouse[(int)button];
 
-        internal void swap_buffers() => sfWindow_display(wnd_ptr);
+        internal void swap_buffers() => SDL_GL_SwapWindow(wnd);
 
         internal void do_events()
         {
-            Event e;
-            while (sfWindow_pollEvent(wnd_ptr, out e))
+            SDL_Event e;
+            while (SDL_PollEvent(out e) != 0)
             {
-                switch (e.Type)
+                switch (e.type)
                 {
-                    case EventType.Closed:
+                    case SDL_EventType.SDL_QUIT:
                         App.Quit();
                         break;
-                    case EventType.Resized:
-                        App.ActiveState.OnResize((int)e.Size.Width, (int)e.Size.Height);
-                        break;
-                    case EventType.KeyPressed:
-                        if (get_key_state(e.Key.Code) == false)
+                    case SDL_EventType.SDL_WINDOWEVENT:
+                        switch (e.window.windowEvent)
                         {
-                            set_key_state(e.Key.Code, true);
-                            App.ActiveState.OnKeyDown((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
+                                App.ActiveState.OnResize(e.window.data1, e.window.data2);
+                                break;
+
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                                // set all key state to false after losing focus
+                                for (int i = 0; i < keys.Length; i++)
+                                    keys[i] = false;
+                                for (int i = 0; i < mouse.Length; i++)
+                                    mouse[i] = false;
+                                break;
                         }
                         break;
-                    case EventType.KeyReleased:
-                        set_key_state(e.Key.Code, false);
-                        App.ActiveState.OnKeyUp((Keys)e.Key.Code, e.Key.Alt != 0, e.Key.Control != 0, e.Key.Shift != 0);
+                    case SDL_EventType.SDL_KEYDOWN:
+                        {
+                            var code = (KeyCode)e.key.keysym.scancode;
+                            if (e.key.repeat == 0)
+                            {
+                                keys[(int)code] = true;
+                                App.ActiveState.OnKeyDown(code);
+                            }
+                        }
                         break;
-                    case EventType.MouseButtonPressed:
-                        set_mos_state(e.MouseButton.Button, true);
-                        App.ActiveState.OnMouseDown((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
+                    case SDL_EventType.SDL_KEYUP:
+                        {
+                            var code = (KeyCode)e.key.keysym.scancode;
+                            keys[(int)code] = false;
+                            App.ActiveState.OnKeyUp(code);
+                        }
                         break;
-                    case EventType.MouseButtonReleased:
-                        set_mos_state(e.MouseButton.Button, false);
-                        App.ActiveState.OnMouseUp((int)e.MouseButton.Button, new Vector2(e.MouseButton.X, e.MouseButton.Y));
+                    case SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                        {
+                            int button = e.button.button - 1;
+                            if ((uint)button < 3)
+                            {
+                                mouse[button] = true;
+                                App.ActiveState.OnMouseDown(button, new Vector2(e.button.x, e.button.x));
+                            }
+                        }
                         break;
-                    case EventType.TextEntered:
-                        App.ActiveState.OnKeyChar(char.ConvertFromUtf32((int)e.Text.Unicode));
+                    case SDL_EventType.SDL_MOUSEBUTTONUP:
+                        {
+                            int button = e.button.button - 1;
+                            if ((uint)button < 3)
+                            {
+                                mouse[button] = false;
+                                App.ActiveState.OnMouseUp(button, new Vector2(e.button.x, e.button.x));
+                            }
+                        }
                         break;
-                    case EventType.MouseWheelScrolled:
-                        if (e.MouseWheelScroll.Wheel == 0)
-                            App.ActiveState.OnMouseScroll(new Vector2(0, e.MouseWheelScroll.Delta)); // vertical wheel
-                        else
-                            App.ActiveState.OnMouseScroll(new Vector2(e.MouseWheelScroll.Delta, 0)); // horizontal wheel
+                    case SDL_EventType.SDL_TEXTINPUT:
+                        unsafe
+                        {
+                            var text = UTF8_ToManaged(new IntPtr(e.text.text));
+                            App.ActiveState.OnTextInput(text);
+                        }
                         break;
-                    case EventType.MouseMoved:
-                        mpos = new Vector2(e.MouseMove.X, e.MouseMove.Y);
+                    case SDL_EventType.SDL_MOUSEWHEEL:
+                        App.ActiveState.OnMouseScroll(new Vector2(e.wheel.x, e.wheel.y));
+                        break;
+                    case SDL_EventType.SDL_MOUSEMOTION:
+                        mpos = new Vector2(e.motion.x, e.motion.y);
                         App.ActiveState.OnMouseMove(mpos);
-                        break;
-                    case EventType.LostFocus:
-                        // set all key state to false after losing focus
-                        for (int i = 0; i < keys_state.Length; i++)
-                            keys_state[i] = false;
-                        
-                        for (int i = 0; i < mos_state.Length; i++)
-                            mos_state[i] = false;
-
                         break;
                 }
             }
@@ -139,37 +175,118 @@ namespace Engine
 
         internal void shutdown()
         {
-            sfWindow_close(wnd_ptr);
-            sfWindow_destroy(wnd_ptr);
-            wnd_ptr = IntPtr.Zero;
+            SDL_GL_DeleteContext(ctx);
+            SDL_DestroyWindow(wnd);
+            SDL_Quit();
+            wnd = IntPtr.Zero;
         }
+    }
 
-        bool get_key_state(int code)
-        {
-            if ((uint)code < KeyCount)
-                return keys_state[code];
-            else
-                return false;
-        }
+    public enum MouseButton { Left, Middle, Right }
 
-        void set_key_state(int code, bool value)
-        {
-            if ((uint)code < KeyCount)
-                keys_state[code] = value;
-        }
-
-        bool get_mos_state(int i)
-        {
-            if ((uint)i < 5)
-                return mos_state[i];
-            else
-                return false;
-        }
-
-        void set_mos_state(int i, bool value)
-        {
-            if ((uint)i < 5)
-                mos_state[i] = value;
-        }
+    public enum KeyCode
+    {
+        A = 4,
+        B = 5,
+        C = 6,
+        D = 7,
+        E = 8,
+        F = 9,
+        G = 10,
+        H = 11,
+        I = 12,
+        J = 13,
+        K = 14,
+        L = 15,
+        M = 16,
+        N = 17,
+        O = 18,
+        P = 19,
+        Q = 20,
+        R = 21,
+        S = 22,
+        T = 23,
+        U = 24,
+        V = 25,
+        W = 26,
+        X = 27,
+        Y = 28,
+        Z = 29,
+        Num1 = 30,
+        Num2 = 31,
+        Num3 = 32,
+        Num4 = 33,
+        Num5 = 34,
+        Num6 = 35,
+        Num7 = 36,
+        Num8 = 37,
+        Num9 = 38,
+        Num0 = 39,
+        Enter = 40,
+        Escape = 41,
+        BackSpace = 42,
+        Tab = 43,
+        Space = 44,
+        Minus = 45,
+        Equals = 46,
+        LeftBracket = 47,
+        RightBracket = 48,
+        BackSlash = 49,
+        // HashTilde = 50, // no use
+        SemiColon = 51,
+        DoubleQuate = 52,
+        BackQuote = 53,
+        Comma = 54,
+        Period = 55,
+        Slash = 56,
+        CapsLock = 57,
+        F1 = 58,
+        F2 = 59,
+        F3 = 60,
+        F4 = 61,
+        F5 = 62,
+        F6 = 63,
+        F7 = 64,
+        F8 = 65,
+        F9 = 66,
+        F10 = 67,
+        F11 = 68,
+        F12 = 69,
+        PrintScreen = 70,
+        ScrollLock = 71,
+        Pause = 72,
+        Insert = 73,
+        Home = 74,
+        PageUp = 75,
+        Delete = 76,
+        End = 77,
+        PageDown = 78,
+        Right = 79,
+        Left = 80,
+        Down = 81,
+        Up = 82,
+        NumLock = 83,
+        KpDivide = 84,
+        KpMultiply = 85,
+        KpMinus = 86,
+        KpPlus = 87,
+        KpEnter = 88,
+        Kp1 = 89,
+        Kp2 = 90,
+        Kp3 = 91,
+        Kp4 = 92,
+        Kp5 = 93,
+        Kp6 = 94,
+        Kp7 = 95,
+        Kp8 = 96,
+        Kp9 = 97,
+        Kp0 = 98,
+        KpPeriod = 99,
+        LCtrl = 224,
+        LShift = 225,
+        LAlt = 226,
+        RCtrl = 228,
+        RShift = 229,
+        RAlt = 230
     }
 }

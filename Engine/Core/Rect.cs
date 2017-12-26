@@ -223,7 +223,6 @@ namespace Engine
         /// <summary>
         /// Checks if point lies within this rect.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(Vector2 point)
         {
             return point.X > X && point.X < XMax &&
@@ -233,7 +232,6 @@ namespace Engine
         /// <summary>
         /// Checks if this rect overlap the other rect.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Overlap(Rect other)
         {
             return X < other.XMax && XMax > other.X &&
@@ -243,7 +241,6 @@ namespace Engine
         /// <summary>
         /// Inflate this rect by x, y
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Inflate(float x, float y)
         {
             X -= x;
@@ -255,7 +252,6 @@ namespace Engine
         /// <summary>
         /// Extends this rect to contain the point.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Extend(Vector2 point)
         {
             XMin = MathF.Min(XMin, point.X);
@@ -267,7 +263,6 @@ namespace Engine
         /// <summary>
         /// Extends this rect to contain the other rect.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Extend(Rect rect)
         {
             XMin = MathF.Min(XMin, rect.XMin);
@@ -276,45 +271,48 @@ namespace Engine
             YMax = MathF.Max(YMax, rect.YMax);
         }
 
-        /// <summary>
-        /// Returns a string that represents this rect.
-        /// </summary>
         public override string ToString()
         {
             return $"({vec.X}, {vec.Y}, {vec.Z}, {vec.W})";
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(Rect other)
+        public override int GetHashCode() => vec.GetHashCode();
+
+        public override bool Equals(object obj)
         {
-            return vec == other.vec;
+            if (obj is Rect)
+                return Equals((Rect)obj);
+            else
+                return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Equals(Rect other) => vec == other.vec;
+
         public static Rect operator *(Rect l, float r)
         {
             l.vec *= r;
             return l;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Rect operator /(Rect l, float r)
         {
             l.vec /= r;
             return l;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Rect operator *(Rect l, Vector2 r)
         {
             return new Rect(l.vec.X * r.X, l.vec.Y * r.Y, l.vec.Z * r.X, l.vec.W * r.Y);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Rect operator /(Rect l, Vector2 r)
         {
             return new Rect(l.vec.X / r.X, l.vec.Y / r.Y, l.vec.Z / r.X, l.vec.W / r.Y);
         }
+
+        public static bool operator ==(Rect a, Rect b) => a.Equals(b);
+
+        public static bool operator !=(Rect a, Rect b) => !a.Equals(b);
 
     }
 }

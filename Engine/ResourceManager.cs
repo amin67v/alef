@@ -41,35 +41,43 @@ namespace Engine
 
         public Resource FromCacheOrFile(string filename, ResourceLoadHandler load_func)
         {
-            filename = filename.TrimStart('/');
-            Resource res;
-            if (res_map.TryGetValue(filename, out res))
+            Stream stream = null;
+            try
             {
-                return res;
-            }
-            else
-            {
-                if (archive == null)
+                filename = filename.TrimStart('/');
+                Resource res;
+                if (res_map.TryGetValue(filename, out res))
                 {
-                    var abs_path = Path.Combine(root_path, filename);
-                    if (!File.Exists(abs_path))
-                    {
-                        App.Log.Info($"Asset does not exist at path '{filename}'.");
-                        return null;
-                    }
-                    var stream = File.OpenRead(abs_path);
-                    res = load_func(stream);
+                    return res;
                 }
                 else
                 {
-                    var entry = archive.GetEntry(filename);
-                    var stream = entry.Open();
-                    res = load_func(stream);
-                }
+                    if (archive == null)
+                    {
+                        var abs_path = Path.Combine(root_path, filename);
+                        if (!File.Exists(abs_path))
+                        {
+                            App.Log.Info($"Asset does not exist at path '{filename}'.");
+                            return null;
+                        }
+                        stream = File.OpenRead(abs_path);
+                        res = load_func(stream);
+                    }
+                    else
+                    {
+                        var entry = archive.GetEntry(filename);
+                        stream = entry.Open();
+                        res = load_func(stream);
+                    }
 
-                res.FileName = filename;
-                res_map[filename] = res;
-                return res;
+                    res.FileName = filename;
+                    res_map[filename] = res;
+                    return res;
+                }
+            }
+            finally
+            {
+                stream?.Dispose();
             }
         }
 

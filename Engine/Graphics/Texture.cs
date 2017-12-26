@@ -41,7 +41,7 @@ namespace Engine
         /// 'Trilinear' means linearly sample from two nearest mipmap
         /// </summary>
         public abstract FilterMode Filter { get; set; }
-        
+
         /// <summary>
         /// Creates texture with the provided parameters
         /// </summary>
@@ -73,21 +73,10 @@ namespace Engine
         {
             Resource load_file(Stream stream)
             {
-                BinaryReader reader = new BinaryReader(stream);
-                try
-                {
-                    byte[] buffer = reader.ReadBytes((int)stream.Length);
-                    int w = 0, h = 0, c = 0;
-                    IntPtr data = Stb.LoadFromMemory(buffer, ref w, ref h, ref c, 4);
-                    var tex = Texture.Create(w, h, filter, repeat, data);
-                    Stb.FreeImage(data);
-                    return tex;
-                }
-                finally
-                {
-                    reader.Dispose();
-                }
-
+                var img = Image.FromFile(stream);
+                var tex = Texture.Create(img.Width, img.Height, filter, repeat, img.PixelData);
+                img.Dispose();
+                return tex;
             }
 
             return App.ResourceManager.FromCacheOrFile(file, load_file) as Texture;

@@ -47,7 +47,7 @@ namespace Editor
             gfx.Display();
         }
 
-        public override void OnKeyChar(string code)
+        public override void OnTextInput(string code)
         {
             keychar = code[0];
         }

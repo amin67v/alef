@@ -38,31 +38,23 @@ namespace Engine
             Resource load_file(Stream stream)
             {
                 TextReader reader = new StreamReader(stream);
-                try
+                var src = reader.ReadToEnd();
+                var json = JsonValue.Parse(src);
+                string tex_name = json["texture"];
+                int pixel_per_unit = json["pixel_per_unit"];
+                FilterMode filter = Enum.Parse<FilterMode>(json["filter_mode"]);
+                var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
+                var tex = Texture.Load(tex_file, filter, false);
+                JsonArray arr = json["frames"] as JsonArray;
+                Frame[] frames = new Frame[arr.Count];
+                for (int i = 0; i < arr.Count; i++)
                 {
-                    var src = reader.ReadToEnd();
-                    var json = JsonValue.Parse(src);
-                    string tex_name = json["texture"];
-                    int pixel_per_unit = json["pixel_per_unit"];
-                    FilterMode filter = Enum.Parse<FilterMode>(json["filter_mode"]);
-                    var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
-                    var tex = Texture.Load(tex_file, filter, false);
-                    JsonArray arr = json["frames"] as JsonArray;
-                    Frame[] frames = new Frame[arr.Count];
-                    for (int i = 0; i < arr.Count; i++)
-                    {
-                        string name = arr[i]["name"];
-                        Rect rect = JsonHelper.ParseRect(arr[i]["rect"]);
-                        Vector2 offset = JsonHelper.ParseVector2(arr[i]["offset"]);
-                        frames[i] = new Frame(name, rect, offset, tex.Size, pixel_per_unit);
-                    }
-
-                    return SpriteSheet.Create(frames, tex, pixel_per_unit);
+                    string name = arr[i]["name"];
+                    Rect rect = JsonHelper.ParseRect(arr[i]["rect"]);
+                    Vector2 offset = JsonHelper.ParseVector2(arr[i]["offset"]);
+                    frames[i] = new Frame(name, rect, offset, tex.Size, pixel_per_unit);
                 }
-                finally
-                {
-                    reader.Dispose();
-                }
+                return SpriteSheet.Create(frames, tex, pixel_per_unit);
             }
 
             return App.ResourceManager.FromCacheOrFile(file, load_file) as SpriteSheet;

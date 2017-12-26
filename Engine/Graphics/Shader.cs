@@ -40,18 +40,11 @@ namespace Engine
             Resource load_file(Stream stream)
             {
                 TextReader reader = new StreamReader(stream);
-                try
-                {
                     var src = reader.ReadToEnd();
                     var vert_src = extract(src, "vert");
                     var frag_src = extract(src, "frag");
                     var shader = Shader.Create(vert_src, frag_src);
                     return shader;
-                }
-                finally
-                {
-                    reader.Dispose();
-                }
             }
 
             return App.ResourceManager.FromCacheOrFile(file, load_file) as Shader;

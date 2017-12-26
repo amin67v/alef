@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static OpenGL;
 
 namespace Engine
 {
+    using static OpenGL;
     class OpenglMeshBuffer : MeshBuffer
     {
         uint vao;
@@ -17,7 +17,8 @@ namespace Engine
         int ibo_size;
 
         public OpenglMeshBuffer(IntPtr vtx_data, int vtx_count) :
-            this(vtx_data, vtx_count, IntPtr.Zero, 0) { }
+            this(vtx_data, vtx_count, IntPtr.Zero, 0)
+        { }
 
         public OpenglMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count)
         {
