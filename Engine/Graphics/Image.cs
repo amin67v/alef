@@ -26,11 +26,12 @@ namespace Engine
                 this[i] = color;
         }
 
-        Image(Stream stream)
+        Image(Stream stream, bool flip)
         {
             BinaryReader reader = new BinaryReader(stream);
             try
             {
+                stbi_set_flip_vertically_on_load(flip);
                 byte[] bytes = reader.ReadBytes((int)stream.Length);
                 pixels = stbi_load_from_memory(bytes, ref width, ref height);
                 free = () => stbi_image_free(pixels);
@@ -51,15 +52,13 @@ namespace Engine
 
         public IntPtr PixelData => new IntPtr(pixels);
 
-        public static Image FromFile(string path)
+        public static Image FromFile(string path, bool flip = false)
         {
             using (var stream = File.OpenRead(path))
-            {
-                return FromFile(stream);
-            }
+                return FromFile(stream, flip);
         }
 
-        public static Image FromFile(Stream stream) => new Image(stream);
+        public static Image FromFile(Stream stream, bool flip = false) => new Image(stream, flip);
 
         public void ToFile(string path, int quality = 100)
         {

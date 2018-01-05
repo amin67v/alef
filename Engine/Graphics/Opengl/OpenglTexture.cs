@@ -10,12 +10,12 @@ namespace Engine
     {
         internal uint id = 0;
         FilterMode filter = FilterMode.Point;
-        int width = 0;
-        int height = 0;
-        bool mipmap = false;
-        bool repeat = false;
+        WrapMode wrap = WrapMode.Clamp;
+        int width;
+        int height;
+        bool mipmap;
 
-        public OpenglTexture(int width, int height, FilterMode filter, bool repeat, IntPtr data)
+        public OpenglTexture(int width, int height, FilterMode filter, WrapMode wrap, IntPtr data)
         {
             id = glGenTexture();
 
@@ -26,8 +26,8 @@ namespace Engine
             this.height = height;
             this.filter = filter;
             this.set_filter(filter);
-            this.repeat = repeat;
-            this.set_repeat(repeat);
+            this.wrap = WrapMode.Clamp;
+            this.set_wrap(wrap);
         }
 
         public override int Width => width;
@@ -36,16 +36,16 @@ namespace Engine
 
         public override bool HasMipmaps => mipmap;
 
-        public override bool Repeat
+        public override WrapMode Wrap
         {
-            get => repeat;
+            get => wrap;
             set
             {
-                if (repeat == value)
+                if (wrap == value)
                     return;
 
-                repeat = value;
-                set_repeat(value);
+                wrap = value;
+                set_wrap(value);
             }
         }
 
@@ -89,10 +89,10 @@ namespace Engine
             }
         }
 
-        void set_repeat(bool value)
+        void set_wrap(WrapMode value)
         {
             glBindTexture(TextureTarget.Texture2D, id);
-            if (value)
+            if (value == WrapMode.Repeat)
             {
                 glTexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameter.Repeat);
                 glTexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureParameter.Repeat);

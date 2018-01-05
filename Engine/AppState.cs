@@ -23,12 +23,12 @@ namespace Engine
         /// <summary>
         /// Called when a mouse key is pressed.
         /// </summary>
-        public virtual void OnMouseDown(int key, Vector2 pos) { }
+        public virtual void OnMouseDown(MouseButton btn, Vector2 pos) { }
 
         /// <summary>
         /// Called when a mouse key is released.
         /// </summary>
-        public virtual void OnMouseUp(int key, Vector2 pos) { }
+        public virtual void OnMouseUp(MouseButton btn, Vector2 pos) { }
 
         /// <summary>
         /// Called when mouse cursor moving.
@@ -49,6 +49,16 @@ namespace Engine
         /// Called when window is resizing.
         /// </summary>
         public virtual void OnResize(int width, int height) { }
+
+        /// <summary>
+        /// Called when a file drops inside window rect.
+        /// </summary>
+        public virtual void OnFileDrop(string file) { }
+
+        /// <summary>
+        /// Called when a text drops inside window rect.
+        /// </summary>
+        public virtual void OnTextDrop(string text) { }
 
         /// <summary>
         /// Called when this state begins.

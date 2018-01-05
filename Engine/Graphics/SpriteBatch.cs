@@ -8,7 +8,7 @@ namespace Engine
     {
         Array<Vertex> verts;
         Transform xform;
-        SpriteSheet sheet;
+        SpriteSheet spr;
         Shader shader;
         MeshBuffer mb;
         BlendMode blend;
@@ -17,13 +17,13 @@ namespace Engine
         bool mb_dirty = true;
         bool bounds_dirty = true;
 
-        public SpriteBatch(SpriteSheet sheet, int layer)
-            : this(sheet, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, layer, 20) { }
+        public SpriteBatch(SpriteSheet spr, int layer)
+            : this(spr, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, layer, 20) { }
 
-        public SpriteBatch(SpriteSheet sheet, Shader shader, Transform xform, BlendMode blend_mode, int layer, int capacity)
+        public SpriteBatch(SpriteSheet spr, Shader shader, Transform xform, BlendMode blend_mode, int layer, int capacity)
         {
             verts = new Array<Vertex>(capacity * 6);
-            this.sheet = sheet;
+            this.spr = spr;
             this.layer = layer;
             this.shader = shader;
             this.xform = xform;
@@ -31,6 +31,9 @@ namespace Engine
             mb = MeshBuffer.Create();
         }
 
+        /// <summary>
+        /// Bounding rect which all vertices are inside
+        /// </summary>
         public Rect Bounds
         {
             get
@@ -61,11 +64,6 @@ namespace Engine
             get => layer;
             set => layer = value;
         }
-
-        /// <summary>
-        /// Gets or set the main texture used to draw sprites
-        /// </summary>
-        public Texture MainTex => sheet.Texture;
 
         /// <summary>
         /// BlendMode used to draw this batch
@@ -104,7 +102,7 @@ namespace Engine
         /// </summary>
         public void AddSprite(Transform xform, int frame, Color color)
         {
-            var sprite_verts = sheet[frame].Vertices;
+            var sprite_verts = spr[frame].Vertices;
             for (int i = 0; i < sprite_verts.Length; i++)
             {
                 var pos = xform.LocalToWorld(sprite_verts[i].Position);
@@ -147,7 +145,7 @@ namespace Engine
         /// </summary>
         protected virtual void OnSetUniforms()
         {
-            shader.SetTexture("main_tex", 0, sheet.Texture);
+            shader.SetTexture("main_tex", 0, spr.Texture);
             shader.SetMatrix4x4("view_mat", App.Graphics.ViewMatrix);
             if (xform != null)
                 shader.SetMatrix3x2("model_mat", xform.Matrix);
@@ -160,7 +158,7 @@ namespace Engine
             verts.Clear(false);
             verts = null;
             xform = null;
-            sheet = null;
+            spr = null;
             shader = null;
             mb.Dispose();
         }

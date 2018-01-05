@@ -17,7 +17,7 @@ namespace Engine
 
         public DebugDraw()
         {
-            tex = Engine.Texture.Create(1, 1, FilterMode.Point, false, new Color[] { Color.White });
+            tex = Texture.Create(1, 1, FilterMode.Point, WrapMode.Clamp, new Color[] { Color.White }); // Need to get Dispose somewhere
             shader = DefaultShaders.ColorMult;
             points = new Array<Vertex>(50);
             lines = new Array<Vertex>(50);

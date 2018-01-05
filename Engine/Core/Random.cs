@@ -61,7 +61,7 @@ namespace Engine
         /// <summary>
         /// Returns a random opaque color.
         /// </summary>
-        public static Color Color() => new Color(Int());
+        public static Color Color() => Engine.Color.FromRgb(Int());
 
     }
 }

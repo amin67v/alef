@@ -17,13 +17,11 @@ namespace Engine
         int ibo_size;
 
         public OpenglMeshBuffer(IntPtr vtx_data, int vtx_count) :
-            this(vtx_data, vtx_count, IntPtr.Zero, 0)
+            this(vtx_data, vtx_count, IntPtr.Zero, 0, false)
         { }
 
-        public OpenglMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count)
+        public OpenglMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count, bool has_index = true)
         {
-            bool has_index = idx_count != 0;
-
             this.vbo_size = vtx_count * Vertex.SizeInBytes;
             this.vtx_count = vtx_count;
             this.vbo = glGenBuffer();
@@ -62,9 +60,14 @@ namespace Engine
         {
             glBindVertexArray(vao);
             if (ibo == 0)
+            {
                 glDrawArrays((BeginMode)type, offset, count);
+            }
             else
+            {
+                glBindBuffer(BufferTarget.ElementArrayBuffer, ibo);
                 glDrawElements((BeginMode)type, count, DrawElementsType.UnsignedShort, new IntPtr(offset));
+            }
         }
 
         public override void UpdateVertices(IntPtr data, int count)

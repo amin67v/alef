@@ -16,13 +16,13 @@
             "console": "internalConsole"
         },
         {
-            "name": "Debug->SpriteSheetEditor",
+            "name": "Debug->DataEditor",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceRoot}/bin/netcoreapp2.0/SpriteSheetEditor.dll",
+            "program": "${workspaceRoot}/bin/netcoreapp2.0/DataEditor.dll",
             "args": [],
-            "cwd": "${workspaceRoot}/SpriteSheetEditor",
+            "cwd": "${workspaceRoot}/DataEditor",
             "stopAtEntry": false,
             "console": "internalConsole"
         },

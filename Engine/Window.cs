@@ -3,21 +3,23 @@ using System.Numerics;
 
 namespace Engine
 {
-    using static SDL2.SDL;
+    using static Sdl2;
     public sealed class Window
     {
         string title;
         IntPtr wnd;
         IntPtr ctx;
         Vector2 mpos;
+        Vector2 mwheel;
+        IntPtr[] sys_cursors;
         bool[] keys;
         bool[] mouse;
 
         internal Window(AppConfig cfg)
         {
             SDL_SetMainReady();
-            SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_VIDEO | SDL_INIT_TIMER);
-            SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
+            SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_VIDEO);
+            SDL_SetHint("SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING", "1");
 
             SDL_WindowFlags flags = 0x00;
             if (cfg.Fullscreen)
@@ -52,8 +54,10 @@ namespace Engine
 
             SDL_GL_SetSwapInterval(cfg.Vsync ? 1 : 0);
 
-            keys = new bool[(int)SDL_Scancode.SDL_NUM_SCANCODES];
+            keys = new bool[512];
             mouse = new bool[3];
+
+            sys_cursors = new IntPtr[(int)SystemCursor.Count];
         }
 
         public string Title
@@ -66,11 +70,13 @@ namespace Engine
             }
         }
 
-        public Vector2 CursorPosition
+        public Vector2 MousePosition
         {
             get => mpos;
             set => SDL_WarpMouseInWindow(wnd, (int)value.X, (int)value.Y);
         }
+
+        public Vector2 MouseScrollDelta => mwheel;
 
         public Vector2 Size
         {
@@ -90,10 +96,32 @@ namespace Engine
 
         public bool IsMouseDown(MouseButton button) => mouse[(int)button];
 
+        public void SetIcon(Image img)
+        {
+            IntPtr surface;
+
+            if (BitConverter.IsLittleEndian)
+                surface = SDL_CreateRGBSurfaceFrom(img.PixelData, img.Width, img.Height, 32, img.Width * 4, 0x000000ffu, 0x0000ff00u, 0x00ff0000u, 0xff000000u);
+            else
+                surface = SDL_CreateRGBSurfaceFrom(img.PixelData, img.Width, img.Height, 32, img.Width * 4, 0xff000000u, 0x00ff0000u, 0x0000ff00u, 0x000000ffu);
+
+            SDL_SetWindowIcon(wnd, surface);
+            SDL_FreeSurface(surface);
+        }
+
+        public void SetCursor(SystemCursor cursor)
+        {
+            if (sys_cursors[(int)cursor] == IntPtr.Zero)
+                sys_cursors[(int)cursor] = SDL_CreateSystemCursor((SDL_SystemCursor)cursor);
+
+            SDL_SetCursor(sys_cursors[(int)cursor]);
+        }
+
         internal void swap_buffers() => SDL_GL_SwapWindow(wnd);
 
         internal void do_events()
         {
+            mwheel = Vector2.Zero;
             SDL_Event e;
             while (SDL_PollEvent(out e) != 0)
             {
@@ -141,7 +169,7 @@ namespace Engine
                             if ((uint)button < 3)
                             {
                                 mouse[button] = true;
-                                App.ActiveState.OnMouseDown(button, new Vector2(e.button.x, e.button.x));
+                                App.ActiveState.OnMouseDown((MouseButton)button, new Vector2(e.button.x, e.button.x));
                             }
                         }
                         break;
@@ -151,7 +179,7 @@ namespace Engine
                             if ((uint)button < 3)
                             {
                                 mouse[button] = false;
-                                App.ActiveState.OnMouseUp(button, new Vector2(e.button.x, e.button.x));
+                                App.ActiveState.OnMouseUp((MouseButton)button, new Vector2(e.button.x, e.button.x));
                             }
                         }
                         break;
@@ -163,11 +191,28 @@ namespace Engine
                         }
                         break;
                     case SDL_EventType.SDL_MOUSEWHEEL:
-                        App.ActiveState.OnMouseScroll(new Vector2(e.wheel.x, e.wheel.y));
+                        mwheel = new Vector2(e.wheel.x, e.wheel.y);
+                        App.ActiveState.OnMouseScroll(mwheel);
                         break;
                     case SDL_EventType.SDL_MOUSEMOTION:
                         mpos = new Vector2(e.motion.x, e.motion.y);
                         App.ActiveState.OnMouseMove(mpos);
+                        break;
+                    case SDL_EventType.SDL_DROPFILE:
+                        var dropfile = UTF8_ToManaged(e.drop.file);
+                        App.ActiveState.OnFileDrop(dropfile);
+                        SDL_free(e.drop.file);
+                        break;
+                    case SDL_EventType.SDL_DROPTEXT:
+                        var droptext = UTF8_ToManaged(e.drop.file);
+                        App.ActiveState.OnFileDrop(droptext);
+                        SDL_free(e.drop.file);
+                        break;
+                    case SDL_EventType.SDL_DROPBEGIN:
+                        SDL_free(e.drop.file);
+                        break;
+                    case SDL_EventType.SDL_DROPCOMPLETE:
+                        SDL_free(e.drop.file);
                         break;
                 }
             }
@@ -175,6 +220,13 @@ namespace Engine
 
         internal void shutdown()
         {
+            for (int i = 0; i < (int)SystemCursor.Count; i++)
+            {
+                if (sys_cursors[i] != IntPtr.Zero)
+                    SDL_FreeCursor(sys_cursors[i]);
+            }
+            sys_cursors = null;
+            
             SDL_GL_DeleteContext(ctx);
             SDL_DestroyWindow(wnd);
             SDL_Quit();
@@ -288,5 +340,22 @@ namespace Engine
         RCtrl = 228,
         RShift = 229,
         RAlt = 230
+    }
+
+    public enum SystemCursor
+    {
+        Arrow,
+        IBeam,
+        Wait,
+        Crosshair,
+        WaitArrow,
+        SizeNWSE,
+        SizeNESW,
+        SizeWE,
+        SizeNS,
+        SizeALL,
+        No,
+        Hand,
+        Count
     }
 }

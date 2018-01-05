@@ -7,154 +7,154 @@ namespace Engine
     [StructLayout(LayoutKind.Explicit)]
     public struct Color : IEquatable<Color>
     {
-        public static readonly Color AliceBlue = new Color(0xF0F8FF);
-        public static readonly Color AntiqueWhite = new Color(0xFAEBD7);
-        public static readonly Color Aqua = new Color(0x00FFFF);
-        public static readonly Color Aquamarine = new Color(0x7FFFD4);
-        public static readonly Color Azure = new Color(0xF0FFFF);
-        public static readonly Color Beige = new Color(0xF5F5DC);
-        public static readonly Color Bisque = new Color(0xFFE4C4);
-        public static readonly Color Black = new Color(0x000000);
-        public static readonly Color BlanchedAlmond = new Color(0xFFEBCD);
-        public static readonly Color Blue = new Color(0x0000FF);
-        public static readonly Color BlueViolet = new Color(0x8A2BE2);
-        public static readonly Color Brown = new Color(0xA52A2A);
-        public static readonly Color BurlyWood = new Color(0xDEB887);
-        public static readonly Color CadetBlue = new Color(0x5F9EA0);
-        public static readonly Color Chartreuse = new Color(0x7FFF00);
-        public static readonly Color Chocolate = new Color(0xD2691E);
-        public static readonly Color Coral = new Color(0xFF7F50);
-        public static readonly Color CornflowerBlue = new Color(0x6495ED);
-        public static readonly Color Cornsilk = new Color(0xFFF8DC);
-        public static readonly Color Crimson = new Color(0xDC143C);
-        public static readonly Color Cyan = new Color(0x00FFFF);
-        public static readonly Color DarkBlue = new Color(0x00008B);
-        public static readonly Color DarkCyan = new Color(0x008B8B);
-        public static readonly Color DarkGoldenRod = new Color(0xB8860B);
-        public static readonly Color DarkGray = new Color(0xA9A9A9);
-        public static readonly Color DarkGreen = new Color(0x006400);
-        public static readonly Color DarkGrey = new Color(0xA9A9A9);
-        public static readonly Color DarkKhaki = new Color(0xBDB76B);
-        public static readonly Color DarkMagenta = new Color(0x8B008B);
-        public static readonly Color DarkOliveGreen = new Color(0x556B2F);
-        public static readonly Color DarkOrange = new Color(0xFF8C00);
-        public static readonly Color DarkOrchid = new Color(0x9932CC);
-        public static readonly Color DarkRed = new Color(0x8B0000);
-        public static readonly Color DarkSalmon = new Color(0xE9967A);
-        public static readonly Color DarkSeaGreen = new Color(0x8FBC8F);
-        public static readonly Color DarkSlateBlue = new Color(0x483D8B);
-        public static readonly Color DarkSlateGray = new Color(0x2F4F4F);
-        public static readonly Color DarkSlateGrey = new Color(0x2F4F4F);
-        public static readonly Color DarkTurquoise = new Color(0x00CED1);
-        public static readonly Color DarkViolet = new Color(0x9400D3);
-        public static readonly Color DeepPink = new Color(0xFF1493);
-        public static readonly Color DeepSkyBlue = new Color(0x00BFFF);
-        public static readonly Color DimGray = new Color(0x696969);
-        public static readonly Color DimGrey = new Color(0x696969);
-        public static readonly Color DodgerBlue = new Color(0x1E90FF);
-        public static readonly Color FireBrick = new Color(0xB22222);
-        public static readonly Color FloralWhite = new Color(0xFFFAF0);
-        public static readonly Color ForestGreen = new Color(0x228B22);
-        public static readonly Color Fuchsia = new Color(0xFF00FF);
-        public static readonly Color Gainsboro = new Color(0xDCDCDC);
-        public static readonly Color GhostWhite = new Color(0xF8F8FF);
-        public static readonly Color Gold = new Color(0xFFD700);
-        public static readonly Color GoldenRod = new Color(0xDAA520);
-        public static readonly Color Gray = new Color(0x808080);
-        public static readonly Color Green = new Color(0x008000);
-        public static readonly Color GreenYellow = new Color(0xADFF2F);
-        public static readonly Color Grey = new Color(0x808080);
-        public static readonly Color HoneyDew = new Color(0xF0FFF0);
-        public static readonly Color HotPink = new Color(0xFF69B4);
-        public static readonly Color IndianRed = new Color(0xCD5C5C);
-        public static readonly Color Indigo = new Color(0x4B0082);
-        public static readonly Color Ivory = new Color(0xFFFFF0);
-        public static readonly Color Khaki = new Color(0xF0E68C);
-        public static readonly Color Lavender = new Color(0xE6E6FA);
-        public static readonly Color LavenderBlush = new Color(0xFFF0F5);
-        public static readonly Color LawnGreen = new Color(0x7CFC00);
-        public static readonly Color LemonChiffon = new Color(0xFFFACD);
-        public static readonly Color LightBlue = new Color(0xADD8E6);
-        public static readonly Color LightCoral = new Color(0xF08080);
-        public static readonly Color LightCyan = new Color(0xE0FFFF);
-        public static readonly Color LightGoldenRodYellow = new Color(0xFAFAD2);
-        public static readonly Color LightGray = new Color(0xD3D3D3);
-        public static readonly Color LightGreen = new Color(0x90EE90);
-        public static readonly Color LightGrey = new Color(0xD3D3D3);
-        public static readonly Color LightPink = new Color(0xFFB6C1);
-        public static readonly Color LightSalmon = new Color(0xFFA07A);
-        public static readonly Color LightSeaGreen = new Color(0x20B2AA);
-        public static readonly Color LightSkyBlue = new Color(0x87CEFA);
-        public static readonly Color LightSlateGray = new Color(0x778899);
-        public static readonly Color LightSlateGrey = new Color(0x778899);
-        public static readonly Color LightSteelBlue = new Color(0xB0C4DE);
-        public static readonly Color LightYellow = new Color(0xFFFFE0);
-        public static readonly Color Lime = new Color(0x00FF00);
-        public static readonly Color LimeGreen = new Color(0x32CD32);
-        public static readonly Color Linen = new Color(0xFAF0E6);
-        public static readonly Color Magenta = new Color(0xFF00FF);
-        public static readonly Color Maroon = new Color(0x800000);
-        public static readonly Color MediumAquaMarine = new Color(0x66CDAA);
-        public static readonly Color MediumBlue = new Color(0x0000CD);
-        public static readonly Color MediumOrchid = new Color(0xBA55D3);
-        public static readonly Color MediumPurple = new Color(0x9370DB);
-        public static readonly Color MediumSeaGreen = new Color(0x3CB371);
-        public static readonly Color MediumSlateBlue = new Color(0x7B68EE);
-        public static readonly Color MediumSpringGreen = new Color(0x00FA9A);
-        public static readonly Color MediumTurquoise = new Color(0x48D1CC);
-        public static readonly Color MediumVioletRed = new Color(0xC71585);
-        public static readonly Color MidnightBlue = new Color(0x191970);
-        public static readonly Color MintCream = new Color(0xF5FFFA);
-        public static readonly Color MistyRose = new Color(0xFFE4E1);
-        public static readonly Color Moccasin = new Color(0xFFE4B5);
-        public static readonly Color NavajoWhite = new Color(0xFFDEAD);
-        public static readonly Color Navy = new Color(0x000080);
-        public static readonly Color OldLace = new Color(0xFDF5E6);
-        public static readonly Color Olive = new Color(0x808000);
-        public static readonly Color OliveDrab = new Color(0x6B8E23);
-        public static readonly Color Orange = new Color(0xFFA500);
-        public static readonly Color OrangeRed = new Color(0xFF4500);
-        public static readonly Color Orchid = new Color(0xDA70D6);
-        public static readonly Color PaleGoldenRod = new Color(0xEEE8AA);
-        public static readonly Color PaleGreen = new Color(0x98FB98);
-        public static readonly Color PaleTurquoise = new Color(0xAFEEEE);
-        public static readonly Color PaleVioletRed = new Color(0xDB7093);
-        public static readonly Color PapayaWhip = new Color(0xFFEFD5);
-        public static readonly Color PeachPuff = new Color(0xFFDAB9);
-        public static readonly Color Peru = new Color(0xCD853F);
-        public static readonly Color Pink = new Color(0xFFC0CB);
-        public static readonly Color Plum = new Color(0xDDA0DD);
-        public static readonly Color PowderBlue = new Color(0xB0E0E6);
-        public static readonly Color Purple = new Color(0x800080);
-        public static readonly Color RebeccaPurple = new Color(0x663399);
-        public static readonly Color Red = new Color(0xFF0000);
-        public static readonly Color RosyBrown = new Color(0xBC8F8F);
-        public static readonly Color RoyalBlue = new Color(0x4169E1);
-        public static readonly Color SaddleBrown = new Color(0x8B4513);
-        public static readonly Color Salmon = new Color(0xFA8072);
-        public static readonly Color SandyBrown = new Color(0xF4A460);
-        public static readonly Color SeaGreen = new Color(0x2E8B57);
-        public static readonly Color SeaShell = new Color(0xFFF5EE);
-        public static readonly Color Sienna = new Color(0xA0522D);
-        public static readonly Color Silver = new Color(0xC0C0C0);
-        public static readonly Color SkyBlue = new Color(0x87CEEB);
-        public static readonly Color SlateBlue = new Color(0x6A5ACD);
-        public static readonly Color SlateGray = new Color(0x708090);
-        public static readonly Color SlateGrey = new Color(0x708090);
-        public static readonly Color Snow = new Color(0xFFFAFA);
-        public static readonly Color SpringGreen = new Color(0x00FF7F);
-        public static readonly Color SteelBlue = new Color(0x4682B4);
-        public static readonly Color Tan = new Color(0xD2B48C);
-        public static readonly Color Teal = new Color(0x008080);
-        public static readonly Color Thistle = new Color(0xD8BFD8);
-        public static readonly Color Tomato = new Color(0xFF6347);
-        public static readonly Color Turquoise = new Color(0x40E0D0);
-        public static readonly Color Violet = new Color(0xEE82EE);
-        public static readonly Color Wheat = new Color(0xF5DEB3);
-        public static readonly Color White = new Color(0xFFFFFF);
-        public static readonly Color WhiteSmoke = new Color(0xF5F5F5);
-        public static readonly Color Yellow = new Color(0xFFFF00);
-        public static readonly Color YellowGreen = new Color(0x9ACD32);
+        public static readonly Color AliceBlue = FromRgb(0xF0F8FF);
+        public static readonly Color AntiqueWhite = FromRgb(0xFAEBD7);
+        public static readonly Color Aqua = FromRgb(0x00FFFF);
+        public static readonly Color Aquamarine = FromRgb(0x7FFFD4);
+        public static readonly Color Azure = FromRgb(0xF0FFFF);
+        public static readonly Color Beige = FromRgb(0xF5F5DC);
+        public static readonly Color Bisque = FromRgb(0xFFE4C4);
+        public static readonly Color Black = FromRgb(0x000000);
+        public static readonly Color BlanchedAlmond = FromRgb(0xFFEBCD);
+        public static readonly Color Blue = FromRgb(0x0000FF);
+        public static readonly Color BlueViolet = FromRgb(0x8A2BE2);
+        public static readonly Color Brown = FromRgb(0xA52A2A);
+        public static readonly Color BurlyWood = FromRgb(0xDEB887);
+        public static readonly Color CadetBlue = FromRgb(0x5F9EA0);
+        public static readonly Color Chartreuse = FromRgb(0x7FFF00);
+        public static readonly Color Chocolate = FromRgb(0xD2691E);
+        public static readonly Color Coral = FromRgb(0xFF7F50);
+        public static readonly Color CornflowerBlue = FromRgb(0x6495ED);
+        public static readonly Color Cornsilk = FromRgb(0xFFF8DC);
+        public static readonly Color Crimson = FromRgb(0xDC143C);
+        public static readonly Color Cyan = FromRgb(0x00FFFF);
+        public static readonly Color DarkBlue = FromRgb(0x00008B);
+        public static readonly Color DarkCyan = FromRgb(0x008B8B);
+        public static readonly Color DarkGoldenRod = FromRgb(0xB8860B);
+        public static readonly Color DarkGray = FromRgb(0xA9A9A9);
+        public static readonly Color DarkGreen = FromRgb(0x006400);
+        public static readonly Color DarkGrey = FromRgb(0xA9A9A9);
+        public static readonly Color DarkKhaki = FromRgb(0xBDB76B);
+        public static readonly Color DarkMagenta = FromRgb(0x8B008B);
+        public static readonly Color DarkOliveGreen = FromRgb(0x556B2F);
+        public static readonly Color DarkOrange = FromRgb(0xFF8C00);
+        public static readonly Color DarkOrchid = FromRgb(0x9932CC);
+        public static readonly Color DarkRed = FromRgb(0x8B0000);
+        public static readonly Color DarkSalmon = FromRgb(0xE9967A);
+        public static readonly Color DarkSeaGreen = FromRgb(0x8FBC8F);
+        public static readonly Color DarkSlateBlue = FromRgb(0x483D8B);
+        public static readonly Color DarkSlateGray = FromRgb(0x2F4F4F);
+        public static readonly Color DarkSlateGrey = FromRgb(0x2F4F4F);
+        public static readonly Color DarkTurquoise = FromRgb(0x00CED1);
+        public static readonly Color DarkViolet = FromRgb(0x9400D3);
+        public static readonly Color DeepPink = FromRgb(0xFF1493);
+        public static readonly Color DeepSkyBlue = FromRgb(0x00BFFF);
+        public static readonly Color DimGray = FromRgb(0x696969);
+        public static readonly Color DimGrey = FromRgb(0x696969);
+        public static readonly Color DodgerBlue = FromRgb(0x1E90FF);
+        public static readonly Color FireBrick = FromRgb(0xB22222);
+        public static readonly Color FloralWhite = FromRgb(0xFFFAF0);
+        public static readonly Color ForestGreen = FromRgb(0x228B22);
+        public static readonly Color Fuchsia = FromRgb(0xFF00FF);
+        public static readonly Color Gainsboro = FromRgb(0xDCDCDC);
+        public static readonly Color GhostWhite = FromRgb(0xF8F8FF);
+        public static readonly Color Gold = FromRgb(0xFFD700);
+        public static readonly Color GoldenRod = FromRgb(0xDAA520);
+        public static readonly Color Gray = FromRgb(0x808080);
+        public static readonly Color Green = FromRgb(0x008000);
+        public static readonly Color GreenYellow = FromRgb(0xADFF2F);
+        public static readonly Color Grey = FromRgb(0x808080);
+        public static readonly Color HoneyDew = FromRgb(0xF0FFF0);
+        public static readonly Color HotPink = FromRgb(0xFF69B4);
+        public static readonly Color IndianRed = FromRgb(0xCD5C5C);
+        public static readonly Color Indigo = FromRgb(0x4B0082);
+        public static readonly Color Ivory = FromRgb(0xFFFFF0);
+        public static readonly Color Khaki = FromRgb(0xF0E68C);
+        public static readonly Color Lavender = FromRgb(0xE6E6FA);
+        public static readonly Color LavenderBlush = FromRgb(0xFFF0F5);
+        public static readonly Color LawnGreen = FromRgb(0x7CFC00);
+        public static readonly Color LemonChiffon = FromRgb(0xFFFACD);
+        public static readonly Color LightBlue = FromRgb(0xADD8E6);
+        public static readonly Color LightCoral = FromRgb(0xF08080);
+        public static readonly Color LightCyan = FromRgb(0xE0FFFF);
+        public static readonly Color LightGoldenRodYellow = FromRgb(0xFAFAD2);
+        public static readonly Color LightGray = FromRgb(0xD3D3D3);
+        public static readonly Color LightGreen = FromRgb(0x90EE90);
+        public static readonly Color LightGrey = FromRgb(0xD3D3D3);
+        public static readonly Color LightPink = FromRgb(0xFFB6C1);
+        public static readonly Color LightSalmon = FromRgb(0xFFA07A);
+        public static readonly Color LightSeaGreen = FromRgb(0x20B2AA);
+        public static readonly Color LightSkyBlue = FromRgb(0x87CEFA);
+        public static readonly Color LightSlateGray = FromRgb(0x778899);
+        public static readonly Color LightSlateGrey = FromRgb(0x778899);
+        public static readonly Color LightSteelBlue = FromRgb(0xB0C4DE);
+        public static readonly Color LightYellow = FromRgb(0xFFFFE0);
+        public static readonly Color Lime = FromRgb(0x00FF00);
+        public static readonly Color LimeGreen = FromRgb(0x32CD32);
+        public static readonly Color Linen = FromRgb(0xFAF0E6);
+        public static readonly Color Magenta = FromRgb(0xFF00FF);
+        public static readonly Color Maroon = FromRgb(0x800000);
+        public static readonly Color MediumAquaMarine = FromRgb(0x66CDAA);
+        public static readonly Color MediumBlue = FromRgb(0x0000CD);
+        public static readonly Color MediumOrchid = FromRgb(0xBA55D3);
+        public static readonly Color MediumPurple = FromRgb(0x9370DB);
+        public static readonly Color MediumSeaGreen = FromRgb(0x3CB371);
+        public static readonly Color MediumSlateBlue = FromRgb(0x7B68EE);
+        public static readonly Color MediumSpringGreen = FromRgb(0x00FA9A);
+        public static readonly Color MediumTurquoise = FromRgb(0x48D1CC);
+        public static readonly Color MediumVioletRed = FromRgb(0xC71585);
+        public static readonly Color MidnightBlue = FromRgb(0x191970);
+        public static readonly Color MintCream = FromRgb(0xF5FFFA);
+        public static readonly Color MistyRose = FromRgb(0xFFE4E1);
+        public static readonly Color Moccasin = FromRgb(0xFFE4B5);
+        public static readonly Color NavajoWhite = FromRgb(0xFFDEAD);
+        public static readonly Color Navy = FromRgb(0x000080);
+        public static readonly Color OldLace = FromRgb(0xFDF5E6);
+        public static readonly Color Olive = FromRgb(0x808000);
+        public static readonly Color OliveDrab = FromRgb(0x6B8E23);
+        public static readonly Color Orange = FromRgb(0xFFA500);
+        public static readonly Color OrangeRed = FromRgb(0xFF4500);
+        public static readonly Color Orchid = FromRgb(0xDA70D6);
+        public static readonly Color PaleGoldenRod = FromRgb(0xEEE8AA);
+        public static readonly Color PaleGreen = FromRgb(0x98FB98);
+        public static readonly Color PaleTurquoise = FromRgb(0xAFEEEE);
+        public static readonly Color PaleVioletRed = FromRgb(0xDB7093);
+        public static readonly Color PapayaWhip = FromRgb(0xFFEFD5);
+        public static readonly Color PeachPuff = FromRgb(0xFFDAB9);
+        public static readonly Color Peru = FromRgb(0xCD853F);
+        public static readonly Color Pink = FromRgb(0xFFC0CB);
+        public static readonly Color Plum = FromRgb(0xDDA0DD);
+        public static readonly Color PowderBlue = FromRgb(0xB0E0E6);
+        public static readonly Color Purple = FromRgb(0x800080);
+        public static readonly Color RebeccaPurple = FromRgb(0x663399);
+        public static readonly Color Red = FromRgb(0xFF0000);
+        public static readonly Color RosyBrown = FromRgb(0xBC8F8F);
+        public static readonly Color RoyalBlue = FromRgb(0x4169E1);
+        public static readonly Color SaddleBrown = FromRgb(0x8B4513);
+        public static readonly Color Salmon = FromRgb(0xFA8072);
+        public static readonly Color SandyBrown = FromRgb(0xF4A460);
+        public static readonly Color SeaGreen = FromRgb(0x2E8B57);
+        public static readonly Color SeaShell = FromRgb(0xFFF5EE);
+        public static readonly Color Sienna = FromRgb(0xA0522D);
+        public static readonly Color Silver = FromRgb(0xC0C0C0);
+        public static readonly Color SkyBlue = FromRgb(0x87CEEB);
+        public static readonly Color SlateBlue = FromRgb(0x6A5ACD);
+        public static readonly Color SlateGray = FromRgb(0x708090);
+        public static readonly Color SlateGrey = FromRgb(0x708090);
+        public static readonly Color Snow = FromRgb(0xFFFAFA);
+        public static readonly Color SpringGreen = FromRgb(0x00FF7F);
+        public static readonly Color SteelBlue = FromRgb(0x4682B4);
+        public static readonly Color Tan = FromRgb(0xD2B48C);
+        public static readonly Color Teal = FromRgb(0x008080);
+        public static readonly Color Thistle = FromRgb(0xD8BFD8);
+        public static readonly Color Tomato = FromRgb(0xFF6347);
+        public static readonly Color Turquoise = FromRgb(0x40E0D0);
+        public static readonly Color Violet = FromRgb(0xEE82EE);
+        public static readonly Color Wheat = FromRgb(0xF5DEB3);
+        public static readonly Color White = FromRgb(0xFFFFFF);
+        public static readonly Color WhiteSmoke = FromRgb(0xF5F5F5);
+        public static readonly Color Yellow = FromRgb(0xFFFF00);
+        public static readonly Color YellowGreen = FromRgb(0x9ACD32);
         public static readonly Color Transparent = new Color(255, 255, 255, 0);
 
         [FieldOffset(0)]
@@ -169,7 +169,7 @@ namespace Engine
         [FieldOffset(0)]
         int m_value; // used for easy hash and compare
 
-        public Color(byte r, byte g, byte b, byte a) : this()
+        public Color(byte r, byte g, byte b, byte a = 255) : this()
         {
             R = r;
             G = g;
@@ -177,7 +177,7 @@ namespace Engine
             A = a;
         }
 
-        public Color(int r, int g, int b, int a) : this()
+        public Color(int r, int g, int b, int a = 255) : this()
         {
             R = (byte)r;
             G = (byte)g;
@@ -185,7 +185,7 @@ namespace Engine
             A = (byte)a;
         }
 
-        public Color(float r, float g, float b, float a) : this()
+        public Color(float r, float g, float b, float a = 1) : this()
         {
             R = (byte)(r * 255);
             G = (byte)(g * 255);
@@ -193,20 +193,86 @@ namespace Engine
             A = (byte)(a * 255);
         }
 
-        public Color(byte r, byte g, byte b) : this()
+        public Color(Vector4 vec) : this(vec.X, vec.Y, vec.Z, vec.W) { }
+
+        public static Color FromRgb(int rgb)
         {
-            R = r;
-            G = g;
-            B = b;
-            A = 255;
+            return new Color((byte)((rgb & 0x00ff0000u) >> 16),
+                             (byte)((rgb & 0x0000ff00u) >> 8),
+                             (byte)((rgb & 0x000000ffu) >> 0));
         }
 
-        public Color(int rgb) : this()
+        public static Color FromArgb(int rgba)
         {
-            R = (byte)((rgb & 0x00ff0000u) >> 16);
-            G = (byte)((rgb & 0x0000ff00u) >> 8);
-            B = (byte)((rgb & 0x000000ffu) >> 0);
-            A = 255;
+            return new Color((byte)((rgba & 0x00ff0000u) >> 16),
+                             (byte)((rgba & 0x0000ff00u) >> 8),
+                             (byte)((rgba & 0x000000ffu) >> 0),
+                             (byte)((rgba & 0xff000000u) >> 24));
+        }
+
+        public static Color FromHsv(float h, float s, float v, float a)
+        {
+            int i;
+            float f, p, q, t;
+            if (s == 0)
+                return new Color(v, v, v, 1f);
+
+            h /= 60;
+            i = (int)h;
+            f = h - i;
+            p = v * (1 - s);
+            q = v * (1 - s * f);
+            t = v * (1 - s * (1 - f));
+
+            switch (i)
+            {
+                case 0:
+                    return new Color(v, t, p, 1f);
+                case 1:
+                    return new Color(q, v, p, 1f);
+                case 2:
+                    return new Color(p, v, t, 1f);
+                case 3:
+                    return new Color(p, q, v, 1f);
+                case 4:
+                    return new Color(t, p, v, 1f);
+                default:
+                    return new Color(v, p, q, 1f);
+            }
+        }
+
+        public Vector4 ToHsv()
+        {
+            float h, s, v;
+            float min, max, delta;
+            float rf = R / 255f;
+            float gf = G / 255f;
+            float bf = B / 255f;
+            min = Math.Min(rf / 255f, Math.Min(gf, bf));
+            max = Math.Max(rf / 255f, Math.Min(gf, bf));
+            v = max;
+            delta = max - min;
+            if (max != 0)
+                s = delta / max;
+            else
+            {
+                s = 0;
+                h = 0;
+                return new Vector4(h, s, v, A);
+            }
+
+            if (rf == max)
+                h = (gf - bf) / delta;
+            else if (gf == max)
+                h = 2 + (bf - rf) / delta;
+            else
+                h = 4 + (rf - gf) / delta;
+
+            h *= 60;
+            if (h < 0)
+                h += 360;
+
+            return new Vector4(h, s, v, A);
         }
 
         public override string ToString()
@@ -229,7 +295,7 @@ namespace Engine
         }
 
         public bool Equals(Color other) => m_value == other.m_value;
-        
+
         public override int GetHashCode() => m_value;
 
         public static bool operator ==(Color a, Color b) => a.Equals(b);

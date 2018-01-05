@@ -145,6 +145,16 @@ namespace Engine
             return -1;
         }
 
+        public int Find(Predicate<T> match)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (match(array[i]))
+                    return i;
+            }
+            return -1; // not found
+        }
+
         /// <summary>
         /// Returns true of array contains item.
         /// </summary>

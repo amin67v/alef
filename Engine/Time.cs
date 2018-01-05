@@ -9,7 +9,6 @@ namespace Engine
         float ft;
         float speed = 1;
         float time;
-        float utime;
 
         internal Time() { }
 

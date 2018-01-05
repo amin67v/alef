@@ -8,33 +8,15 @@ namespace Engine
     public sealed class ResourceManager
     {
         Dictionary<string, Resource> res_map;
-        string root_path = null;
-        ZipArchive archive = null;
+        ZipArchive pak = null;
 
         internal ResourceManager()
         {
-            var pakfile = Path.Combine(App.ExePath, "data.pak");
-            // use pak file if exist otherwise use data folder
+            var pakfile = App.GetAbsolutePath("data.pak");
+
             if (File.Exists(pakfile))
-            {
-                if (!File.Exists(pakfile))
-                {
-                    string msg = "Invalid path for data pak.";
-                    App.Log.Error(msg);
-                    throw new FileNotFoundException(msg);
-                }
-                archive = ZipFile.OpenRead(pakfile);
-            }
-            else
-            {
-                root_path = Path.Combine(App.ExePath, "data"); ;
-                if (!Directory.Exists(root_path))
-                {
-                    string msg = "Invalid path for root directory.";
-                    App.Log.Error(msg);
-                    throw new DirectoryNotFoundException(msg);
-                }
-            }
+                pak = ZipFile.OpenRead(pakfile);
+
 
             res_map = new Dictionary<string, Resource>(50);
         }
@@ -52,20 +34,26 @@ namespace Engine
                 }
                 else
                 {
-                    if (archive == null)
+                    // use root folder instead of pak file
+                    if (pak == null)
                     {
-                        var abs_path = Path.Combine(root_path, filename);
-                        if (!File.Exists(abs_path))
+                        var path = App.GetAbsolutePath(filename);
+                        if (!File.Exists(path))
                         {
-                            App.Log.Info($"Asset does not exist at path '{filename}'.");
+                            App.Log.Info($"Resource does not exist at path '{filename}'.");
                             return null;
                         }
-                        stream = File.OpenRead(abs_path);
+                        stream = File.OpenRead(path);
                         res = load_func(stream);
                     }
                     else
                     {
-                        var entry = archive.GetEntry(filename);
+                        var entry = pak.GetEntry(filename);
+                        if (entry == null)
+                        {
+                            App.Log.Info($"Resource does not exist at path '{filename}'.");
+                            return null;
+                        }
                         stream = entry.Open();
                         res = load_func(stream);
                     }
@@ -91,6 +79,10 @@ namespace Engine
 
             tmp_all_res.Clear();
             res_map.Clear();
+
+            DefaultShaders.dispose_all();
+
+            pak?.Dispose();
         }
 
         public delegate Resource ResourceLoadHandler(Stream stream);

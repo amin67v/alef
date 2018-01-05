@@ -17,7 +17,7 @@ namespace Game
         static void Main(string[] args)
         {
             var cfg = new AppConfig("Game App!!", 640, 480);
-            cfg.Vsync = true;
+            //cfg.Vsync = true;
             App.Run(cfg, new MyGame());
         }
     }
@@ -33,13 +33,13 @@ namespace Game
 
     public class SimpleEntity : Entity
     {
-        SpriteSheet test_sheet;
+        SpriteSheet spr;
         Transform xform = new Transform();
         public int Layer => 0;
 
         public override void OnBegin()
         {
-            test_sheet = SpriteSheet.Load("sprites/test.json");
+            spr = SpriteSheet.Load("sprites/test.json");
 
             //  var img = new Image(1024, 1024);
             //  for (int x = 0; x < 1024; x++)
@@ -58,7 +58,7 @@ namespace Game
                 for (int j = 0; j < 100; j++)
                 {
                     xform.Position = new Vector2(i, j) * 2;
-                    StaticBatch.AddSprite(xform, test_sheet, 0);
+                    StaticBatch.AddSprite(xform, spr, 0);
                 }
             }
         }
@@ -96,12 +96,7 @@ namespace Game
             if (App.Window.IsKeyDown(KeyCode.R))
                 z -= dt * 100;
 
-            var t = App.Time.Total;
-            Vector2 noise;
-            noise.X = Noise.Perlin2D(t, 0);
-            noise.Y = Noise.Perlin2D(t + 123, 0);
-
-            cam.Position += new Vector2(x, y) * cam.ViewSize * (App.Window.IsKeyDown(KeyCode.LShift) ? 4f : .2f) + noise * .1f;
+            cam.Position += new Vector2(x, y) * cam.ViewSize * (App.Window.IsKeyDown(KeyCode.LShift) ? 4f : .2f);
 
             cam.Rotation += r;
             cam.ViewSize += z;

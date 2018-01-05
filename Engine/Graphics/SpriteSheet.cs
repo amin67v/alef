@@ -1,78 +1,122 @@
 using System;
 using System.IO;
-using System.Json;
+using System.IO.Compression;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Engine
 {
     public class SpriteSheet : Resource
     {
-        int pixel_per_unit = 24;
-        Texture tex;
         Frame[] frames;
+        Texture tex;
+        int ppu;
 
         SpriteSheet() { }
 
         public Frame this[int index] => frames[index];
 
+        public int FrameCount => frames.Length;
+
         public Texture Texture => tex;
 
-        public int PixelPerUnit => pixel_per_unit;
-
-        public static SpriteSheet Create(Frame[] frames, Texture tex, int pixel_per_unit)
-        {
-            var sheet = new SpriteSheet();
-            sheet.tex = tex;
-            sheet.pixel_per_unit = pixel_per_unit;
-            sheet.frames = frames;
-
-            return sheet;
-        }
+        public int PixelPerUnit => ppu;
 
         /// <summary>
         /// Load and cache sprite sheet and related texture from file
         /// </summary>
         public static SpriteSheet Load(string file)
         {
-            Resource load_file(Stream stream)
+            return App.ResourceManager.FromCacheOrFile(file, deserialize) as SpriteSheet;
+        }
+        
+        static SpriteSheet deserialize(Stream stream)
+        {
+            BinaryReader reader = new BinaryReader(stream);
+            int sign = reader.ReadInt32();
+            if (sign != 0x00737072)
+                throw new FormatException("Invalid sign");
+
+            int version = reader.ReadInt32();
+            if (version != 1) // for now version should always be 1
+                throw new FormatException("Invalid version");
+
+            int width = reader.ReadInt32();
+            int height = reader.ReadInt32();
+            int ppu = reader.ReadInt32();
+            FilterMode filter = (FilterMode)reader.ReadInt32();
+            WrapMode wrap = (WrapMode)reader.ReadInt32();
+
+            for (int i = 0; i < 13; i++)
+                reader.ReadInt32(); // not used
+
+            int frame_count = reader.ReadInt32();
+            string[] frame_name = new string[frame_count];
+            Rect[] frame_rect = new Rect[frame_count];
+            Vector2[] frame_offset = new Vector2[frame_count];
+
+            for (int i = 0; i < frame_count; i++)
             {
-                TextReader reader = new StreamReader(stream);
-                var src = reader.ReadToEnd();
-                var json = JsonValue.Parse(src);
-                string tex_name = json["texture"];
-                int pixel_per_unit = json["pixel_per_unit"];
-                FilterMode filter = Enum.Parse<FilterMode>(json["filter_mode"]);
-                var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
-                var tex = Texture.Load(tex_file, filter, false);
-                JsonArray arr = json["frames"] as JsonArray;
-                Frame[] frames = new Frame[arr.Count];
-                for (int i = 0; i < arr.Count; i++)
-                {
-                    string name = arr[i]["name"];
-                    Rect rect = JsonHelper.ParseRect(arr[i]["rect"]);
-                    Vector2 offset = JsonHelper.ParseVector2(arr[i]["offset"]);
-                    frames[i] = new Frame(name, rect, offset, tex.Size, pixel_per_unit);
-                }
-                return SpriteSheet.Create(frames, tex, pixel_per_unit);
+                frame_name[i] = reader.ReadString();
+
+                frame_rect[i].X = reader.ReadSingle();
+                frame_rect[i].Y = reader.ReadSingle();
+                frame_rect[i].Width = reader.ReadSingle();
+                frame_rect[i].Height = reader.ReadSingle();
+
+                frame_offset[i].X = reader.ReadSingle();
+                frame_offset[i].Y = reader.ReadSingle();
             }
 
-            return App.ResourceManager.FromCacheOrFile(file, load_file) as SpriteSheet;
+            int comp_tex_size = reader.ReadInt32();
+            byte[] comp_tex_data = reader.ReadBytes(comp_tex_size);
+            byte[] decomp_tex_data = new byte[width * height * 4];
+            MemoryStream mem_stream = new MemoryStream(comp_tex_data);
+            DeflateStream deflate = new DeflateStream(mem_stream, CompressionMode.Decompress, false);
+            int num_read = deflate.Read(decomp_tex_data, 0, decomp_tex_data.Length);
+            if (num_read != decomp_tex_data.Length)
+                throw new Exception("Failed to decompress texture data, [num_read != decomp_tex_data.Length]");
+
+            var pin = GCHandle.Alloc(decomp_tex_data);
+            Texture texture = Texture.Create(width, height, filter, wrap, pin.AddrOfPinnedObject());
+            pin.Free();
+
+            deflate.Dispose();
+
+            var spr = new SpriteSheet();
+            spr.tex = texture;
+            spr.ppu = ppu;
+            spr.frames = new Frame[frame_count];
+            for (int i = 0; i < frame_count; i++)
+                spr.frames[i] = new Frame(frame_name[i], frame_rect[i], frame_offset[i], texture.Size, ppu);
+            
+            return spr;
         }
 
-        public int GetFrameIndex(string name) => Array.FindIndex(frames, (f) => f.Name == name);
+        public int GetFrameIndex(string name)
+        {
+            bool match(Frame f) => f.Name == name;
+            return Array.FindIndex(frames, match);
+        }
+
+        protected override void OnDisposeManaged()
+        {
+            tex.Dispose();
+            frames = null;
+        }
 
         public class Frame
         {
             string name;
             Vertex[] verts;
 
-            internal Frame(string name, Rect rect, Vector2 offset, Vector2 tex_size, float pixel_per_unit)
+            internal Frame(string name, Rect rect, Vector2 offset, Vector2 tex_size, float ppu)
             {
                 this.name = name;
                 var texcoord = rect / tex_size;
-                rect /= pixel_per_unit;
-                offset /= pixel_per_unit;
+                rect /= ppu;
+                offset /= ppu;
                 rect.Position = -offset;
                 verts = new Vertex[6];
                 verts[0] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);

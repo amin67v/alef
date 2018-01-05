@@ -64,20 +64,35 @@ namespace Engine
             {
                 frag_color = texture(main_tex, v2f_texcoord) * color;
             }";
+
+        static Shader color_mult;
+        static Shader color_mix;
+        static Shader font;
     
         /// <summary>
         /// The default color multiply shader
         /// </summary>
-        public static readonly Shader ColorMult = Shader.Create(vert_standard, frag_color_mult);
+        public static Shader ColorMult => color_mult ?? (color_mult = Shader.Create(vert_standard, frag_color_mult));
 
         /// <summary>
         /// The default color mix shader
         /// </summary>
-        public static readonly Shader ColorMix = Shader.Create(vert_standard, frag_color_mix);
+        public static readonly Shader ColorMix = color_mix ?? ( color_mix = Shader.Create(vert_standard, frag_color_mix));
 
         /// <summary>
         /// The default font shader
         /// </summary>
-        public static readonly Shader Font = Shader.Create(vert_standard, frag_font);
+        public static readonly Shader Font = font ?? (font = Shader.Create(vert_standard, frag_font));
+
+        internal static void dispose_all()
+        {
+            color_mult.Dispose();
+            color_mix.Dispose();
+            font.Dispose();
+
+            color_mult = null;
+            color_mix = null;
+            font = null;
+        }
     }
 }

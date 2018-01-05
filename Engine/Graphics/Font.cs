@@ -68,7 +68,7 @@ namespace Engine
 
                 }
                 var tex_file = Path.Combine(Path.GetDirectoryName(file), tex_name);
-                var tex = Texture.Load(tex_file, FilterMode.Bilinear, false);
+                var tex = Texture.Load(tex_file, FilterMode.Bilinear, WrapMode.Clamp);
                 var font = Font.Create(glyphs, tex, json["space"], json["height"]);
                 return font;
 

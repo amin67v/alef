@@ -17,6 +17,7 @@ namespace Engine
         string exe_path = null;
         ResourceManager res_mgr;
         IGraphicsDevice gfx;
+        Gui gui;
         Window window;
         Time time;
         Log log;
@@ -60,6 +61,11 @@ namespace Engine
         public static IGraphicsDevice Graphics => current.gfx;
 
         /// <summary>
+        /// Gets gui object used to draw ui elements
+        /// </summary>
+        public static Gui Gui => current.gui;
+
+        /// <summary>
         /// Path to the app
         /// </summary>
         public static string ExePath => current.exe_path;
@@ -87,6 +93,11 @@ namespace Engine
         /// </summary>
         public static void Quit() => current.is_running = false;
 
+        /// <summary>
+        /// Returns absolute path for the given file relative to executable path.
+        /// </summary>
+        public static string GetAbsolutePath(string file) => Path.Combine(ExePath, file);
+
         void run(AppConfig cfg, AppState state)
         {
             is_running = true;
@@ -104,12 +115,14 @@ namespace Engine
             // determine and store executable path
             exe_path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-            log = new Log("log.txt");
+            log = new Log(GetAbsolutePath(cfg.LogFile));
             window = new Window(cfg);
             time = new Time();
             gfx = new OpenglDevice();
-            App.Log.Info($"Graphics Driver:\n{gfx.DriverInfo}\n");
+            App.Log.Info($"Graphics Driver:\n{gfx.DriverInfo}");
             res_mgr = new ResourceManager();
+            gui = new Gui();
+            
             if (state != null)
             {
                 act_state = state;
@@ -138,8 +151,8 @@ namespace Engine
 
             ActiveState.OnEnd();
             nxt_state = act_state = null;
+            gui.shutdown();
             ResourceManager.shutdown();
-            //Graphics.shutdown();
             window.shutdown();
             time.shutdown();
             Log.Dispose();

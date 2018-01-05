@@ -11,8 +11,8 @@ namespace Engine
         void Clear(Color color);
         void Display();
 
-        Texture CreateTexture(int width, int height, FilterMode filter, bool repeat, IntPtr data);
-        MeshBuffer CreateMeshBuffer(IntPtr vert_data, int vert_count);
+        Texture CreateTexture(int width, int height, FilterMode filter, WrapMode wrap, IntPtr data);
+        MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count);
         MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count);
         RenderTarget CreateRenderTarget(int width, int height, FilterMode filter, int count);
         Shader CreateShader(string vert, string frag);

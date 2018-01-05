@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -8,9 +9,18 @@ namespace Engine
     /// </summary>
     public class Log : Disposable
     {
+        static readonly ConsoleColor[] lvl_color =
+        {
+            ConsoleColor.Magenta,
+            ConsoleColor.Green,
+            ConsoleColor.Yellow,
+            ConsoleColor.Red
+        };
+
         readonly object sync_obj = new object();
         StreamWriter writer = null;
         LogLevel level;
+        bool console = true;
 
         public Log(string file)
         {
@@ -25,6 +35,12 @@ namespace Engine
         {
             get => level;
             set => level = value;
+        }
+
+        public bool OutputConsole
+        {
+            get => console;
+            set => console = value;
         }
 
         public static event LogHandler LogEvent;
@@ -74,6 +90,16 @@ namespace Engine
                         writer.WriteLine(msg);
                         writer.Flush();
                     }
+
+                    // log to console
+                    if (console)
+                    {
+                        var c = Console.ForegroundColor;
+                        Console.ForegroundColor = lvl_color[(int)lvl];
+                        Console.WriteLine(msg);
+                        Console.ForegroundColor = c;
+                    }
+
                     // raise OnLogEvent
                     if (LogEvent != null)
                         LogEvent(lvl, msg);
@@ -81,20 +107,14 @@ namespace Engine
             }
         }
 
-        protected override void OnDisposeManaged() 
-        { 
+        protected override void OnDisposeManaged()
+        {
             writer.Dispose();
             writer = null;
         }
     }
 
-    public enum LogLevel
-    {
-        Debug = 0,
-        Info = 1,
-        Warning = 2,
-        Error = 3
-    }
+    public enum LogLevel { Debug, Info, Warning, Error }
 
     public delegate void LogHandler(LogLevel level, string msg);
 

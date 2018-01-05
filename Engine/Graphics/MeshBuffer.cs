@@ -110,7 +110,7 @@ namespace Engine
         public void UpdateIndices(Array<ushort> indices)
         {
             var pin = GCHandle.Alloc(indices.Items, GCHandleType.Pinned);
-            UpdateVertices(pin.AddrOfPinnedObject(), indices.Count);
+            UpdateIndices(pin.AddrOfPinnedObject(), indices.Count);
             pin.Free();
         }
 

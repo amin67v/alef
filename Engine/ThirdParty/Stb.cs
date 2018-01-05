@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Engine
 {
     [System.Security.SuppressUnmanagedCodeSecurity]
-    internal static unsafe class Stb
+    static unsafe class Stb
     {
         const string lib = "stb";
 
@@ -38,7 +38,8 @@ namespace Engine
         public static extern int stbi_write_jpg([In] [MarshalAs(UnmanagedType.LPStr)] string filename, int w, int h, int comp, [In] void* data, int quality);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void stbi_set_flip_vertically_on_load(int flip);
+        static extern void stbi_set_flip_vertically_on_load(int flip);
 
+        public static void stbi_set_flip_vertically_on_load(bool flip) => stbi_set_flip_vertically_on_load(flip ? 1 : 0);
     }
 }

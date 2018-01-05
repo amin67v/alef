@@ -111,9 +111,9 @@ namespace Engine
 #endif
         }
 
-        public Texture CreateTexture(int width, int height, FilterMode filter, bool repeat, IntPtr data)
+        public Texture CreateTexture(int width, int height, FilterMode filter, WrapMode wrap, IntPtr data)
         {
-            return new OpenglTexture(width, height, filter, repeat, data);
+            return new OpenglTexture(width, height, filter, wrap, data);
         }
 
         public MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count)

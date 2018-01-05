@@ -10,7 +10,8 @@ ThirdParty/gui/*
 Engine/obj
 Editor/obj
 Game/obj
-SpriteSheetEditor/obj
+DataEditor/obj
 Editor/log.txt
 Game/log.txt
-SpriteSheetEditor/log.txt
+DataEditor/log.txt
+.vscode/c_cpp_properties.json

@@ -10,24 +10,24 @@ namespace Engine
         Dictionary<BatchKey, SpriteBatch> batch_map;
         float batch_area_size = 100;
 
-        public static void AddSprite(Transform xform, SpriteSheet sheet, int frame)
+        public static void AddSprite(Transform xform, SpriteSheet spr, int frame)
         {
-            AddSprite(xform, sheet, frame, 0, DefaultShaders.ColorMult, BlendMode.AlphaBlend, Color.White);
+            AddSprite(xform, spr, frame, 0, DefaultShaders.ColorMult, BlendMode.AlphaBlend, Color.White);
         }
 
-        public static void AddSprite(Transform xform, SpriteSheet sheet, int frame, int layer, Color color)
+        public static void AddSprite(Transform xform, SpriteSheet spr, int frame, int layer, Color color)
         {
-            AddSprite(xform, sheet, frame, layer, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
+            AddSprite(xform, spr, frame, layer, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
         }
 
-        public static void AddSprite(Transform xform, SpriteSheet sheet, int frame, int layer, Shader shader, BlendMode blend_mode, Color color)
+        public static void AddSprite(Transform xform, SpriteSheet spr, int frame, int layer, Shader shader, BlendMode blend_mode, Color color)
         {
             if (instance == null)
                 instance = Scene.Spawn<StaticBatch>("StaticBatch");
 
             var key = new BatchKey()
             {
-                Sheet = sheet,
+                Sprite = spr,
                 Shader = shader,
                 BlendMode = blend_mode,
                 Layer = layer,
@@ -38,7 +38,7 @@ namespace Engine
             SpriteBatch target;
             if (!instance.batch_map.TryGetValue(key, out target))
             {
-                target = new SpriteBatch(sheet, shader, null, blend_mode, layer, 20);
+                target = new SpriteBatch(spr, shader, null, blend_mode, layer, 20);
                 instance.batch_map.Add(key, target);
             }
 
@@ -55,15 +55,15 @@ namespace Engine
 
         public override void OnDestroy()
         {
-            instance = null;
             foreach (var item in batch_map.Values)
                 item.Dispose();
 
             batch_map.Clear();
             Scene.OnPreRender -= on_pre_render;
+            instance = null;
         }
 
-                void on_pre_render()
+        void on_pre_render()
         {
             foreach (var item in batch_map.Values)
                 Scene.RegisterForDraw(item);
@@ -71,7 +71,7 @@ namespace Engine
 
         struct BatchKey : IEquatable<BatchKey>
         {
-            public SpriteSheet Sheet;
+            public SpriteSheet Sprite;
             public BlendMode BlendMode;
             public Shader Shader;
             public int Layer;
@@ -83,7 +83,7 @@ namespace Engine
                 return other.Layer == Layer &&
                 other.BlendMode == BlendMode &&
                 other.Shader == Shader &&
-                other.Sheet == Sheet;
+                other.Sprite == Sprite;
             }
 
             public override int GetHashCode()
@@ -92,7 +92,7 @@ namespace Engine
                 {
                     const int prime = 486187739;
                     int hash = prime;
-                    hash = (hash + Sheet.GetHashCode()) * prime;
+                    hash = (hash + Sprite.GetHashCode()) * prime;
                     hash = (hash + (int)BlendMode) * prime;
                     hash = (hash + Shader.GetHashCode()) * prime;
                     hash = (hash + Layer) * prime;

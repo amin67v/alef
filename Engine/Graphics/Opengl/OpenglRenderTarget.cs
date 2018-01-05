@@ -22,7 +22,7 @@ namespace Engine
             glBindFramebuffer(FramebufferTarget.Framebuffer, id);
             for (int i = 0; i < count; i++)
             {
-                textures[i] = Texture.Create(width, height, filter, false, IntPtr.Zero);
+                textures[i] = Texture.Create(width, height, filter, WrapMode.Clamp, IntPtr.Zero);
                 var tex_id = (textures[i] as OpenglTexture).id;
                 glFramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + i, TextureTarget.Texture2D, tex_id, 0);
             }

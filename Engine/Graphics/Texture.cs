@@ -29,10 +29,8 @@ namespace Engine
 
         /// <summary>
         /// Determines how to sample texture when coordinate is out of range 0, 1
-        /// 'True' means texture is repeated
-        /// 'False' means the value is clamped within 0, 1 range
         /// </summary>
-        public abstract bool Repeat { get; set; }
+        public abstract WrapMode Wrap { get; set; }
 
         /// <summary>
         /// Determines how to sample texture
@@ -45,10 +43,10 @@ namespace Engine
         /// <summary>
         /// Creates texture with the provided parameters
         /// </summary>
-        public static Texture Create(int width, int height, FilterMode filter, bool repeat, Color[] pixels)
+        public static Texture Create(int width, int height, FilterMode filter, WrapMode wrap, Color[] pixels)
         {
             var pin = GCHandle.Alloc(pixels, GCHandleType.Pinned);
-            var tex = Create(width, height, filter, repeat, pin.AddrOfPinnedObject());
+            var tex = Create(width, height, filter, wrap, pin.AddrOfPinnedObject());
             pin.Free();
             return tex;
         }
@@ -56,25 +54,25 @@ namespace Engine
         /// <summary>
         /// Creates texture with the provided parameters
         /// </summary>
-        public static Texture Create(int width, int height, FilterMode filter, bool repeat, IntPtr data)
+        public static Texture Create(int width, int height, FilterMode filter, WrapMode wrap, IntPtr data)
         {
-            return App.Graphics.CreateTexture(width, height, filter, repeat, data);
+            return App.Graphics.CreateTexture(width, height, filter, wrap, data);
         }
 
         /// <summary>
         /// Loads and cache texture from file
         /// </summary>
-        public static Texture Load(string file) => Load(file, FilterMode.Point, false);
+        public static Texture Load(string file) => Load(file, FilterMode.Point, WrapMode.Clamp);
 
         /// <summary>
         /// Loads and cache texture from file
         /// </summary>
-        public static Texture Load(string file, FilterMode filter, bool repeat)
+        public static Texture Load(string file, FilterMode filter, WrapMode wrap)
         {
             Resource load_file(Stream stream)
             {
-                var img = Image.FromFile(stream);
-                var tex = Texture.Create(img.Width, img.Height, filter, repeat, img.PixelData);
+                var img = Image.FromFile(stream, true);
+                var tex = Texture.Create(img.Width, img.Height, filter, wrap, img.PixelData);
                 img.Dispose();
                 return tex;
             }
