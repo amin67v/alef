@@ -87,7 +87,7 @@ namespace Engine
         /// </summary>
         public void Push(T[] other, int index, int length)
         {
-            grow_if_needed(count);
+            grow_if_needed(length);
             Array.Copy(other, index, array, count, length);
             count += length;
         }

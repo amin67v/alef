@@ -9,6 +9,8 @@ namespace Engine
     {
         public static readonly int SizeInBytes = Marshal.SizeOf<Vertex>();
 
+        public static readonly Vertex Zero = new Vertex(0, 0, 0, 0, Color.White);
+
         public Vector2 Position;
         public Vector2 Texcoord;
         public Color Color;

@@ -4,7 +4,7 @@ namespace Engine
 {
     public unsafe class Style
     {
-        private readonly NativeStyle* ptr;
+        readonly NativeStyle* ptr;
 
         internal Style(NativeStyle* style)
         {

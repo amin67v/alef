@@ -129,9 +129,27 @@ namespace Engine
         }
 
         /// <summary>
+        /// Add new set of vertices to the vertex buffer
+        /// </summary>
+        public void AddVertex(params Vertex[] value)
+        {
+            vtx_arr.Push(value);
+            dirty |= DirtyFlags.VertexArray | DirtyFlags.Bounds;
+        }
+
+        /// <summary>
         /// Add new index to the index buffer
         /// </summary>
         public void AddIndex(ushort value)
+        {
+            idx_arr.Push(value);
+            dirty |= DirtyFlags.IndexArray;
+        }
+
+        /// <summary>
+        /// Add new set of indices to the index buffer
+        /// </summary>
+        public void AddIndex(params ushort[] value)
         {
             idx_arr.Push(value);
             dirty |= DirtyFlags.IndexArray;

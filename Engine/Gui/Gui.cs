@@ -7,6 +7,8 @@ namespace Engine
     public sealed partial class Gui
     {
         Array<Texture> textures = new Array<Texture>();
+        Dictionary<Type, string[]> enum_map = new Dictionary<Type, string[]>();
+
         Shader shader;
         MeshBuffer mb;
         MouseCursorKind last_cursor = MouseCursorKind.Arrow;
@@ -49,7 +51,7 @@ namespace Engine
             mb = MeshBuffer.CreateIndexed();
         }
 
-        public void AddInputChar(char code) => ImGuiNative.ImGuiIO_AddInputCharacter(code);
+        public void AddInputChar(char code) => ImGui.ImGuiIO_AddInputCharacter(code);
 
         public void Render(Action gui_draw)
         {
@@ -77,7 +79,7 @@ namespace Engine
             io.KeysDown[(int)KeyCode.End] = App.Window.IsKeyDown(KeyCode.End);
             io.KeysDown[(int)KeyCode.Delete] = App.Window.IsKeyDown(KeyCode.Delete);
             io.KeysDown[(int)KeyCode.BackSpace] = App.Window.IsKeyDown(KeyCode.BackSpace);
-            io.KeysDown[(int)KeyCode.Enter] = App.Window.IsKeyDown(KeyCode.Enter);
+            io.KeysDown[(int)KeyCode.Enter] = App.Window.IsKeyDown(KeyCode.KpEnter) | App.Window.IsKeyDown(KeyCode.Enter);
             io.KeysDown[(int)KeyCode.Escape] = App.Window.IsKeyDown(KeyCode.Escape);
             io.KeysDown[(int)KeyCode.A] = App.Window.IsKeyDown(KeyCode.A);
             io.KeysDown[(int)KeyCode.C] = App.Window.IsKeyDown(KeyCode.C);
@@ -90,9 +92,9 @@ namespace Engine
             io.CtrlPressed = App.Window.IsKeyDown(KeyCode.LCtrl) || App.Window.IsKeyDown(KeyCode.RCtrl);
             io.ShiftPressed = App.Window.IsKeyDown(KeyCode.LShift) || App.Window.IsKeyDown(KeyCode.RShift);
 
-            ImGuiNative.igNewFrame();
+            ImGui.igNewFrame();
             gui_draw();
-            ImGuiNative.igRender();
+            ImGui.igRender();
 
             var cursor = MouseCursor;
             if (last_cursor != cursor)
@@ -135,7 +137,7 @@ namespace Engine
 
             unsafe
             {
-                DrawData* draw_data = ImGuiNative.igGetDrawData();
+                DrawData* draw_data = ImGui.igGetDrawData();
 
                 for (int n = 0; n < draw_data->CmdListsCount; n++)
                 {
@@ -176,6 +178,19 @@ namespace Engine
 
             textures.Push(tex);
             return textures.Count - 1;
+        }
+
+        string[] get_enum_arr<T>()
+        {
+            var type = typeof(T);
+            string[] r;
+            if (!enum_map.TryGetValue(type, out r))
+            {
+                r = Enum.GetNames(type);
+                enum_map.Add(type, r);
+            }
+
+            return r;
         }
 
         void set_default_style()
@@ -234,7 +249,7 @@ namespace Engine
 
         internal void shutdown()
         {
-            ImGuiNative.igShutdown();
+            ImGui.igShutdown();
             mb.Dispose();
             for (int i = 0; i < textures.Count; i++)
                 textures[i].Dispose();

@@ -7,105 +7,105 @@ namespace Engine
 {
     public sealed partial class Gui
     {
-        unsafe readonly Style style = new Style(ImGuiNative.igGetStyle());
-        unsafe readonly IO io = new IO(ImGuiNative.igGetIO());
+        unsafe readonly Style style = new Style(ImGui.igGetStyle());
+        unsafe readonly IO io = new IO(ImGui.igGetIO());
         Array<float> indents = new Array<float>();
 
         public Style Style => style;
 
         public void PushID(string id)
         {
-            ImGuiNative.igPushIdStr(id);
+            ImGui.igPushIdStr(id);
         }
 
         public void PushID(int id)
         {
-            ImGuiNative.igPushIdInt(id);
+            ImGui.igPushIdInt(id);
         }
 
         public void PushIDRange(string idBegin, string idEnd)
         {
-            ImGuiNative.igPushIdStrRange(idBegin, idEnd);
+            ImGui.igPushIdStrRange(idBegin, idEnd);
         }
 
         public void PushItemWidth(float width)
         {
-            ImGuiNative.igPushItemWidth(width);
+            ImGui.igPushItemWidth(width);
         }
 
         public void PopItemWidth()
         {
-            ImGuiNative.igPopItemWidth();
+            ImGui.igPopItemWidth();
         }
 
         public void PopID()
         {
-            ImGuiNative.igPopId();
+            ImGui.igPopId();
         }
 
         public uint GetID(string id)
         {
-            return ImGuiNative.igGetIdStr(id);
+            return ImGui.igGetIdStr(id);
         }
 
         public uint GetID(string idBegin, string idEnd)
         {
-            return ImGuiNative.igGetIdStrRange(idBegin, idEnd);
+            return ImGui.igGetIdStrRange(idBegin, idEnd);
         }
 
         public void Text(string message)
         {
-            ImGuiNative.igText(message);
+            ImGui.igText(message);
         }
 
         public void Text(string message, Color color)
         {
-            ImGuiNative.igTextColored(color.ToVector4(), message);
+            ImGui.igTextColored(color.ToVector4(), message);
         }
 
         public void TextDisabled(string text)
         {
-            ImGuiNative.igTextDisabled(text);
+            ImGui.igTextDisabled(text);
         }
 
         public void TextWrapped(string text)
         {
-            ImGuiNative.igTextWrapped(text);
+            ImGui.igTextWrapped(text);
         }
 
         public unsafe void TextUnformatted(string message)
         {
             fixed (byte* bytes = System.Text.Encoding.UTF8.GetBytes(message))
             {
-                ImGuiNative.igTextUnformatted(bytes, null);
+                ImGui.igTextUnformatted(bytes, null);
             }
         }
 
         public void LabelText(string label, string text)
         {
-            ImGuiNative.igLabelText(label, text);
+            ImGui.igLabelText(label, text);
         }
 
         public void Bullet()
         {
-            ImGuiNative.igBullet();
+            ImGui.igBullet();
         }
 
         public void BulletText(string text)
         {
-            ImGuiNative.igBulletText(text);
+            ImGui.igBulletText(text);
         }
 
         public bool InvisibleButton(string id) => InvisibleButton(id, Vector2.Zero);
 
         public bool InvisibleButton(string id, Vector2 size)
         {
-            return ImGuiNative.igInvisibleButton(id, size);
+            return ImGui.igInvisibleButton(id, size);
         }
 
         public void Image(IntPtr userTextureID, Vector2 size, Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor)
         {
-            ImGuiNative.igImage(userTextureID, size, uv0, uv1, tintColor.ToVector4(), borderColor.ToVector4());
+            ImGui.igImage(userTextureID, size, uv0, uv1, tintColor.ToVector4(), borderColor.ToVector4());
         }
 
         public bool ImageButton(
@@ -117,51 +117,66 @@ namespace Engine
             Color backgroundColor,
             Color tintColor)
         {
-            return ImGuiNative.igImageButton(userTextureID, size, uv0, uv1, framePadding, backgroundColor.ToVector4(), tintColor.ToVector4());
+            return ImGui.igImageButton(userTextureID, size, uv0, uv1, framePadding, backgroundColor.ToVector4(), tintColor.ToVector4());
         }
 
         public bool CollapsingHeader(string label, TreeNodeFlags flags)
         {
-            return ImGuiNative.igCollapsingHeader(label, flags);
+            return ImGui.igCollapsingHeader(label, flags);
         }
 
         public bool Checkbox(string label, ref bool value)
         {
-            return ImGuiNative.igCheckbox(label, ref value);
+            return ImGui.igCheckbox(label, ref value);
         }
 
         public unsafe bool RadioButton(string label, ref int target, int buttonValue)
         {
             int targetCopy = target;
-            bool result = ImGuiNative.igRadioButton(label, &targetCopy, buttonValue);
+            bool result = ImGui.igRadioButton(label, &targetCopy, buttonValue);
             target = targetCopy;
             return result;
         }
 
         public bool RadioButtonBool(string label, bool active)
         {
-            return ImGuiNative.igRadioButtonBool(label, active);
+            return ImGui.igRadioButtonBool(label, active);
+        }
+
+        public bool Combo<T>(string label, ref int index, ref T value, int item_height = 5)
+        {
+            var type = typeof(T);
+            if (!type.IsEnum)
+                throw new Exception("The type of 'T' is not enum, only enum type is accepted in this context.");
+
+            var arr = get_enum_arr<T>();
+
+            var r = Combo(label, ref index, arr, item_height);
+            if (r)
+                value = (T)Enum.Parse(type, arr[index]);
+                
+            return r;
         }
 
         public unsafe bool Combo(string label, ref int current_item, string[] items)
         {
-            return ImGuiNative.igCombo(label, ref current_item, items, items.Length, 5);
+            return ImGui.igCombo(label, ref current_item, items, items.Length, 5);
         }
 
         public unsafe bool Combo(string label, ref int current_item, string[] items, int heightInItems)
         {
-            return ImGuiNative.igCombo(label, ref current_item, items, items.Length, heightInItems);
+            return ImGui.igCombo(label, ref current_item, items, items.Length, heightInItems);
         }
 
         public bool ColorButton(string desc_id, Color color, ColorEditFlags flags, Vector2 size)
         {
-            return ImGuiNative.igColorButton(desc_id, color.ToVector4(), flags, size);
+            return ImGui.igColorButton(desc_id, color.ToVector4(), flags, size);
         }
 
         public unsafe bool ColorEdit(string label, ref Color color, ColorEditFlags flags = ColorEditFlags.Default)
         {
             Vector4 vec4 = color.ToVector4();
-            bool result = ImGuiNative.igColorEdit4(label, &vec4, flags);
+            bool result = ImGui.igColorEdit4(label, &vec4, flags);
             if (result)
                 color = new Color(vec4);
 
@@ -171,7 +186,7 @@ namespace Engine
         public unsafe bool ColorPicker(string label, ref Color color, ColorEditFlags flags = ColorEditFlags.Default)
         {
             Vector4 vec4 = color.ToVector4();
-            bool result = ImGuiNative.igColorPicker4(label, &vec4, flags);
+            bool result = ImGui.igColorPicker4(label, &vec4, flags);
             if (result)
                 color = new Color(vec4);
 
@@ -190,7 +205,7 @@ namespace Engine
         {
             fixed (float* valuesBasePtr = values)
             {
-                ImGuiNative.igPlotLines(
+                ImGui.igPlotLines(
                     label,
                     valuesBasePtr,
                     values.Length,
@@ -207,7 +222,7 @@ namespace Engine
         {
             fixed (float* valuesBasePtr = values)
             {
-                ImGuiNative.igPlotHistogram(
+                ImGui.igPlotHistogram(
                     label,
                     valuesBasePtr,
                     values.Length,
@@ -222,67 +237,67 @@ namespace Engine
 
         public bool SliderFloat(string sliderLabel, ref float value, float min, float max, string displayText, float power)
         {
-            return ImGuiNative.igSliderFloat(sliderLabel, ref value, min, max, displayText, power);
+            return ImGui.igSliderFloat(sliderLabel, ref value, min, max, displayText, power);
         }
 
         public bool SliderVector2(string label, ref Vector2 value, float min, float max, string displayText, float power)
         {
-            return ImGuiNative.igSliderFloat2(label, ref value, min, max, displayText, power);
+            return ImGui.igSliderFloat2(label, ref value, min, max, displayText, power);
         }
 
         public bool SliderVector3(string label, ref Vector3 value, float min, float max, string displayText, float power)
         {
-            return ImGuiNative.igSliderFloat3(label, ref value, min, max, displayText, power);
+            return ImGui.igSliderFloat3(label, ref value, min, max, displayText, power);
         }
 
         public bool SliderVector4(string label, ref Vector4 value, float min, float max, string displayText, float power)
         {
-            return ImGuiNative.igSliderFloat4(label, ref value, min, max, displayText, power);
+            return ImGui.igSliderFloat4(label, ref value, min, max, displayText, power);
         }
 
         public bool SliderAngle(string label, ref float radians, float minDegrees, float maxDegrees)
         {
-            return ImGuiNative.igSliderAngle(label, ref radians, minDegrees, maxDegrees);
+            return ImGui.igSliderAngle(label, ref radians, minDegrees, maxDegrees);
         }
 
         public bool SliderInt(string sliderLabel, ref int value, int min, int max, string displayText)
         {
-            return ImGuiNative.igSliderInt(sliderLabel, ref value, min, max, displayText);
+            return ImGui.igSliderInt(sliderLabel, ref value, min, max, displayText);
         }
 
         public bool SliderInt2(string label, ref Int2 value, int min, int max, string displayText)
         {
-            return ImGuiNative.igSliderInt2(label, ref value, min, max, displayText);
+            return ImGui.igSliderInt2(label, ref value, min, max, displayText);
         }
 
         public bool SliderInt3(string label, ref Int3 value, int min, int max, string displayText)
         {
-            return ImGuiNative.igSliderInt3(label, ref value, min, max, displayText);
+            return ImGui.igSliderInt3(label, ref value, min, max, displayText);
         }
 
         public bool SliderInt4(string label, ref Int4 value, int min, int max, string displayText)
         {
-            return ImGuiNative.igSliderInt4(label, ref value, min, max, displayText);
+            return ImGui.igSliderInt4(label, ref value, min, max, displayText);
         }
 
         public bool DragFloat(string label, ref float value, float min, float max, float dragSpeed = 1f, string displayFormat = "%.3f", float dragPower = 1f)
         {
-            return ImGuiNative.igDragFloat(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
+            return ImGui.igDragFloat(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
         }
 
         public bool DragVector2(string label, ref Vector2 value, float min, float max, float dragSpeed = 1f, string displayFormat = "%.3f", float dragPower = 1f)
         {
-            return ImGuiNative.igDragFloat2(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
+            return ImGui.igDragFloat2(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
         }
 
         public bool DragVector3(string label, ref Vector3 value, float min, float max, float dragSpeed = 1f, string displayFormat = "%.3f", float dragPower = 1f)
         {
-            return ImGuiNative.igDragFloat3(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
+            return ImGui.igDragFloat3(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
         }
 
         public bool DragVector4(string label, ref Vector4 value, float min, float max, float dragSpeed = 1f, string displayFormat = "%.3f", float dragPower = 1f)
         {
-            return ImGuiNative.igDragFloat4(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
+            return ImGui.igDragFloat4(label, ref value, dragSpeed, min, max, displayFormat, dragPower);
         }
 
         public bool DragFloatRange2(
@@ -296,27 +311,27 @@ namespace Engine
             string displayFormatMax = null,
             float power = 1.0f)
         {
-            return ImGuiNative.igDragFloatRange2(label, ref currentMinValue, ref currentMaxValue, speed, minValueLimit, maxValueLimit, displayFormat, displayFormatMax, power);
+            return ImGui.igDragFloatRange2(label, ref currentMinValue, ref currentMaxValue, speed, minValueLimit, maxValueLimit, displayFormat, displayFormatMax, power);
         }
 
         public bool DragInt(string label, ref int value, float speed, int minValue, int maxValue, string displayText)
         {
-            return ImGuiNative.igDragInt(label, ref value, speed, minValue, maxValue, displayText);
+            return ImGui.igDragInt(label, ref value, speed, minValue, maxValue, displayText);
         }
 
         public bool DragInt2(string label, ref Int2 value, float speed, int minValue, int maxValue, string displayText)
         {
-            return ImGuiNative.igDragInt2(label, ref value, speed, minValue, maxValue, displayText);
+            return ImGui.igDragInt2(label, ref value, speed, minValue, maxValue, displayText);
         }
 
         public bool DragInt3(string label, ref Int3 value, float speed, int minValue, int maxValue, string displayText)
         {
-            return ImGuiNative.igDragInt3(label, ref value, speed, minValue, maxValue, displayText);
+            return ImGui.igDragInt3(label, ref value, speed, minValue, maxValue, displayText);
         }
 
         public bool DragInt4(string label, ref Int4 value, float speed, int minValue, int maxValue, string displayText)
         {
-            return ImGuiNative.igDragInt4(label, ref value, speed, minValue, maxValue, displayText);
+            return ImGui.igDragInt4(label, ref value, speed, minValue, maxValue, displayText);
         }
 
         public bool DragIntRange2(
@@ -329,7 +344,7 @@ namespace Engine
             string displayFormat = "%.0f",
             string displayFormatMax = null)
         {
-            return ImGuiNative.igDragIntRange2(
+            return ImGui.igDragIntRange2(
                 label,
                 ref currentMinValue,
                 ref currentMaxValue,
@@ -342,32 +357,32 @@ namespace Engine
 
         public bool Button(string message)
         {
-            return ImGuiNative.igButton(message, Vector2.Zero);
+            return ImGui.igButton(message, Vector2.Zero);
         }
 
         public bool Button(string message, Vector2 size)
         {
-            return ImGuiNative.igButton(message, size);
+            return ImGui.igButton(message, size);
         }
 
         public void SetNextWindowSize(Vector2 size, GuiCondition condition)
         {
-            ImGuiNative.igSetNextWindowSize(size, condition);
+            ImGui.igSetNextWindowSize(size, condition);
         }
 
         public void SetNextWindowFocus()
         {
-            ImGuiNative.igSetNextWindowFocus();
+            ImGui.igSetNextWindowFocus();
         }
 
         public void SetNextWindowPos(Vector2 position, GuiCondition condition)
         {
-            ImGuiNative.igSetNextWindowPos(position, condition);
+            ImGui.igSetNextWindowPos(position, condition);
         }
 
         public void SetNextWindowPosCenter(GuiCondition condition)
         {
-            ImGuiNative.igSetNextWindowPosCenter(condition);
+            ImGui.igSetNextWindowPosCenter(condition);
         }
 
         unsafe void ScaleClipRects(DrawData* drawData, Vector2 scale)
@@ -386,95 +401,95 @@ namespace Engine
 
         public float GetWindowHeight()
         {
-            return ImGuiNative.igGetWindowHeight();
+            return ImGui.igGetWindowHeight();
         }
 
 
         public float GetWindowWidth()
         {
-            return ImGuiNative.igGetWindowWidth();
+            return ImGui.igGetWindowWidth();
         }
 
         public Vector2 GetWindowSize()
         {
             Vector2 size;
-            ImGuiNative.igGetWindowSize(out size);
+            ImGui.igGetWindowSize(out size);
             return size;
         }
 
         public Vector2 GetWindowPosition()
         {
             Vector2 pos;
-            ImGuiNative.igGetWindowPos(out pos);
+            ImGui.igGetWindowPos(out pos);
             return pos;
         }
 
 
         public void SetWindowSize(Vector2 size, GuiCondition cond = 0)
         {
-            ImGuiNative.igSetWindowSize(size, cond);
+            ImGui.igSetWindowSize(size, cond);
         }
 
         public bool BeginWindow(string windowTitle) => BeginWindow(windowTitle, WindowFlags.Default);
 
         public bool BeginWindow(string windowTitle, WindowFlags flags)
         {
-            return ImGuiNative.igBegin(windowTitle, IntPtr.Zero, flags);
+            return ImGui.igBegin(windowTitle, IntPtr.Zero, flags);
         }
 
         public bool BeginWindow(string windowTitle, ref bool opened, WindowFlags flags)
         {
-            return ImGuiNative.igBegin2(windowTitle, ref opened, new Vector2(), 1f, flags);
+            return ImGui.igBegin2(windowTitle, ref opened, new Vector2(), 1f, flags);
         }
 
         public bool BeginWindow(string windowTitle, ref bool opened, float backgroundAlpha, WindowFlags flags)
         {
-            return ImGuiNative.igBegin2(windowTitle, ref opened, new Vector2(), backgroundAlpha, flags);
+            return ImGui.igBegin2(windowTitle, ref opened, new Vector2(), backgroundAlpha, flags);
         }
 
         public bool BeginWindow(string windowTitle, ref bool opened, Vector2 startingSize, WindowFlags flags)
         {
-            return ImGuiNative.igBegin2(windowTitle, ref opened, startingSize, 1f, flags);
+            return ImGui.igBegin2(windowTitle, ref opened, startingSize, 1f, flags);
         }
 
         public bool BeginWindow(string windowTitle, ref bool opened, Vector2 startingSize, float backgroundAlpha, WindowFlags flags)
         {
-            return ImGuiNative.igBegin2(windowTitle, ref opened, startingSize, backgroundAlpha, flags);
+            return ImGui.igBegin2(windowTitle, ref opened, startingSize, backgroundAlpha, flags);
         }
 
         public bool BeginMenu(string label)
         {
-            return ImGuiNative.igBeginMenu(label, true);
+            return ImGui.igBeginMenu(label, true);
         }
 
         public bool BeginMenu(string label, bool enabled)
         {
-            return ImGuiNative.igBeginMenu(label, enabled);
+            return ImGui.igBeginMenu(label, enabled);
         }
 
         public bool BeginMenuBar()
         {
-            return ImGuiNative.igBeginMenuBar();
+            return ImGui.igBeginMenuBar();
         }
 
         public void CloseCurrentPopup()
         {
-            ImGuiNative.igCloseCurrentPopup();
+            ImGui.igCloseCurrentPopup();
         }
 
         public void EndMenuBar()
         {
-            ImGuiNative.igEndMenuBar();
+            ImGui.igEndMenuBar();
         }
 
         public void EndMenu()
         {
-            ImGuiNative.igEndMenu();
+            ImGui.igEndMenu();
         }
 
         public void Separator()
         {
-            ImGuiNative.igSeparator();
+            ImGui.igSeparator();
         }
 
         public bool MenuItem(string label)
@@ -494,25 +509,25 @@ namespace Engine
 
         public bool MenuItem(string label, string shortcut, bool selected, bool enabled)
         {
-            return ImGuiNative.igMenuItem(label, shortcut, selected, enabled);
+            return ImGui.igMenuItem(label, shortcut, selected, enabled);
         }
 
-        public unsafe bool InputText(string label, GuiString str, InputTextFlags flags)
+        public unsafe bool InputText(string label, InputBuffer value, InputTextFlags flags)
         {
-            var hdl = GCHandle.Alloc(str.Buffer, GCHandleType.Pinned);
-            var r = ImGuiNative.igInputText(label, hdl.AddrOfPinnedObject(), (uint)str.Buffer.Length, flags, null, null);
+            var hdl = GCHandle.Alloc(value.Buffer, GCHandleType.Pinned);
+            var r = ImGui.igInputText(label, hdl.AddrOfPinnedObject(), (uint)value.Buffer.Length, flags, IntPtr.Zero, null);
             hdl.Free();
             return r;
         }
 
         public void EndWindow()
         {
-            ImGuiNative.igEnd();
+            ImGui.igEnd();
         }
 
         public void PushStyleColor(ColorTarget target, Color color)
         {
-            ImGuiNative.igPushStyleColor(target, color.ToVector4());
+            ImGui.igPushStyleColor(target, color.ToVector4());
         }
 
         public void PopStyleColor()
@@ -522,39 +537,39 @@ namespace Engine
 
         public void PopStyleColor(int num)
         {
-            ImGuiNative.igPopStyleColor(num);
+            ImGui.igPopStyleColor(num);
         }
 
-        public void PushStyleVar(StyleVar var, float value) => ImGuiNative.igPushStyleVar(var, value);
-        public void PushStyleVar(StyleVar var, Vector2 value) => ImGuiNative.igPushStyleVarVec(var, value);
+        public void PushStyleVar(StyleVar var, float value) => ImGui.igPushStyleVar(var, value);
+        public void PushStyleVar(StyleVar var, Vector2 value) => ImGui.igPushStyleVarVec(var, value);
 
-        public void PopStyleVar() => ImGuiNative.igPopStyleVar(1);
-        public void PopStyleVar(int count) => ImGuiNative.igPopStyleVar(count);
+        public void PopStyleVar() => ImGui.igPopStyleVar(1);
+        public void PopStyleVar(int count) => ImGui.igPopStyleVar(count);
 
-        unsafe void InputTextMultiline(string label, IntPtr textBuffer, uint bufferSize, Vector2 size, InputTextFlags flags, TextEditCallback callback)
+        unsafe void InputTextMultiline(string label, IntPtr textBuffer, uint bufferSize, Vector2 size, InputTextFlags flags, IntPtr callback)
         {
-            ImGuiNative.igInputTextMultiline(label, textBuffer, bufferSize, size, flags, callback, null);
+            ImGui.igInputTextMultiline(label, textBuffer, bufferSize, size, flags, callback, null);
         }
 
-        unsafe void InputTextMultiline(string label, IntPtr textBuffer, uint bufferSize, Vector2 size, InputTextFlags flags, TextEditCallback callback, IntPtr userData)
+        unsafe void InputTextMultiline(string label, IntPtr textBuffer, uint bufferSize, Vector2 size, InputTextFlags flags, IntPtr callback, IntPtr userData)
         {
-            ImGuiNative.igInputTextMultiline(label, textBuffer, bufferSize, size, flags, callback, userData.ToPointer());
+            ImGui.igInputTextMultiline(label, textBuffer, bufferSize, size, flags, callback, userData.ToPointer());
         }
 
         public bool BeginChildFrame(uint id, Vector2 size, WindowFlags flags)
         {
-            return ImGuiNative.igBeginChildFrame(id, size, flags);
+            return ImGui.igBeginChildFrame(id, size, flags);
         }
 
         public void EndChildFrame()
         {
-            ImGuiNative.igEndChildFrame();
+            ImGui.igEndChildFrame();
         }
 
         unsafe void ColorConvertRGBToHSV(float r, float g, float b, out float h, out float s, out float v)
         {
             float h2, s2, v2;
-            ImGuiNative.igColorConvertRGBtoHSV(r, g, b, &h2, &s2, &v2);
+            ImGui.igColorConvertRGBtoHSV(r, g, b, &h2, &s2, &v2);
             h = h2;
             s = s2;
             v = v2;
@@ -563,7 +578,7 @@ namespace Engine
         unsafe void ColorConvertHSVToRGB(float h, float s, float v, out float r, out float g, out float b)
         {
             float r2, g2, b2;
-            ImGuiNative.igColorConvertHSVtoRGB(h, s, v, &r2, &g2, &b2);
+            ImGui.igColorConvertHSVtoRGB(h, s, v, &r2, &g2, &b2);
             r = r2;
             g = g2;
             b = b2;
@@ -571,119 +586,119 @@ namespace Engine
 
         public bool IsKeyDown(int keyIndex)
         {
-            return ImGuiNative.igIsKeyDown(keyIndex);
+            return ImGui.igIsKeyDown(keyIndex);
         }
 
         public bool IsKeyPressed(int keyIndex, bool repeat = true)
         {
-            return ImGuiNative.igIsKeyPressed(keyIndex, repeat);
+            return ImGui.igIsKeyPressed(keyIndex, repeat);
         }
 
         public bool IsKeyReleased(int keyIndex)
         {
-            return ImGuiNative.igIsKeyReleased(keyIndex);
+            return ImGui.igIsKeyReleased(keyIndex);
         }
 
         public bool IsMouseDown(int button)
         {
-            return ImGuiNative.igIsMouseDown(button);
+            return ImGui.igIsMouseDown(button);
         }
 
         public bool IsMouseClicked(int button, bool repeat = false)
         {
-            return ImGuiNative.igIsMouseClicked(button, repeat);
+            return ImGui.igIsMouseClicked(button, repeat);
         }
 
         public bool IsMouseDoubleClicked(int button)
         {
-            return ImGuiNative.igIsMouseDoubleClicked(button);
+            return ImGui.igIsMouseDoubleClicked(button);
         }
 
         public bool IsMouseReleased(int button)
         {
-            return ImGuiNative.igIsMouseReleased(button);
+            return ImGui.igIsMouseReleased(button);
         }
 
         public bool IsWindowRectHovered()
         {
-            return ImGuiNative.igIsWindowRectHovered();
+            return ImGui.igIsWindowRectHovered();
         }
 
         public bool IsAnyWindowHovered()
         {
-            return ImGuiNative.igIsAnyWindowHovered();
+            return ImGui.igIsAnyWindowHovered();
         }
 
         public bool IsWindowFocused()
         {
-            return ImGuiNative.igIsWindowFocused();
+            return ImGui.igIsWindowFocused();
         }
 
         public bool IsMouseHoveringRect(Vector2 minPosition, Vector2 maxPosition, bool clip)
         {
-            return ImGuiNative.igIsMouseHoveringRect(minPosition, maxPosition, clip);
+            return ImGui.igIsMouseHoveringRect(minPosition, maxPosition, clip);
         }
 
         public bool IsMouseDragging(int button, float lockThreshold)
         {
-            return ImGuiNative.igIsMouseDragging(button, lockThreshold);
+            return ImGui.igIsMouseDragging(button, lockThreshold);
         }
 
         public Vector2 GetMousePos()
         {
             Vector2 retVal;
-            ImGuiNative.igGetMousePos(out retVal);
+            ImGui.igGetMousePos(out retVal);
             return retVal;
         }
 
         public Vector2 GetMousePosOnOpeningCurrentPopup()
         {
             Vector2 retVal;
-            ImGuiNative.igGetMousePosOnOpeningCurrentPopup(out retVal);
+            ImGui.igGetMousePosOnOpeningCurrentPopup(out retVal);
             return retVal;
         }
 
         public Vector2 GetMouseDragDelta(int button, float lockThreshold)
         {
             Vector2 retVal;
-            ImGuiNative.igGetMouseDragDelta(out retVal, button, lockThreshold);
+            ImGui.igGetMouseDragDelta(out retVal, button, lockThreshold);
             return retVal;
         }
 
         public void ResetMouseDragDelta(int button)
         {
-            ImGuiNative.igResetMouseDragDelta(button);
+            ImGui.igResetMouseDragDelta(button);
         }
 
         MouseCursorKind MouseCursor
         {
             get
             {
-                return ImGuiNative.igGetMouseCursor();
+                return ImGui.igGetMouseCursor();
             }
             set
             {
-                ImGuiNative.igSetMouseCursor(value);
+                ImGui.igSetMouseCursor(value);
             }
         }
 
         public Vector2 GetCursorStartPos()
         {
             Vector2 retVal;
-            ImGuiNative.igGetCursorStartPos(out retVal);
+            ImGui.igGetCursorStartPos(out retVal);
             return retVal;
         }
 
         public unsafe Vector2 GetCursorScreenPos()
         {
             Vector2 retVal;
-            ImGuiNative.igGetCursorScreenPos(&retVal);
+            ImGui.igGetCursorScreenPos(&retVal);
             return retVal;
         }
 
         public void SetCursorScreenPos(Vector2 pos)
         {
-            ImGuiNative.igSetCursorScreenPos(pos);
+            ImGui.igSetCursorScreenPos(pos);
         }
 
         public bool BeginChild(string id, bool border = false, WindowFlags flags = 0)
@@ -693,63 +708,63 @@ namespace Engine
 
         public bool BeginChild(string id, Vector2 size, bool border, WindowFlags flags)
         {
-            return ImGuiNative.igBeginChild(id, size, border, flags);
+            return ImGui.igBeginChild(id, size, border, flags);
         }
 
         public bool BeginChild(uint id, Vector2 size, bool border, WindowFlags flags)
         {
-            return ImGuiNative.igBeginChildEx(id, size, border, flags);
+            return ImGui.igBeginChildEx(id, size, border, flags);
         }
 
         public void EndChild()
         {
-            ImGuiNative.igEndChild();
+            ImGui.igEndChild();
         }
 
         public void PushIndent(float value = 16f)
         {
             indents.Push(value);
-            ImGuiNative.igIndent(value);
+            ImGui.igIndent(value);
         }
 
-        public void PopIndent() => ImGuiNative.igUnindent(indents.Pop());
+        public void PopIndent() => ImGui.igUnindent(indents.Pop());
 
         public Vector2 GetContentRegionMax()
         {
             Vector2 value;
-            ImGuiNative.igGetContentRegionMax(out value);
+            ImGui.igGetContentRegionMax(out value);
             return value;
         }
 
         public Vector2 GetContentRegionAvailable()
         {
             Vector2 value;
-            ImGuiNative.igGetContentRegionAvail(out value);
+            ImGui.igGetContentRegionAvail(out value);
             return value;
         }
 
         public float GetContentRegionAvailableWidth()
         {
-            return ImGuiNative.igGetContentRegionAvailWidth();
+            return ImGui.igGetContentRegionAvailWidth();
         }
 
         public Vector2 GetWindowContentRegionMin()
         {
             Vector2 value;
-            ImGuiNative.igGetWindowContentRegionMin(out value);
+            ImGui.igGetWindowContentRegionMin(out value);
             return value;
         }
 
         public Vector2 GetWindowContentRegionMax()
         {
             Vector2 value;
-            ImGuiNative.igGetWindowContentRegionMax(out value);
+            ImGui.igGetWindowContentRegionMax(out value);
             return value;
         }
 
         public float GetWindowContentRegionWidth()
         {
-            return ImGuiNative.igGetWindowContentRegionWidth();
+            return ImGui.igGetWindowContentRegionWidth();
         }
 
         public bool Selectable(string label)
@@ -764,22 +779,22 @@ namespace Engine
 
         public bool BeginMainMenuBar()
         {
-            return ImGuiNative.igBeginMainMenuBar();
+            return ImGui.igBeginMainMenuBar();
         }
 
         public bool BeginPopup(string id)
         {
-            return ImGuiNative.igBeginPopup(id);
+            return ImGui.igBeginPopup(id);
         }
 
         public void EndMainMenuBar()
         {
-            ImGuiNative.igEndMainMenuBar();
+            ImGui.igEndMainMenuBar();
         }
 
         public bool SmallButton(string label)
         {
-            return ImGuiNative.igSmallButton(label);
+            return ImGui.igSmallButton(label);
         }
 
         public bool BeginPopupModal(string name)
@@ -794,13 +809,13 @@ namespace Engine
 
         public unsafe bool BeginPopupModal(string name, WindowFlags extra_flags)
         {
-            return ImGuiNative.igBeginPopupModal(name, null, extra_flags);
+            return ImGui.igBeginPopupModal(name, null, extra_flags);
         }
 
         public unsafe bool BeginPopupModal(string name, ref bool p_opened, WindowFlags extra_flags)
         {
             byte value = p_opened ? (byte)1 : (byte)0;
-            bool result = ImGuiNative.igBeginPopupModal(name, &value, extra_flags);
+            bool result = ImGui.igBeginPopupModal(name, &value, extra_flags);
 
             p_opened = value == 1 ? true : false;
             return result;
@@ -813,17 +828,17 @@ namespace Engine
 
         public bool Selectable(string label, bool isSelected, SelectableFlags flags, Vector2 size)
         {
-            return ImGuiNative.igSelectable(label, isSelected, flags, size);
+            return ImGui.igSelectable(label, isSelected, flags, size);
         }
 
         public bool SelectableEx(string label, ref bool isSelected)
         {
-            return ImGuiNative.igSelectableEx(label, ref isSelected, SelectableFlags.Default, new Vector2());
+            return ImGui.igSelectableEx(label, ref isSelected, SelectableFlags.Default, new Vector2());
         }
 
         public bool SelectableEx(string label, ref bool isSelected, SelectableFlags flags, Vector2 size)
         {
-            return ImGuiNative.igSelectableEx(label, ref isSelected, flags, size);
+            return ImGui.igSelectableEx(label, ref isSelected, flags, size);
         }
 
         public unsafe Vector2 GetTextSize(string text, float wrapWidth = Int32.MaxValue)
@@ -832,7 +847,7 @@ namespace Engine
             IntPtr buffer = Marshal.StringToHGlobalAnsi(text);
             byte* textStart = (byte*)buffer.ToPointer();
             byte* textEnd = textStart + text.Length;
-            ImGuiNative.igCalcTextSize(out result, (char*)textStart, (char*)textEnd, false, wrapWidth);
+            ImGui.igCalcTextSize(out result, (char*)textStart, (char*)textEnd, false, wrapWidth);
             return result;
         }
 
@@ -843,7 +858,7 @@ namespace Engine
 
         public bool BeginPopupContextItem(string id, int mouseButton)
         {
-            return ImGuiNative.igBeginPopupContextItem(id, mouseButton);
+            return ImGui.igBeginPopupContextItem(id, mouseButton);
         }
 
         public unsafe void Dummy(float width, float height)
@@ -853,203 +868,203 @@ namespace Engine
 
         public void EndPopup()
         {
-            ImGuiNative.igEndPopup();
+            ImGui.igEndPopup();
         }
 
         public bool IsPopupOpen(string id)
         {
-            return ImGuiNative.igIsPopupOpen(id);
+            return ImGui.igIsPopupOpen(id);
         }
 
         public unsafe void Dummy(Vector2 size)
         {
-            ImGuiNative.igDummy(&size);
+            ImGui.igDummy(&size);
         }
 
         public void Spacing()
         {
-            ImGuiNative.igSpacing();
+            ImGui.igSpacing();
         }
 
         public void Columns(int count, string id, bool border)
         {
-            ImGuiNative.igColumns(count, id, border);
+            ImGui.igColumns(count, id, border);
         }
 
         public void NextColumn()
         {
-            ImGuiNative.igNextColumn();
+            ImGui.igNextColumn();
         }
 
         public int GetColumnIndex()
         {
-            return ImGuiNative.igGetColumnIndex();
+            return ImGui.igGetColumnIndex();
         }
 
         public float GetColumnOffset(int columnIndex)
         {
-            return ImGuiNative.igGetColumnOffset(columnIndex);
+            return ImGui.igGetColumnOffset(columnIndex);
         }
 
         public void SetColumnOffset(int columnIndex, float offsetX)
         {
-            ImGuiNative.igSetColumnOffset(columnIndex, offsetX);
+            ImGui.igSetColumnOffset(columnIndex, offsetX);
         }
 
         public float GetColumnWidth(int columnIndex)
         {
-            return ImGuiNative.igGetColumnWidth(columnIndex);
+            return ImGui.igGetColumnWidth(columnIndex);
         }
 
         public void SetColumnWidth(int columnIndex, float width)
         {
-            ImGuiNative.igSetColumnWidth(columnIndex, width);
+            ImGui.igSetColumnWidth(columnIndex, width);
         }
 
         public int GetColumnsCount()
         {
-            return ImGuiNative.igGetColumnsCount();
+            return ImGui.igGetColumnsCount();
         }
 
         public void OpenPopup(string id)
         {
-            ImGuiNative.igOpenPopup(id);
+            ImGui.igOpenPopup(id);
         }
 
         public void SameLine(float localPositionX = 0, float spacingW = -1.0f)
         {
-            ImGuiNative.igSameLine(localPositionX, spacingW);
+            ImGui.igSameLine(localPositionX, spacingW);
         }
 
         public void PushClipRect(Vector2 min, Vector2 max, bool intersectWithCurrentCliRect)
         {
-            ImGuiNative.igPushClipRect(min, max, intersectWithCurrentCliRect ? (byte)1 : (byte)0);
+            ImGui.igPushClipRect(min, max, intersectWithCurrentCliRect ? (byte)1 : (byte)0);
         }
 
         public void PopClipRect()
         {
-            ImGuiNative.igPopClipRect();
+            ImGui.igPopClipRect();
         }
 
         public bool IsLastItemHovered()
         {
-            return ImGuiNative.igIsItemHovered();
+            return ImGui.igIsItemHovered();
         }
 
         public bool IsItemRectHovered()
         {
-            return ImGuiNative.igIsItemRectHovered();
+            return ImGui.igIsItemRectHovered();
         }
 
         public bool IsLastItemActive()
         {
-            return ImGuiNative.igIsItemActive();
+            return ImGui.igIsItemActive();
         }
 
         public bool IsLastItemVisible()
         {
-            return ImGuiNative.igIsItemVisible();
+            return ImGui.igIsItemVisible();
         }
 
         public bool IsAnyItemHovered()
         {
-            return ImGuiNative.igIsAnyItemHovered();
+            return ImGui.igIsAnyItemHovered();
         }
 
         public bool IsAnyItemActive()
         {
-            return ImGuiNative.igIsAnyItemActive();
+            return ImGui.igIsAnyItemActive();
         }
 
         public void SetTooltip(string text)
         {
-            ImGuiNative.igSetTooltip(text);
+            ImGui.igSetTooltip(text);
         }
 
         public void SetNextTreeNodeOpen(bool opened)
         {
-            ImGuiNative.igSetNextTreeNodeOpen(opened, GuiCondition.Always);
+            ImGui.igSetNextTreeNodeOpen(opened, GuiCondition.Always);
         }
 
         public void SetNextTreeNodeOpen(bool opened, GuiCondition setCondition)
         {
-            ImGuiNative.igSetNextTreeNodeOpen(opened, setCondition);
+            ImGui.igSetNextTreeNodeOpen(opened, setCondition);
         }
 
         public bool TreeNode(string label)
         {
-            return ImGuiNative.igTreeNode(label);
+            return ImGui.igTreeNode(label);
         }
 
         public bool TreeNodeEx(string label, TreeNodeFlags flags = 0)
         {
-            return ImGuiNative.igTreeNodeEx(label, flags);
+            return ImGui.igTreeNodeEx(label, flags);
         }
 
         public void TreePop()
         {
-            ImGuiNative.igTreePop();
+            ImGui.igTreePop();
         }
 
         public Vector2 GetLastItemRectSize()
         {
             Vector2 result;
-            ImGuiNative.igGetItemRectSize(out result);
+            ImGui.igGetItemRectSize(out result);
             return result;
         }
 
         public Vector2 GetLastItemRectMin()
         {
             Vector2 result;
-            ImGuiNative.igGetItemRectMin(out result);
+            ImGui.igGetItemRectMin(out result);
             return result;
         }
 
         public Vector2 GetLastItemRectMax()
         {
             Vector2 result;
-            ImGuiNative.igGetItemRectMax(out result);
+            ImGui.igGetItemRectMax(out result);
             return result;
         }
 
         public void SetWindowFontScale(float scale)
         {
-            ImGuiNative.igSetWindowFontScale(scale);
+            ImGui.igSetWindowFontScale(scale);
         }
 
         public void SetScrollHere()
         {
-            ImGuiNative.igSetScrollHere();
+            ImGui.igSetScrollHere();
         }
 
         public void SetScrollHere(float centerYRatio)
         {
-            ImGuiNative.igSetScrollHere(centerYRatio);
+            ImGui.igSetScrollHere(centerYRatio);
         }
 
         public void SetKeyboardFocusHere()
         {
-            ImGuiNative.igSetKeyboardFocusHere(0);
+            ImGui.igSetKeyboardFocusHere(0);
         }
 
         public void SetKeyboardFocusHere(int offset)
         {
-            ImGuiNative.igSetKeyboardFocusHere(offset);
+            ImGui.igSetKeyboardFocusHere(offset);
         }
 
         public void CalcListClipping(int itemsCount, float itemsHeight, ref int outItemsDisplayStart, ref int outItemsDisplayEnd)
         {
-            ImGuiNative.igCalcListClipping(itemsCount, itemsHeight, ref outItemsDisplayStart, ref outItemsDisplayEnd);
+            ImGui.igCalcListClipping(itemsCount, itemsHeight, ref outItemsDisplayStart, ref outItemsDisplayEnd);
         }
 
         unsafe void PushFont(ImFont font)
         {
-            ImGuiNative.igPushFont(font.NativeFont);
+            ImGui.igPushFont(font.NativeFont);
         }
 
         void PopFont()
         {
-            ImGuiNative.igPopFont();
+            ImGui.igPopFont();
         }
     }
 }

@@ -17,6 +17,6 @@ class Program
         cfg.Resizable = true;
         cfg.Fullscreen = false;
         cfg.LogFile = "data-editor-log.txt";
-        App.Run(cfg, new EditorState());
+        App.Run(cfg, new DataEditor());
     }
 }

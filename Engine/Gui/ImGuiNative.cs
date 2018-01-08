@@ -4,8 +4,7 @@ using System;
 
 namespace Engine
 {
-
-    static unsafe class ImGuiNative
+    static unsafe class ImGui
     {
         private const string cimguiLib = "cimgui";
 
@@ -447,10 +446,10 @@ namespace Engine
         // Widgets: Input
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputText(string label, IntPtr buffer, uint buf_size, InputTextFlags flags, TextEditCallback callback, void* user_data);
+        public static extern bool igInputText(string label, IntPtr buffer, uint buf_size, InputTextFlags flags, IntPtr callback, void* user_data);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputTextMultiline(string label, IntPtr buffer, uint buf_size, Vector2 size, InputTextFlags flags, TextEditCallback callback, void* user_data);
+        public static extern bool igInputTextMultiline(string label, IntPtr buffer, uint buf_size, Vector2 size, InputTextFlags flags, IntPtr callback, void* user_data);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool igInputFloat(string label, float* v, float step, float step_fast, int decimal_precision, InputTextFlags extra_flags);

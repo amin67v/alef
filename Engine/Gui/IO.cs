@@ -188,7 +188,7 @@ namespace Engine
             byte* pixels;
             int width, height;
             int bytesPerPixel;
-            ImGuiNative.ImFontAtlas_GetTexDataAsAlpha8(_atlasPtr, &pixels, &width, &height, &bytesPerPixel);
+            ImGui.ImFontAtlas_GetTexDataAsAlpha8(_atlasPtr, &pixels, &width, &height, &bytesPerPixel);
             return new FontTextureData(pixels, width, height, bytesPerPixel);
         }
         public FontTextureData GetTexDataAsRGBA32()
@@ -196,7 +196,7 @@ namespace Engine
             byte* pixels;
             int width, height;
             int bytesPerPixel;
-            ImGuiNative.ImFontAtlas_GetTexDataAsRGBA32(_atlasPtr, &pixels, &width, &height, &bytesPerPixel);
+            ImGui.ImFontAtlas_GetTexDataAsRGBA32(_atlasPtr, &pixels, &width, &height, &bytesPerPixel);
             return new FontTextureData(pixels, width, height, bytesPerPixel);
         }
         public void SetTexID(int textureID)
@@ -205,33 +205,33 @@ namespace Engine
         }
         public void SetTexID(IntPtr textureID)
         {
-            ImGuiNative.ImFontAtlas_SetTexID(_atlasPtr, textureID.ToPointer());
+            ImGui.ImFontAtlas_SetTexID(_atlasPtr, textureID.ToPointer());
         }
         public void Clear()
         {
-            ImGuiNative.ImFontAtlas_Clear(_atlasPtr);
+            ImGui.ImFontAtlas_Clear(_atlasPtr);
         }
         public void ClearTexData()
         {
-            ImGuiNative.ImFontAtlas_ClearTexData(_atlasPtr);
+            ImGui.ImFontAtlas_ClearTexData(_atlasPtr);
         }
         public ImFont AddDefaultFont()
         {
-            NativeFont* nativeFontPtr = ImGuiNative.ImFontAtlas_AddFontDefault(_atlasPtr);
+            NativeFont* nativeFontPtr = ImGui.ImFontAtlas_AddFontDefault(_atlasPtr);
             return new ImFont(nativeFontPtr);
         }
         public ImFont AddFontFromFileTTF(string fileName, float pixelSize)
         {
-            return new ImFont(ImGuiNative.ImFontAtlas_AddFontFromFileTTF(_atlasPtr, fileName, pixelSize, IntPtr.Zero, null));
+            return new ImFont(ImGui.ImFontAtlas_AddFontFromFileTTF(_atlasPtr, fileName, pixelSize, IntPtr.Zero, null));
         }
         public ImFont AddFontFromMemoryTTF(IntPtr ttfData, int ttfDataSize, float pixelSize)
         {
-            NativeFont* nativeFontPtr = ImGuiNative.ImFontAtlas_AddFontFromMemoryTTF(_atlasPtr, ttfData.ToPointer(), ttfDataSize, pixelSize, IntPtr.Zero, null);
+            NativeFont* nativeFontPtr = ImGui.ImFontAtlas_AddFontFromMemoryTTF(_atlasPtr, ttfData.ToPointer(), ttfDataSize, pixelSize, IntPtr.Zero, null);
             return new ImFont(nativeFontPtr);
         }
         public ImFont AddFontFromMemoryTTF(IntPtr ttfData, int ttfDataSize, float pixelSize, IntPtr fontConfig)
         {
-            NativeFont* nativeFontPtr = ImGuiNative.ImFontAtlas_AddFontFromMemoryTTF(_atlasPtr, ttfData.ToPointer(), ttfDataSize, pixelSize, fontConfig, null);
+            NativeFont* nativeFontPtr = ImGui.ImFontAtlas_AddFontFromMemoryTTF(_atlasPtr, ttfData.ToPointer(), ttfDataSize, pixelSize, fontConfig, null);
             return new ImFont(nativeFontPtr);
         }
     }
