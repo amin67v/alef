@@ -452,19 +452,19 @@ namespace Engine
         public static extern bool igInputTextMultiline(string label, IntPtr buffer, uint buf_size, Vector2 size, InputTextFlags flags, IntPtr callback, void* user_data);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputFloat(string label, float* v, float step, float step_fast, int decimal_precision, InputTextFlags extra_flags);
+        public static extern bool igInputFloat(string label, ref float v, float step, float step_fast, int decimal_precision, InputTextFlags extra_flags);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputFloat2(string label, Vector2 v, int decimal_precision, InputTextFlags extra_flags);
+        public static extern bool igInputFloat2(string label, ref Vector2 v, int decimal_precision, InputTextFlags extra_flags);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputFloat3(string label, Vector3 v, int decimal_precision, InputTextFlags extra_flags);
+        public static extern bool igInputFloat3(string label, ref Vector3 v, int decimal_precision, InputTextFlags extra_flags);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputFloat4(string label, Vector4 v, int decimal_precision, InputTextFlags extra_flags);
+        public static extern bool igInputFloat4(string label, ref Vector4 v, int decimal_precision, InputTextFlags extra_flags);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool igInputInt(string label, int* v, int step, int step_fast, InputTextFlags extra_flags);
+        public static extern bool igInputInt(string label, ref int v, int step, int step_fast, InputTextFlags extra_flags);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool igInputInt2(string label, Int2 v, InputTextFlags extra_flags);

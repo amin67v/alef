@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Engine
 {
-    public class Font : Resource
+    public class Font : Data
     {
         Glyph[] glyph_map = new Glyph[96]; // ascii chars from range 32 to 128
         Texture texture = null;
@@ -52,7 +52,7 @@ namespace Engine
         /// </summary>
         public static Font Load(string file)
         {
-            Resource load_file(Stream stream)
+            Data load_file(Stream stream)
             {
                 TextReader reader = new StreamReader(stream);
                 var src = reader.ReadToEnd();
@@ -74,7 +74,7 @@ namespace Engine
 
             }
 
-            return App.ResourceManager.FromCacheOrFile(file, load_file) as Font;
+            return DataCache.FromCacheOrFile(file, load_file) as Font;
         }
 
         protected override void OnDisposeUnmanaged()

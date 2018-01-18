@@ -4,56 +4,43 @@ using System.Numerics;
 
 using Engine;
 
-public class DataEditor : AppState
+public class DataEditor : Disposable, IAppState
 {
-    static DataEditor instance;
+    public void OnBegin() { }
 
-    public override void OnBegin()
+    public void OnEnd() 
     {
-        base.OnBegin();
-        instance = this;
+        Editable.Active?.TrySave(null);
+        Editable.Active?.OnEnd();
     }
 
-    public override void OnEnd()
+    public void OnFrame()
     {
-        instance = null;
+        var gfx = App.Graphics;
+        gfx.Clear(Color.Gray);
+        Gui.Render(OnGui);
+        gfx.Display();
     }
 
-    public override void OnFileDrop(string file)
+    public void OnGui(Gui gui)
     {
-        App.Log.Debug(file);
-    }
+        Rect remain = new Rect(Vector2.Zero, App.Window.Size);
+        var toolbar = remain; toolbar.Height = remain.YMin = 44;
+        var browser = remain; browser.Width = remain.XMin = 250;
+        var inspector = remain; inspector.XMin = remain.XMax = (remain.XMax - 320);
+        var canvas = remain;
 
-    public override void OnTextInput(string text)
-    {
-        App.Gui.AddInputChar(text[0]);
-    }
-
-    public override void OnMouseDown(MouseButton btn, Vector2 pos)
-    {
-        //drag = true;
-    }
-
-    public override void OnMouseUp(MouseButton btn, Vector2 pos)
-    {
-        //drag = false;
-    }
-
-    public void OnDrawCanvas()
-    {
+        Toolbar.Instance.Draw(gui, toolbar);
+        Browser.Instance.Draw(gui, browser);
+        Inspector.Instance.Draw(gui, inspector);
+        Canvas.Instance.Draw(gui, canvas);
+        ContextMenu.Instance.Draw(gui);
+        Dialog.Instance.Draw(gui);
 
     }
 
-    public void OnGui()
+    void custom_style(Gui gui)
     {
-        Browser.Draw();
-        Inspector.Draw();
-        Modal.Draw();
-    }
-
-    void custom_style()
-    {
-        var gui = App.Gui;
         if (gui.Button("     Save     "))
         {
             string content = "";
@@ -73,15 +60,10 @@ public class DataEditor : AppState
             gui.ColorEdit(target.ToString(), ref c, ColorEditFlags.Default | ColorEditFlags.AlphaPreview);
             gui.Style.SetColor(target, c);
         }
-    }
 
-    public override void OnFrame()
-    {
-        var gfx = App.Graphics;
-        gfx.Clear(Color.SkyBlue);
-        Canvas.Render();
-        App.Gui.Render(OnGui);
-        gfx.Display();
     }
-
 }
+
+public delegate void FileDropHandler(string file);
+
+public delegate void MouseButtonHandler(MouseButton btn, Vector2 pos);

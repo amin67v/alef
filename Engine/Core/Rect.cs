@@ -31,6 +31,14 @@ namespace Engine
         }
 
         /// <summary>
+        /// Create rect with the specified vector 4.
+        /// </summary>.
+        public Rect(Vector4 vec)
+        {
+            this.vec = vec;
+        }
+
+        /// <summary>
         /// The x coord of the rect.
         /// </summary>
         public float X
@@ -221,6 +229,11 @@ namespace Engine
         }
 
         /// <summary>
+        /// Area of this rect
+        /// </summary>
+        public float Area => Width * Height;
+
+        /// <summary>
         /// Checks if point lies within this rect.
         /// </summary>
         public bool Contains(Vector2 point)
@@ -270,6 +283,11 @@ namespace Engine
             YMin = MathF.Min(YMin, rect.YMin);
             YMax = MathF.Max(YMax, rect.YMax);
         }
+
+        /// <summary>
+        /// Converts this rect to vector4
+        /// </summary>
+        public Vector4 ToVector4() => vec;
 
         public override string ToString()
         {

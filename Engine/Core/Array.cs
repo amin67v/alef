@@ -118,6 +118,20 @@ namespace Engine
         }
 
         /// <summary>
+        /// Reverse item order inside this array
+        /// </summary>
+        public void Reverse()
+        {
+            var hc = count / 2;
+            for (int i = 0; i < hc; i++)
+            {
+                T tmp = array[i];
+                array[i] = array[count - i - 1];
+                array[count - i - 1] = tmp;
+            }
+        }
+
+        /// <summary>
         /// Index of the first item that match the given value.
         /// </summary>
         public int IndexOf(T item)
@@ -177,9 +191,12 @@ namespace Engine
         /// </summary>
         public void RemoveAt(int index)
         {
-            Assert.IsTrue((uint)index > count, "Index is out of range");
-            Array.Copy(array, index + 1, array, index, count - index);
-            array[count--] = default(T);
+            Assert.IsTrue((uint)index < count, "Index is out of range");
+            count--;
+            if (index < count)
+                Array.Copy(array, index + 1, array, index, count - index);
+
+            array[count] = default(T);
         }
 
         /// <summary>
@@ -253,9 +270,19 @@ namespace Engine
         /// </summary>
         public void Clear(bool reset = true)
         {
-            if (reset)
+            if (reset && count > 0)
                 Array.Clear(array, 0, count);
             count = 0;
+        }
+
+        /// <summary>
+        /// Returns a copy of this array
+        /// </summary>
+        public T[] ToArray()
+        {
+            T[] new_arr = new T[count];
+            Array.Copy(array, new_arr, count);
+            return new_arr;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

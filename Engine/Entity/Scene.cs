@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Engine
 {
-    public class Scene : AppState
+    public class Scene : Disposable, IAppState
     {
         internal Array<IDrawable> draw_list;
         Camera cam;
@@ -88,19 +88,18 @@ namespace Engine
             }
         }
 
-        public override void OnBegin()
+        public virtual void OnBegin()
         {
             cam = new Camera();
             draw_list = new Array<IDrawable>(50);
             debug_draw = new DebugDraw();
         }
 
-        /// <summary>
-        /// Note: dont override this method, use OnUpdate and OnRender instead
-        /// </summary>
-        public override void OnFrame()
+        public virtual void OnEnd() { }
+
+        public void OnFrame()
         {
-            float dt = App.Time.FrameTime;
+            float dt = Time.FrameTime;
 
             OnUpdate(dt);
 

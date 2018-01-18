@@ -7,15 +7,26 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public class SpriteSheet : Resource
+    public class SpriteSheet : Data
     {
-        Frame[] frames;
+        SpriteSheetFrame[] frames;
         Texture tex;
         int ppu;
 
         SpriteSheet() { }
 
-        public Frame this[int index] => frames[index];
+        public SpriteSheetFrame this[string name]
+        {
+            get
+            {
+                bool match(SpriteSheetFrame f) => f.Name == name;
+                var idx = Array.FindIndex(frames, match);
+                if (idx < 0)
+                    return null;
+                else
+                    return frames[idx];
+            }
+        }
 
         public int FrameCount => frames.Length;
 
@@ -28,19 +39,19 @@ namespace Engine
         /// </summary>
         public static SpriteSheet Load(string file)
         {
-            return App.ResourceManager.FromCacheOrFile(file, deserialize) as SpriteSheet;
+            return DataCache.FromCacheOrFile(file, deserialize) as SpriteSheet;
         }
-        
+
         static SpriteSheet deserialize(Stream stream)
         {
             BinaryReader reader = new BinaryReader(stream);
             int sign = reader.ReadInt32();
             if (sign != 0x00737072)
-                throw new FormatException("Invalid sign");
+                throw new FormatException("Failed to deserialize sprite sheet, Invalid sign");
 
             int version = reader.ReadInt32();
             if (version != 1) // for now version should always be 1
-                throw new FormatException("Invalid version");
+                throw new FormatException("Failed to deserialize sprite sheet, invalid version");
 
             int width = reader.ReadInt32();
             int height = reader.ReadInt32();
@@ -78,8 +89,10 @@ namespace Engine
             if (num_read != decomp_tex_data.Length)
                 throw new Exception("Failed to decompress texture data, [num_read != decomp_tex_data.Length]");
 
-            var pin = GCHandle.Alloc(decomp_tex_data);
-            Texture texture = Texture.Create(width, height, filter, wrap, pin.AddrOfPinnedObject());
+            var pin = GCHandle.Alloc(decomp_tex_data, GCHandleType.Pinned);
+            var img = new Image(width, height, pin.AddrOfPinnedObject());
+            Texture texture = Texture.Create(img, filter, wrap);
+            img.Dispose();
             pin.Free();
 
             deflate.Dispose();
@@ -87,17 +100,11 @@ namespace Engine
             var spr = new SpriteSheet();
             spr.tex = texture;
             spr.ppu = ppu;
-            spr.frames = new Frame[frame_count];
+            spr.frames = new SpriteSheetFrame[frame_count];
             for (int i = 0; i < frame_count; i++)
-                spr.frames[i] = new Frame(frame_name[i], frame_rect[i], frame_offset[i], texture.Size, ppu);
-            
-            return spr;
-        }
+                spr.frames[i] = new SpriteSheetFrame(spr, frame_name[i], frame_rect[i], frame_offset[i], texture.Size, ppu);
 
-        public int GetFrameIndex(string name)
-        {
-            bool match(Frame f) => f.Name == name;
-            return Array.FindIndex(frames, match);
+            return spr;
         }
 
         protected override void OnDisposeManaged()
@@ -106,36 +113,54 @@ namespace Engine
             frames = null;
         }
 
-        public class Frame
+
+    }
+
+    public class SpriteSheetFrame
+    {
+        SpriteSheet owner;
+        Rect rect;
+        Vector2 offset;
+        string name;
+        Vertex[] verts;
+
+        internal SpriteSheetFrame(SpriteSheet owner, string name, Rect rect, Vector2 offset, Vector2 tex_size, float ppu)
         {
-            string name;
-            Vertex[] verts;
+            this.name = name;
+            this.owner = owner;
+            this.rect = rect;
+            this.offset = offset;
 
-            internal Frame(string name, Rect rect, Vector2 offset, Vector2 tex_size, float ppu)
-            {
-                this.name = name;
-                var texcoord = rect / tex_size;
-                rect /= ppu;
-                offset /= ppu;
-                rect.Position = -offset;
-                verts = new Vertex[6];
-                verts[0] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);
-                verts[1] = new Vertex(rect.XMaxYMax, texcoord.XMaxYMax, Color.White);
-                verts[2] = new Vertex(rect.XMinYMax, texcoord.XMinYMax, Color.White);
-                verts[3] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);
-                verts[4] = new Vertex(rect.XMaxYMin, texcoord.XMaxYMin, Color.White);
-                verts[5] = new Vertex(rect.XMaxYMax, texcoord.XMaxYMax, Color.White);
-            }
-
-            /// <summary>
-            /// Name of the frame
-            /// </summary>
-            public string Name => name;
-
-            /// <summary>
-            /// Local space vertex data for the frame
-            /// </summary>
-            public Vertex[] Vertices => verts;
+            var texcoord = rect / tex_size;
+            rect /= ppu;
+            offset /= ppu;
+            rect.Position = -offset * rect.Size;
+            verts = new Vertex[6];
+            verts[0] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);
+            verts[1] = new Vertex(rect.XMaxYMax, texcoord.XMaxYMax, Color.White);
+            verts[2] = new Vertex(rect.XMinYMax, texcoord.XMinYMax, Color.White);
+            verts[3] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);
+            verts[4] = new Vertex(rect.XMaxYMax, texcoord.XMaxYMax, Color.White);
+            verts[5] = new Vertex(rect.XMaxYMin, texcoord.XMaxYMin, Color.White);
         }
+
+        /// <summary>
+        /// Name of the frame
+        /// </summary>
+        public string Name => name;
+
+        /// <summary>
+        /// Local space vertex data
+        /// </summary>
+        public Vertex[] Vertices => verts;
+
+        /// <summary>
+        /// The owner sprite sheet
+        /// </summary>
+        public SpriteSheet SpriteSheet => owner;
+
+        public Rect Rect => rect;
+
+        public Vector2 Offset => offset;
     }
 }

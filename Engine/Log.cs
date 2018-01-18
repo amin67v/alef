@@ -7,9 +7,11 @@ namespace Engine
     /// <summary>
     /// Simple logging class
     /// </summary>
-    public class Log : Disposable
+    public sealed class Log
     {
-        static readonly ConsoleColor[] lvl_color =
+        static Log instance;
+
+        static readonly ConsoleColor[] console_color =
         {
             ConsoleColor.Magenta,
             ConsoleColor.Green,
@@ -22,7 +24,7 @@ namespace Engine
         LogLevel level;
         bool console = true;
 
-        public Log(string file)
+        Log(string file)
         {
             var fstream = File.Create(file);
             writer = new StreamWriter(fstream);
@@ -31,16 +33,16 @@ namespace Engine
         /// <summary>
         /// Get or set the logging level
         /// </summary>
-        public LogLevel Level
+        public static LogLevel Level
         {
-            get => level;
-            set => level = value;
+            get => instance.level;
+            set => instance.level = value;
         }
 
-        public bool OutputConsole
+        public static bool OutputConsole
         {
-            get => console;
-            set => console = value;
+            get => instance.console;
+            set => instance.console = value;
         }
 
         public static event LogHandler LogEvent;
@@ -48,33 +50,33 @@ namespace Engine
         /// <summary>
         /// prints a debug message to the output.
         /// </summary>
-        public void Debug(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Debug(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            write(LogLevel.Debug, msg, file, line);
-        }
-
-        /// <summary>
-        /// prints an error message to the output.
-        /// </summary>
-        public void Error(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
-        {
-            write(LogLevel.Error, msg, file, line);
+            instance.write(LogLevel.Debug, msg, file, line);
         }
 
         /// <summary>
         /// prints an info message to the output.
         /// </summary>
-        public void Info(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Info(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            write(LogLevel.Info, msg, file, line);
+            instance.write(LogLevel.Info, msg, file, line);
         }
 
         /// <summary>
         /// prints a warning message to the output.
         /// </summary>
-        public void Warning(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Warning(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            write(LogLevel.Warning, msg, file, line);
+            instance.write(LogLevel.Warning, msg, file, line);
+        }
+
+        /// <summary>
+        /// prints an error message to the output.
+        /// </summary>
+        public static void Error(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        {
+            instance.write(LogLevel.Error, msg, file, line);
         }
 
         void write(LogLevel lvl, string message, string file, int line)
@@ -95,7 +97,7 @@ namespace Engine
                     if (console)
                     {
                         var c = Console.ForegroundColor;
-                        Console.ForegroundColor = lvl_color[(int)lvl];
+                        Console.ForegroundColor = console_color[(int)lvl];
                         Console.WriteLine(msg);
                         Console.ForegroundColor = c;
                     }
@@ -107,10 +109,15 @@ namespace Engine
             }
         }
 
-        protected override void OnDisposeManaged()
+        internal static void init(string file)
         {
-            writer.Dispose();
-            writer = null;
+            instance = new Log(file);
+        }
+
+        internal static void shutdown()
+        {
+            instance.writer.Dispose();
+            instance.writer = null;
         }
     }
 

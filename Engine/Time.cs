@@ -3,44 +3,54 @@ using System.Diagnostics;
 
 namespace Engine
 {
+    /// <summary>
+    /// Time related info about the current app
+    /// </summary>
     public sealed class Time
     {
+        static Time instance;
+
         Stopwatch sw = new Stopwatch();
-        float ft;
         float speed = 1;
+        float ft;
         float time;
 
-        internal Time() { }
+        Time() { }
 
         /// <summary>
         /// Gets the total elapsed time since start of the app, in seconds.
         /// </summary>
-        public float Total => time;
+        public static float SinceStart => instance.time;
 
         /// <summary>
         /// Total time spent on the last frame.
         /// </summary>
-        public float FrameTime => ft;
+        public static float FrameTime => instance.ft;
 
         /// <summary>
         /// Gets or sets the speed of time.
         /// </summary>
-        public float Speed
+        public static float Speed
         {
-            get => speed;
-            set => speed = MathF.Max(0, value);
+            get => instance.speed;
+            set => instance.speed = MathF.Max(0, value);
         }
 
-        internal void process()
+        internal static void update()
         {
-            ft = (float)sw.Elapsed.TotalSeconds;
-            time += ft * speed;
-            sw.Restart();
+            instance.ft = (float)instance.sw.Elapsed.TotalSeconds;
+            instance.time += instance.ft * instance.speed;
+            instance.sw.Restart();
         }
 
-        internal void shutdown()
+        internal static void init()
         {
+            instance = new Time();
+        }
 
+        internal static void shutdown()
+        {
+            instance = null;
         }
     }
 }

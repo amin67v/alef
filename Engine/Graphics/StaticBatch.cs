@@ -10,24 +10,24 @@ namespace Engine
         Dictionary<BatchKey, SpriteBatch> batch_map;
         float batch_area_size = 100;
 
-        public static void AddSprite(Transform xform, SpriteSheet spr, int frame)
+        public static void AddSprite(Transform xform, SpriteSheetFrame frame)
         {
-            AddSprite(xform, spr, frame, 0, DefaultShaders.ColorMult, BlendMode.AlphaBlend, Color.White);
+            AddSprite(xform, frame, 0, DefaultShaders.ColorMult, BlendMode.AlphaBlend, Color.White);
         }
 
-        public static void AddSprite(Transform xform, SpriteSheet spr, int frame, int layer, Color color)
+        public static void AddSprite(Transform xform, SpriteSheetFrame frame, int layer, Color color)
         {
-            AddSprite(xform, spr, frame, layer, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
+            AddSprite(xform, frame, layer, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
         }
 
-        public static void AddSprite(Transform xform, SpriteSheet spr, int frame, int layer, Shader shader, BlendMode blend_mode, Color color)
+        public static void AddSprite(Transform xform, SpriteSheetFrame frame, int layer, Shader shader, BlendMode blend_mode, Color color)
         {
             if (instance == null)
                 instance = Scene.Spawn<StaticBatch>("StaticBatch");
 
             var key = new BatchKey()
             {
-                Sprite = spr,
+                Sprite = frame.SpriteSheet,
                 Shader = shader,
                 BlendMode = blend_mode,
                 Layer = layer,
@@ -38,7 +38,7 @@ namespace Engine
             SpriteBatch target;
             if (!instance.batch_map.TryGetValue(key, out target))
             {
-                target = new SpriteBatch(spr, shader, null, blend_mode, layer, 20);
+                target = new SpriteBatch(frame.SpriteSheet, shader, null, blend_mode, layer, 20);
                 instance.batch_map.Add(key, target);
             }
 

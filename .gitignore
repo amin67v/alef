@@ -1,5 +1,7 @@
 bin/netcoreapp2.0/*
 !bin/netcoreapp2.0/data/
+!bin/netcoreapp2.0/editor/
+!bin/netcoreapp2.0/sprites/
 ThirdParty/stb/*
 !ThirdParty/stb/stb.c
 !ThirdParty/stb/stb_image.h

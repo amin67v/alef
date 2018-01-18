@@ -77,18 +77,18 @@ namespace Engine
         /// <summary>
         /// The default color mix shader
         /// </summary>
-        public static readonly Shader ColorMix = color_mix ?? ( color_mix = Shader.Create(vert_standard, frag_color_mix));
+        public static Shader ColorMix => color_mix ?? ( color_mix = Shader.Create(vert_standard, frag_color_mix));
 
         /// <summary>
         /// The default font shader
         /// </summary>
-        public static readonly Shader Font = font ?? (font = Shader.Create(vert_standard, frag_font));
+        public static Shader Font => font ?? (font = Shader.Create(vert_standard, frag_font));
 
         internal static void dispose_all()
         {
-            color_mult.Dispose();
-            color_mix.Dispose();
-            font.Dispose();
+            color_mult?.Dispose();
+            color_mix?.Dispose();
+            font?.Dispose();
 
             color_mult = null;
             color_mix = null;

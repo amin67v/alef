@@ -2,7 +2,7 @@ using System;
 
 namespace Engine
 {
-    public struct AppConfig
+    public class AppConfig
     {
         public string Title;
         public string LogFile;
@@ -11,6 +11,8 @@ namespace Engine
         public bool Resizable;
         public bool Fullscreen;
         public bool Vsync;
+
+        public AppConfig() { }
 
         public AppConfig(string title, int width, int height)
         {

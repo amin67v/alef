@@ -1,115 +1,185 @@
 using System;
 using System.IO;
+using System.Numerics;
 
 using Engine;
 
 public abstract class Editable
 {
     static Editable active;
-    static Type[] type_map;
-    static string[] ext_map;
+    static (DataKind, string, Type)[] data_types;
 
-    InputBuffer filename = new InputBuffer(256);
-    bool saved = true;
+    string data_path;
 
     public static Editable Active
     {
         get => active;
         set
         {
-            active?.Save(true);
             active?.OnEnd();
             active = value;
             active?.OnBegin();
         }
     }
+    public string DataPath => data_path;
 
-    public string Filename => filename.String;
+    public abstract DataKind Type { get; }
 
-    public static Type GetTypeFor(EditableType type)
+    public static (DataKind, string, Type)[] GetDataTypes()
     {
-        if (type_map == null)
+        if (data_types == null)
         {
-            type_map = new Type[(int)EditableType.Count];
-            type_map[(int)EditableType.SpriteSheet] = typeof(SpritePacker);
-            type_map[(int)EditableType.Texture] = null;
-            type_map[(int)EditableType.Shape] = null;
-            type_map[(int)EditableType.Particle] = null;
-            type_map[(int)EditableType.Entity] = null;
+            data_types = new(DataKind, string, Type)[]
+            {
+                (DataKind.SpriteSheet, ".spr", typeof(SpritePacker)),
+                (DataKind.Texture, ".tex", null),
+                (DataKind.Shape, ".shp", null),
+                (DataKind.Particle, ".prt", null),
+                (DataKind.Entity, ".ent", null),
+            };
         }
-
-        return type_map[(int)type];
+        return data_types;
     }
 
-    public static string GetExtensionFor(EditableType type)
-    {
-        if (ext_map == null)
-        {
-            ext_map = new string[(int)EditableType.Count];
-            ext_map[(int)EditableType.SpriteSheet] = ".spr";
-            ext_map[(int)EditableType.Texture] = ".tex";
-            ext_map[(int)EditableType.Shape] = ".shp";
-            ext_map[(int)EditableType.Particle] = ".prt";
-            ext_map[(int)EditableType.Entity] = ".ent";
-        }
 
-        return ext_map[(int)type];
+    public static void Save(Editable obj, string path)
+    {
+        string fullpath = App.GetAbsolutePath(path);
+        var stream = File.OpenWrite(fullpath);
+        try
+        {
+            obj.Serialize(stream);
+        }
+        finally
+        {
+            stream.Dispose();
+        }
     }
 
-    protected abstract byte[] Serialize();
+    public static Editable Load(string path)
+    {
+        var ext = Path.GetExtension(path);
+        var fullpath = App.GetAbsolutePath(path);
+        var stream = File.OpenRead(fullpath);
+        var obj = Activator.CreateInstance(ExtensionToEditorType(ext)) as Editable;
+        obj.data_path = path;
+        obj.Deserialize(stream);
+        stream.Dispose();
+        return obj;
+    }
+
+    public static string DataKindToExtension(DataKind kind)
+    {
+        var types = GetDataTypes();
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (types[i].Item1 == kind)
+                return types[i].Item2;
+        }
+
+        return null;
+    }
+
+    public static Type DataKindToEditorType(DataKind kind)
+    {
+        var types = GetDataTypes();
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (types[i].Item1 == kind)
+                return types[i].Item3;
+        }
+
+        return null;
+    }
+
+    public static Type ExtensionToEditorType(string ext)
+    {
+        var types = GetDataTypes();
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (types[i].Item2 == ext)
+                return types[i].Item3;
+        }
+
+        return null;
+    }
+
+    public static DataKind ExtensionToDataKind(string ext)
+    {
+        var types = GetDataTypes();
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (types[i].Item2 == ext)
+                return types[i].Item1;
+        }
+
+        return (DataKind)(-1);
+    }
+
+    public static bool IsKnownExtension(string ext)
+    {
+        var types = GetDataTypes();
+        
+        for (int i = 0; i < types.Length; i++)
+            if (types[i].Item2 == ext)
+                return true;
+
+        return false;
+    }
+
+    protected abstract void Deserialize(Stream steam);
+
+    protected abstract void Serialize(Stream stream);
 
     public virtual void OnBegin() { }
 
     public virtual void OnEnd() { }
 
+    public virtual void OnFileDrop(string file) { }
+
+    public virtual void OnMouseDown(MouseButton btn, Vector2 pos) { }
+
+    public virtual void OnMouseUp(MouseButton btn, Vector2 pos) { }
+
     public virtual void OnDrawCanvas(Canvas g) { }
 
-    public virtual void OnDrawInspector()
+    public virtual void OnDrawInspector(Gui gui)
     {
-        var gui = App.Gui;
-        InputTextFlags flags = InputTextFlags.Default;
-        if (saved)
-            flags |= InputTextFlags.ReadOnly;
-
-        gui.InputText(string.Empty, filename, flags);
-
-        gui.SameLine();
-        if (gui.Button("Save"))
+        if (DataPath != null)
         {
-            Save(false);
-            saved = true;
+            gui.Text(DataPath);
+            gui.Separator();
         }
     }
 
-    public void Save(bool ask = false)
+    public void TrySave(Action done)
     {
-        void save_to_file()
+        if (DataPath == null)
         {
-            var fullpath = App.GetAbsolutePath(Filename);
-            File.WriteAllBytes(fullpath, Serialize());
+            Dialog.UserInput("Some changes have not been saved.\nEnter name for the file to save data into:",
+            () =>
+            {
+                var path = Path.Combine(Browser.Instance.CurrentPath, Dialog.UserText);
+                path = Path.ChangeExtension(path, Editable.DataKindToExtension(Type));
+                Editable.Save(this, path);
+                done?.Invoke();
+            }, done);
+        }
+        else
+        {
+            Editable.Save(this, DataPath);
+            done?.Invoke();
         }
 
-        if (!string.IsNullOrWhiteSpace(Filename))
-        {
-            if (ask)
-            {
-                Modal.ShowDialog($"Do you want to save the edited object to '{Filename} ?'", save_to_file, null);
-            }
-            else
-            {
-                save_to_file();
-            }
-        }
     }
+
 }
 
-public enum EditableType
+public enum DataKind
 {
     SpriteSheet,
     Texture,
     Shape,
     Particle,
-    Entity,
-
-    Count
+    Entity
 }

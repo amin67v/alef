@@ -195,6 +195,11 @@ namespace Engine
 
         public Color(Vector4 vec) : this(vec.X, vec.Y, vec.Z, vec.W) { }
 
+        public float Brightness => 0.00082914f * R  + 0.00278928f * G + 0.00028158f * B;
+
+        /// <summary>
+        /// Creates color from Rgb
+        /// </summary>
         public static Color FromRgb(int rgb)
         {
             return new Color((byte)((rgb & 0x00ff0000u) >> 16),
@@ -202,6 +207,9 @@ namespace Engine
                              (byte)((rgb & 0x000000ffu) >> 0));
         }
 
+        /// <summary>
+        /// Creates color from Argb
+        /// </summary>
         public static Color FromArgb(int rgba)
         {
             return new Color((byte)((rgba & 0x00ff0000u) >> 16),
@@ -210,6 +218,9 @@ namespace Engine
                              (byte)((rgba & 0xff000000u) >> 24));
         }
 
+        /// <summary>
+        /// Creates color from Hsv color space
+        /// </summary>
         public static Color FromHsv(float h, float s, float v, float a)
         {
             int i;
@@ -241,6 +252,10 @@ namespace Engine
             }
         }
 
+        /// <summary>
+        /// Converts this color to Hsv color space
+        /// </summary>
+        /// <returns></returns>
         public Vector4 ToHsv()
         {
             float h, s, v;
@@ -273,6 +288,23 @@ namespace Engine
                 h += 360;
 
             return new Vector4(h, s, v, A);
+        }
+
+        /// <summary>
+        /// Darker version of this color, value must be in range 0 - 1
+        /// </summary>
+        public Color Darker(float value)
+        {
+            value = 1 - value;
+            return new Color((byte)(R * value), (byte)(G * value), (byte)(B * value), A);
+        }
+
+        /// <summary>
+        /// Lighter version of this color, value must be in range 0 - 1
+        /// </summary>
+        public Color Lighter(float value)
+        {
+            return new Color((byte)((255 - R) * value + R), (byte)((255 - G) * value + G), (byte)((255 - B) * value + B), A);
         }
 
         public override string ToString()

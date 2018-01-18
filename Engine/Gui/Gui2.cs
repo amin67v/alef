@@ -103,21 +103,27 @@ namespace Engine
             return ImGui.igInvisibleButton(id, size);
         }
 
-        public void Image(IntPtr userTextureID, Vector2 size, Vector2 uv0, Vector2 uv1, Color tintColor, Color borderColor)
+        public void Image(SpriteSheetFrame frame, Vector2 size, Color background, Color tint)
         {
-            ImGui.igImage(userTextureID, size, uv0, uv1, tintColor.ToVector4(), borderColor.ToVector4());
+            var id = frame.SpriteSheet.Texture.GetHashCode();
+            id_tex_map[id] = frame.SpriteSheet.Texture;
+            var uv0 = frame.Vertices[1].Texcoord;
+            var uv1 = frame.Vertices[0].Texcoord;
+            ImGui.igImage(new IntPtr(id), size, uv0, uv1, background.ToVector4(), tint.ToVector4());
         }
 
-        public bool ImageButton(
-            IntPtr userTextureID,
-            Vector2 size,
-            Vector2 uv0,
-            Vector2 uv1,
-            int framePadding,
-            Color backgroundColor,
-            Color tintColor)
+        public bool ImageButton(SpriteSheetFrame frame, int frame_padding = 4)
         {
-            return ImGui.igImageButton(userTextureID, size, uv0, uv1, framePadding, backgroundColor.ToVector4(), tintColor.ToVector4());
+            return ImageButton(frame, frame.Rect.Size, frame_padding, Color.Transparent, Color.White);
+        }
+
+        public bool ImageButton(SpriteSheetFrame frame, Vector2 size, int frame_padding, Color background, Color tint)
+        {
+            var id = frame.SpriteSheet.Texture.GetHashCode();
+            id_tex_map[id] = frame.SpriteSheet.Texture;
+            var uv0 = new Vector2(frame.Vertices[0].Texcoord.X, frame.Vertices[1].Texcoord.Y);
+            var uv1 = new Vector2(frame.Vertices[1].Texcoord.X, frame.Vertices[0].Texcoord.Y);
+            return ImGui.igImageButton(new IntPtr(id), size, uv0, uv1, frame_padding, background.ToVector4(), tint.ToVector4());
         }
 
         public bool CollapsingHeader(string label, TreeNodeFlags flags)
@@ -143,7 +149,7 @@ namespace Engine
             return ImGui.igRadioButtonBool(label, active);
         }
 
-        public bool Combo<T>(string label, ref int index, ref T value, int item_height = 5)
+        public bool Combo<T>(string label, ref T value, int item_height = 5)
         {
             var type = typeof(T);
             if (!type.IsEnum)
@@ -151,10 +157,11 @@ namespace Engine
 
             var arr = get_enum_arr<T>();
 
+            int index = Array.IndexOf<string>(arr, value.ToString());
             var r = Combo(label, ref index, arr, item_height);
             if (r)
                 value = (T)Enum.Parse(type, arr[index]);
-                
+
             return r;
         }
 
@@ -260,6 +267,11 @@ namespace Engine
             return ImGui.igSliderAngle(label, ref radians, minDegrees, maxDegrees);
         }
 
+        public bool InputInt(string label, ref int v, int step, int step_fast, InputTextFlags extra_flags)
+        {
+            return ImGui.igInputInt(label, ref v, step, step_fast, extra_flags);
+        }
+
         public bool SliderInt(string sliderLabel, ref int value, int min, int max, string displayText)
         {
             return ImGui.igSliderInt(sliderLabel, ref value, min, max, displayText);
@@ -278,6 +290,26 @@ namespace Engine
         public bool SliderInt4(string label, ref Int4 value, int min, int max, string displayText)
         {
             return ImGui.igSliderInt4(label, ref value, min, max, displayText);
+        }
+
+        public bool InputFloat(string label, ref float v, float step, float step_fast, int decimal_precision, InputTextFlags extra_flags)
+        {
+            return ImGui.igInputFloat(label, ref v, step, step_fast, decimal_precision, extra_flags);
+        }
+
+        public bool InputVector2(string label, ref Vector2 v, int decimal_precision, InputTextFlags extra_flags)
+        {
+            return ImGui.igInputFloat2(label, ref v, decimal_precision, extra_flags);
+        }
+
+        public bool InputVector3(string label, ref Vector3 v, int decimal_precision, InputTextFlags extra_flags)
+        {
+            return ImGui.igInputFloat3(label, ref v, decimal_precision, extra_flags);
+        }
+
+        public bool InputFloat4(string label, ref Vector4 v, int decimal_precision, InputTextFlags extra_flags)
+        {
+            return ImGui.igInputFloat4(label, ref v, decimal_precision, extra_flags);
         }
 
         public bool DragFloat(string label, ref float value, float min, float max, float dragSpeed = 1f, string displayFormat = "%.3f", float dragPower = 1f)
@@ -363,6 +395,23 @@ namespace Engine
         public bool Button(string message, Vector2 size)
         {
             return ImGui.igButton(message, size);
+        }
+
+        public bool Button(string message, Color c)
+        {
+            return Button(message, Vector2.Zero, c);
+        }
+
+        public bool Button(string message, Vector2 size, Color color)
+        {
+            PushStyleColor(ColorTarget.Button, color);
+            PushStyleColor(ColorTarget.ButtonHovered, color.Lighter(0.25f));
+            PushStyleColor(ColorTarget.ButtonActive, color.Lighter(0.5f));
+            PushStyleColor(ColorTarget.Text, color.Brightness > .5f ? Color.Black : Color.White);
+            var r = ImGui.igButton(message, size);
+            PopStyleColor(4);
+
+            return r;
         }
 
         public void SetNextWindowSize(Vector2 size, GuiCondition condition)
@@ -541,9 +590,11 @@ namespace Engine
         }
 
         public void PushStyleVar(StyleVar var, float value) => ImGui.igPushStyleVar(var, value);
+
         public void PushStyleVar(StyleVar var, Vector2 value) => ImGui.igPushStyleVarVec(var, value);
 
         public void PopStyleVar() => ImGui.igPopStyleVar(1);
+
         public void PopStyleVar(int count) => ImGui.igPopStyleVar(count);
 
         unsafe void InputTextMultiline(string label, IntPtr textBuffer, uint bufferSize, Vector2 size, InputTextFlags flags, IntPtr callback)

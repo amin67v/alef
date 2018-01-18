@@ -6,98 +6,69 @@ namespace Engine
 {
     public sealed partial class Gui
     {
-        Array<Texture> textures = new Array<Texture>();
+        static Gui instance;
+
+        Dictionary<int, Texture> id_tex_map = new Dictionary<int, Texture>();
+
         Dictionary<Type, string[]> enum_map = new Dictionary<Type, string[]>();
 
-        Shader shader;
         MeshBuffer mb;
         MouseCursorKind last_cursor = MouseCursorKind.Arrow;
 
-        internal Gui()
+        Gui() { }
+
+        public static void Render(Action<Gui> gui_draw)
         {
-            unsafe { io.GetNativePointer()->IniFilename = IntPtr.Zero; }
-            set_default_style();
-            io.FontAtlas.AddFontFromFileTTF(App.GetAbsolutePath("fonts/Ubuntu-R.ttf"), 14);
+            if (instance == null)
+                init();
 
-            io.KeyMap[GuiKey.Tab] = (int)KeyCode.Tab;
-            io.KeyMap[GuiKey.LeftArrow] = (int)KeyCode.Left;
-            io.KeyMap[GuiKey.RightArrow] = (int)KeyCode.Right;
-            io.KeyMap[GuiKey.UpArrow] = (int)KeyCode.Up;
-            io.KeyMap[GuiKey.DownArrow] = (int)KeyCode.Down;
-            io.KeyMap[GuiKey.PageUp] = (int)KeyCode.PageUp;
-            io.KeyMap[GuiKey.PageDown] = (int)KeyCode.PageDown;
-            io.KeyMap[GuiKey.Home] = (int)KeyCode.Home;
-            io.KeyMap[GuiKey.End] = (int)KeyCode.End;
-            io.KeyMap[GuiKey.Delete] = (int)KeyCode.Delete;
-            io.KeyMap[GuiKey.Backspace] = (int)KeyCode.BackSpace;
-            io.KeyMap[GuiKey.Enter] = (int)KeyCode.Enter;
-            io.KeyMap[GuiKey.Escape] = (int)KeyCode.Escape;
-            io.KeyMap[GuiKey.A] = (int)KeyCode.A;
-            io.KeyMap[GuiKey.C] = (int)KeyCode.C;
-            io.KeyMap[GuiKey.V] = (int)KeyCode.V;
-            io.KeyMap[GuiKey.X] = (int)KeyCode.X;
-            io.KeyMap[GuiKey.Y] = (int)KeyCode.Y;
-            io.KeyMap[GuiKey.Z] = (int)KeyCode.Z;
-
-            FontTextureData tex_data = io.FontAtlas.GetTexDataAsRGBA32();
-            unsafe
-            {
-                textures.Push(Texture.Create(tex_data.Width, tex_data.Height, FilterMode.Point, WrapMode.Clamp, new IntPtr(tex_data.Pixels)));
-                io.FontAtlas.SetTexID(0);
-            }
-            io.FontAtlas.ClearTexData();
-
-            shader = DefaultShaders.ColorMult;
-            mb = MeshBuffer.CreateIndexed();
-        }
-
-        public void AddInputChar(char code) => ImGui.ImGuiIO_AddInputCharacter(code);
-
-        public void Render(Action gui_draw)
-        {
             var screen = App.Window.Size;
+            var io = instance.io;
 
             io.DisplaySize = screen;
-            io.DeltaTime = App.Time.FrameTime;
+            io.DeltaTime = Time.FrameTime;
 
-            io.MousePosition = App.Window.MousePosition;
+            io.MousePosition = Input.MousePosition;
 
-            io.MouseDown[0] = App.Window.IsMouseDown(MouseButton.Left);
-            io.MouseDown[1] = App.Window.IsMouseDown(MouseButton.Right);
-            io.MouseDown[2] = App.Window.IsMouseDown(MouseButton.Middle);
+            io.MouseDown[0] = Input.IsKeyDown(MouseButton.Left);
+            io.MouseDown[1] = Input.IsKeyDown(MouseButton.Right);
+            io.MouseDown[2] = Input.IsKeyDown(MouseButton.Middle);
 
-            io.MouseWheel = App.Window.MouseScrollDelta.Y;
+            io.MouseWheel = Input.MouseScrollDelta.Y;
 
-            io.KeysDown[(int)KeyCode.Tab] = App.Window.IsKeyDown(KeyCode.Tab);
-            io.KeysDown[(int)KeyCode.Left] = App.Window.IsKeyDown(KeyCode.Left);
-            io.KeysDown[(int)KeyCode.Right] = App.Window.IsKeyDown(KeyCode.Right);
-            io.KeysDown[(int)KeyCode.Up] = App.Window.IsKeyDown(KeyCode.Up);
-            io.KeysDown[(int)KeyCode.Down] = App.Window.IsKeyDown(KeyCode.Down);
-            io.KeysDown[(int)KeyCode.PageUp] = App.Window.IsKeyDown(KeyCode.PageUp);
-            io.KeysDown[(int)KeyCode.PageDown] = App.Window.IsKeyDown(KeyCode.PageDown);
-            io.KeysDown[(int)KeyCode.Home] = App.Window.IsKeyDown(KeyCode.Home);
-            io.KeysDown[(int)KeyCode.End] = App.Window.IsKeyDown(KeyCode.End);
-            io.KeysDown[(int)KeyCode.Delete] = App.Window.IsKeyDown(KeyCode.Delete);
-            io.KeysDown[(int)KeyCode.BackSpace] = App.Window.IsKeyDown(KeyCode.BackSpace);
-            io.KeysDown[(int)KeyCode.Enter] = App.Window.IsKeyDown(KeyCode.KpEnter) | App.Window.IsKeyDown(KeyCode.Enter);
-            io.KeysDown[(int)KeyCode.Escape] = App.Window.IsKeyDown(KeyCode.Escape);
-            io.KeysDown[(int)KeyCode.A] = App.Window.IsKeyDown(KeyCode.A);
-            io.KeysDown[(int)KeyCode.C] = App.Window.IsKeyDown(KeyCode.C);
-            io.KeysDown[(int)KeyCode.V] = App.Window.IsKeyDown(KeyCode.V);
-            io.KeysDown[(int)KeyCode.X] = App.Window.IsKeyDown(KeyCode.X);
-            io.KeysDown[(int)KeyCode.Y] = App.Window.IsKeyDown(KeyCode.Y);
-            io.KeysDown[(int)KeyCode.Z] = App.Window.IsKeyDown(KeyCode.Z);
+            io.KeysDown[(int)KeyCode.Tab] = Input.IsKeyDown(KeyCode.Tab);
+            io.KeysDown[(int)KeyCode.Left] = Input.IsKeyDown(KeyCode.Left);
+            io.KeysDown[(int)KeyCode.Right] = Input.IsKeyDown(KeyCode.Right);
+            io.KeysDown[(int)KeyCode.Up] = Input.IsKeyDown(KeyCode.Up);
+            io.KeysDown[(int)KeyCode.Down] = Input.IsKeyDown(KeyCode.Down);
+            io.KeysDown[(int)KeyCode.PageUp] = Input.IsKeyDown(KeyCode.PageUp);
+            io.KeysDown[(int)KeyCode.PageDown] = Input.IsKeyDown(KeyCode.PageDown);
+            io.KeysDown[(int)KeyCode.Home] = Input.IsKeyDown(KeyCode.Home);
+            io.KeysDown[(int)KeyCode.End] = Input.IsKeyDown(KeyCode.End);
+            io.KeysDown[(int)KeyCode.Delete] = Input.IsKeyDown(KeyCode.Delete);
+            io.KeysDown[(int)KeyCode.BackSpace] = Input.IsKeyDown(KeyCode.BackSpace);
+            io.KeysDown[(int)KeyCode.Enter] = Input.IsKeyDown(KeyCode.KpEnter) | Input.IsKeyDown(KeyCode.Enter);
+            io.KeysDown[(int)KeyCode.Escape] = Input.IsKeyDown(KeyCode.Escape);
+            io.KeysDown[(int)KeyCode.A] = Input.IsKeyDown(KeyCode.A);
+            io.KeysDown[(int)KeyCode.C] = Input.IsKeyDown(KeyCode.C);
+            io.KeysDown[(int)KeyCode.V] = Input.IsKeyDown(KeyCode.V);
+            io.KeysDown[(int)KeyCode.X] = Input.IsKeyDown(KeyCode.X);
+            io.KeysDown[(int)KeyCode.Y] = Input.IsKeyDown(KeyCode.Y);
+            io.KeysDown[(int)KeyCode.Z] = Input.IsKeyDown(KeyCode.Z);
 
-            io.AltPressed = App.Window.IsKeyDown(KeyCode.LAlt) || App.Window.IsKeyDown(KeyCode.RAlt);
-            io.CtrlPressed = App.Window.IsKeyDown(KeyCode.LCtrl) || App.Window.IsKeyDown(KeyCode.RCtrl);
-            io.ShiftPressed = App.Window.IsKeyDown(KeyCode.LShift) || App.Window.IsKeyDown(KeyCode.RShift);
+            io.AltPressed = Input.IsKeyDown(KeyCode.LAlt) || Input.IsKeyDown(KeyCode.RAlt);
+            io.CtrlPressed = Input.IsKeyDown(KeyCode.LCtrl) || Input.IsKeyDown(KeyCode.RCtrl);
+            io.ShiftPressed = Input.IsKeyDown(KeyCode.LShift) || Input.IsKeyDown(KeyCode.RShift);
+
+            if (Input.GetLastKeyChar() != 0)
+                ImGui.ImGuiIO_AddInputCharacter(Input.GetLastKeyChar());
 
             ImGui.igNewFrame();
-            gui_draw();
+            gui_draw(instance);
             ImGui.igRender();
 
-            var cursor = MouseCursor;
-            if (last_cursor != cursor)
+            var cursor = instance.MouseCursor;
+            if (instance.last_cursor != cursor)
             {
                 switch (cursor)
                 {
@@ -123,7 +94,7 @@ namespace Engine
                         App.Window.SetCursor(SystemCursor.SizeNWSE);
                         break;
                 }
-                last_cursor = cursor;
+                instance.last_cursor = cursor;
             }
 
 
@@ -131,6 +102,7 @@ namespace Engine
             gfx.SetViewport(0, 0, (int)screen.X, (int)screen.Y);
             gfx.ViewMatrix = Matrix4x4.CreateOrthographicOffCenter(0, screen.X, screen.Y, 0, -1, 1);
             gfx.SetBlendMode(BlendMode.AlphaBlend);
+            var shader = DefaultShaders.ColorMult;
             gfx.SetShader(shader);
             shader.SetMatrix4x4("view_mat", gfx.ViewMatrix);
             shader.SetMatrix3x2("model_mat", Matrix3x2.Identity);
@@ -145,8 +117,8 @@ namespace Engine
                     var vtx = cmd_list->VtxBuffer;
                     var idx = cmd_list->IdxBuffer;
 
-                    mb.UpdateIndices(new IntPtr(idx.Data), idx.Size);
-                    mb.UpdateVertices(new IntPtr(vtx.Data), vtx.Size);
+                    instance.mb.UpdateIndices(new IntPtr(idx.Data), idx.Size);
+                    instance.mb.UpdateVertices(new IntPtr(vtx.Data), vtx.Size);
                     var cmd_buffer = cmd_list->CmdBuffer;
                     int offset = 0;
                     for (int i = 0; i < cmd_buffer.Size; i++)
@@ -159,25 +131,13 @@ namespace Engine
                             (int)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
                             (int)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
 
-                        shader.SetTexture("main_tex", 0, textures[pcmd.TextureId.ToInt32()]);
-                        mb.Draw(offset * sizeof(ushort), count, PrimitiveType.Triangles);
+                        shader.SetTexture("main_tex", 0, instance.id_tex_map[pcmd.TextureId.ToInt32()]);
+                        instance.mb.Draw(offset * sizeof(ushort), count, PrimitiveType.Triangles);
 
                         offset += count;
                     }
                 }
             }
-        }
-
-        public int AddTexture(Texture tex)
-        {
-            for (int i = 1; i < textures.Count; i++)
-            {
-                if (tex == textures[i])
-                    return i;
-            }
-
-            textures.Push(tex);
-            return textures.Count - 1;
         }
 
         string[] get_enum_arr<T>()
@@ -247,13 +207,53 @@ namespace Engine
             style.SetColor(ColorTarget.ModalWindowDarkening, new Color(0.00f, 0.00f, 0.00f, 0.50f));
         }
 
-        internal void shutdown()
+        internal static void init()
         {
-            ImGui.igShutdown();
-            mb.Dispose();
-            for (int i = 0; i < textures.Count; i++)
-                textures[i].Dispose();
-            // no need to dispose a default shader
+            instance = new Gui();
+            unsafe { instance.io.GetNativePointer()->IniFilename = IntPtr.Zero; }
+            instance.set_default_style();
+            instance.io.FontAtlas.AddFontFromFileTTF(App.GetAbsolutePath("fonts/Roboto-Medium.ttf"), 14);
+
+            instance.io.KeyMap[GuiKey.Tab] = (int)KeyCode.Tab;
+            instance.io.KeyMap[GuiKey.LeftArrow] = (int)KeyCode.Left;
+            instance.io.KeyMap[GuiKey.RightArrow] = (int)KeyCode.Right;
+            instance.io.KeyMap[GuiKey.UpArrow] = (int)KeyCode.Up;
+            instance.io.KeyMap[GuiKey.DownArrow] = (int)KeyCode.Down;
+            instance.io.KeyMap[GuiKey.PageUp] = (int)KeyCode.PageUp;
+            instance.io.KeyMap[GuiKey.PageDown] = (int)KeyCode.PageDown;
+            instance.io.KeyMap[GuiKey.Home] = (int)KeyCode.Home;
+            instance.io.KeyMap[GuiKey.End] = (int)KeyCode.End;
+            instance.io.KeyMap[GuiKey.Delete] = (int)KeyCode.Delete;
+            instance.io.KeyMap[GuiKey.Backspace] = (int)KeyCode.BackSpace;
+            instance.io.KeyMap[GuiKey.Enter] = (int)KeyCode.Enter;
+            instance.io.KeyMap[GuiKey.Escape] = (int)KeyCode.Escape;
+            instance.io.KeyMap[GuiKey.A] = (int)KeyCode.A;
+            instance.io.KeyMap[GuiKey.C] = (int)KeyCode.C;
+            instance.io.KeyMap[GuiKey.V] = (int)KeyCode.V;
+            instance.io.KeyMap[GuiKey.X] = (int)KeyCode.X;
+            instance.io.KeyMap[GuiKey.Y] = (int)KeyCode.Y;
+            instance.io.KeyMap[GuiKey.Z] = (int)KeyCode.Z;
+
+            FontTextureData tex_data = instance.io.FontAtlas.GetTexDataAsRGBA32();
+            unsafe
+            {
+                var tex = Texture.Create(tex_data.Width, tex_data.Height, FilterMode.Point, WrapMode.Clamp, new IntPtr(tex_data.Pixels));
+                int id = tex.GetHashCode();
+                instance.io.FontAtlas.SetTexID(id);
+                instance.id_tex_map[id] = tex;
+            }
+            instance.io.FontAtlas.ClearTexData();
+
+            instance.mb = MeshBuffer.CreateIndexed();
+        }
+
+        internal static void shutdown()
+        {
+            if (instance != null)
+            {
+                ImGui.igShutdown();
+                instance.mb.Dispose();
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        AppConfig cfg;
+        AppConfig cfg = new AppConfig();
         cfg.Title = "Data Editor";
         cfg.Width = 1280;
         cfg.Height = 720;

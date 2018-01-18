@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public abstract class Texture : Resource
+    public abstract class Texture : Data
     {
         /// <summary>
         /// The width of the texture
@@ -43,6 +43,15 @@ namespace Engine
         /// <summary>
         /// Creates texture with the provided parameters
         /// </summary>
+        public static Texture Create(Image img, FilterMode filter, WrapMode wrap)
+        {
+            var tex = Create(img.Width, img.Height, filter, wrap, img.PixelData);
+            return tex;
+        }
+
+        /// <summary>
+        /// Creates texture with the provided parameters
+        /// </summary>
         public static Texture Create(int width, int height, FilterMode filter, WrapMode wrap, Color[] pixels)
         {
             var pin = GCHandle.Alloc(pixels, GCHandleType.Pinned);
@@ -69,15 +78,15 @@ namespace Engine
         /// </summary>
         public static Texture Load(string file, FilterMode filter, WrapMode wrap)
         {
-            Resource load_file(Stream stream)
+            Data load_file(Stream stream)
             {
-                var img = Image.FromFile(stream, true);
+                var img = Image.FromFile(stream);
                 var tex = Texture.Create(img.Width, img.Height, filter, wrap, img.PixelData);
                 img.Dispose();
                 return tex;
             }
 
-            return App.ResourceManager.FromCacheOrFile(file, load_file) as Texture;
+            return DataCache.FromCacheOrFile(file, load_file) as Texture;
         }
     }
 }

@@ -7,20 +7,16 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public class App
+    public sealed class App
     {
-        static App current;
+        internal static App instance;
 
-        AppState act_state = null;
-        AppState nxt_state = null;
         Platform platform = Platform.Windows;
-        string exe_path = null;
-        ResourceManager res_mgr;
+        IAppState act_state = null;
+        IAppState nxt_state = null;
         IGraphicsDevice gfx;
-        Gui gui;
-        Window window;
-        Time time;
-        Log log;
+        Window cwindow;
+        string exe_path = null;
         bool is_running = false;
 
         App() { }
@@ -29,76 +25,56 @@ namespace Engine
         /// Gets or sets the active state for the current app
         /// Note: changing active state does happen at the end of the frame and not immediately.
         /// </summary>
-        public static AppState ActiveState
+        public static IAppState ActiveState
         {
-            get => current.act_state;
-            set => current.nxt_state = value;
+            get => instance.act_state;
+            set => instance.nxt_state = value;
         }
-
-        /// <summary>
-        /// Gets the window for the current app
-        /// </summary>
-        public static Window Window => current.window;
-
-        /// <summary>
-        /// Gets the resource manager for the current app
-        /// </summary>
-        public static ResourceManager ResourceManager => current.res_mgr;
-
-        /// <summary>
-        /// Gets time info for the current app
-        /// </summary>
-        public static Time Time => current.time;
-
-        /// <summary>
-        /// Logger object used to log current app
-        /// </summary>
-        public static Log Log => current.log;
 
         /// <summary>
         /// Gets graphics devices for the current app
         /// </summary>
-        public static IGraphicsDevice Graphics => current.gfx;
+        public static IGraphicsDevice Graphics => instance.gfx;
 
         /// <summary>
-        /// Gets gui object used to draw ui elements
+        /// Gets the window object for the current app
         /// </summary>
-        public static Gui Gui => current.gui;
+        public static Window Window => instance.cwindow;
 
         /// <summary>
         /// Path to the app
         /// </summary>
-        public static string ExePath => current.exe_path;
+        public static string ExePath => instance.exe_path;
 
         /// <summary>
         /// Current runtime platform
         /// </summary>
-        public static Platform Platform => current.platform;
+        public static Platform Platform => instance.platform;
 
         /// <summary>
         /// Running the app with the specified config and the initial state.
         /// </summary>
-        public static void Run(AppConfig cfg, AppState state)
+        public static void Run(AppConfig cfg, IAppState state)
         {
-            if (current != null)
+            if (instance != null)
                 throw new Exception("App is already running!");
 
-            current = new App();
-            current.run(cfg, state); // runs main loop
-            current = null;
+            instance = new App();
+            instance.run(cfg, state); // runs main loop
+            instance = null;
         }
 
         /// <summary>
         /// Quit the app.
         /// </summary>
-        public static void Quit() => current.is_running = false;
+        public static void Quit() => instance.is_running = false;
 
         /// <summary>
         /// Returns absolute path for the given file relative to executable path.
         /// </summary>
         public static string GetAbsolutePath(string file) => Path.Combine(ExePath, file);
 
-        void run(AppConfig cfg, AppState state)
+        void run(AppConfig cfg, IAppState state)
         {
             is_running = true;
 
@@ -115,13 +91,13 @@ namespace Engine
             // determine and store executable path
             exe_path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-            log = new Log(GetAbsolutePath(cfg.LogFile));
-            window = new Window(cfg);
-            time = new Time();
+            Log.init(GetAbsolutePath(cfg.LogFile));
+            cwindow = Window.init(cfg);
+            Time.init();
             gfx = new OpenglDevice();
-            App.Log.Info($"Graphics Driver:\n{gfx.DriverInfo}");
-            res_mgr = new ResourceManager();
-            gui = new Gui();
+            Log.Info($"Graphics Driver:\n{gfx.DriverInfo}");
+            DataCache.init();
+            Input.init();
             
             if (state != null)
             {
@@ -135,10 +111,11 @@ namespace Engine
 
             while (is_running)
             {
-                time.process();
+                Time.update();
+                Input.update();
+                Window.DoEvents();
                 ActiveState.OnFrame();
-                window.swap_buffers();
-                window.do_events();
+                Window.SwapBuffers();
                 
                 if (nxt_state != null)
                 {
@@ -151,11 +128,12 @@ namespace Engine
 
             ActiveState.OnEnd();
             nxt_state = act_state = null;
-            gui.shutdown();
-            ResourceManager.shutdown();
-            window.shutdown();
-            time.shutdown();
-            Log.Dispose();
+            Input.shutdown();
+            Gui.shutdown();
+            DataCache.shutdown();
+            Window.ShutDown();
+            Time.shutdown();
+            Log.shutdown();
         }
     }
 }

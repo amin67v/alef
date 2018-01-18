@@ -105,7 +105,7 @@ namespace Engine
             if (err != ErrorCode.NoError)
             {
                 var msg = $"Opengl error at frame '0', {err.ToString()}.";
-                App.Log.Error(msg);
+                Log.Error(msg);
                 throw new Exception(msg);
             }
 #endif

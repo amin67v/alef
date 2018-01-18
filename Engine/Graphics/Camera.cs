@@ -143,24 +143,21 @@ namespace Engine
 
         public Vector2 ScreenToWorld(Vector2 pos)
         {
-            var pixelvp = PixelViewport;
-            var ndc = pos / App.Window.Size;
-            ndc.X = ndc.X * 2 - 1;
-            ndc.Y = ndc.Y * 2 - 1;
-            return NdcToWorld(ndc);
+            return Vector2.Zero;
+            //var pixelvp = PixelViewport;
+            //var ndc = pos / App.Window.Size;
+            //ndc.X = ndc.X * 2 - 1;
+            //ndc.Y = ndc.Y * 2 - 1;
+            //return Vector2.Transform(ndc, InvViewMatrix);
         }
 
         public Vector2 WorldToScreen(Vector2 pos)
         {
-            var ndc = WorldToNdc(pos);
-            ndc.X = ndc.X * .5f + .5f;
-            ndc.Y = ndc.Y * .5f + .5f;
-            return ndc * App.Window.Size;
-        }
-
-        public Vector2 NdcToWorld(Vector2 pos)
-        {
-            return Vector2.Transform(pos, InvViewMatrix);
+            return Vector2.Zero;
+            //var ndc = Vector2.Transform(pos, ViewMatrix);
+            //ndc.X = ndc.X * .5f + .5f;
+            //ndc.Y = ndc.Y * .5f + .5f;
+            //return ndc * App.Window.Size;
         }
 
         public Vector2 WorldToNdc(Vector2 pos)

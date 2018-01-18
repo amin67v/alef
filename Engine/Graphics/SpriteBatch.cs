@@ -100,9 +100,9 @@ namespace Engine
         /// <summary>
         /// Adds sprite to the batch with the given transform and color
         /// </summary>
-        public void AddSprite(Transform xform, int frame, Color color)
+        public void AddSprite(Transform xform, SpriteSheetFrame frame, Color color)
         {
-            var sprite_verts = spr[frame].Vertices;
+            var sprite_verts = frame.Vertices;
             for (int i = 0; i < sprite_verts.Length; i++)
             {
                 var pos = xform.LocalToWorld(sprite_verts[i].Position);

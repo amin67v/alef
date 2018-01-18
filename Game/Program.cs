@@ -39,7 +39,7 @@ namespace Game
 
         public override void OnBegin()
         {
-            spr = SpriteSheet.Load("sprites/test.json");
+            spr = SpriteSheet.Load("editor/icons.spr");
 
             //  var img = new Image(1024, 1024);
             //  for (int x = 0; x < 1024; x++)
@@ -53,12 +53,14 @@ namespace Game
             //  img.ToFile("perlin.jpg");
             //  img.Dispose();
 
+            var frame = spr["OpenDirectory"];
+
             for (int i = 0; i < 100; i++)
             {
                 for (int j = 0; j < 100; j++)
                 {
-                    xform.Position = new Vector2(i, j) * 2;
-                    StaticBatch.AddSprite(xform, spr, 0);
+                    xform.Position = new Vector2(i, j);
+                    StaticBatch.AddSprite(xform, frame);
                 }
             }
         }
@@ -72,31 +74,31 @@ namespace Game
             float r = 0;
             float z = 0;
 
-            if (App.Window.IsKeyDown(KeyCode.A))
+            if (Input.IsKeyDown(KeyCode.A))
                 x -= dt;
 
-            if (App.Window.IsKeyDown(KeyCode.D))
+            if (Input.IsKeyDown(KeyCode.D))
                 x += dt;
 
-            if (App.Window.IsKeyDown(KeyCode.S))
+            if (Input.IsKeyDown(KeyCode.S))
                 y -= dt;
 
-            if (App.Window.IsKeyDown(KeyCode.W))
+            if (Input.IsKeyDown(KeyCode.W))
                 y += dt;
 
-            if (App.Window.IsKeyDown(KeyCode.E))
+            if (Input.IsKeyDown(KeyCode.E))
                 r += dt;
 
-            if (App.Window.IsKeyDown(KeyCode.Q))
+            if (Input.IsKeyDown(KeyCode.Q))
                 r -= dt;
 
-            if (App.Window.IsKeyDown(KeyCode.F))
+            if (Input.IsKeyDown(KeyCode.F))
                 z += dt * 100;
 
-            if (App.Window.IsKeyDown(KeyCode.R))
+            if (Input.IsKeyDown(KeyCode.R))
                 z -= dt * 100;
 
-            cam.Position += new Vector2(x, y) * cam.ViewSize * (App.Window.IsKeyDown(KeyCode.LShift) ? 4f : .2f);
+            cam.Position += new Vector2(x, y) * cam.ViewSize * (Input.IsKeyDown(KeyCode.LShift) ? 4f : .2f);
 
             cam.Rotation += r;
             cam.ViewSize += z;

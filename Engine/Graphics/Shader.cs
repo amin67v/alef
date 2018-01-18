@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 namespace Engine
 {
-    public abstract class Shader : Resource
+    public abstract class Shader : Data
     {
         /// <summary>
         /// Creates shader using vertex and fragment source code
@@ -37,7 +37,7 @@ namespace Engine
                 return source.Substring(i0, end - i0);
             }
 
-            Resource load_file(Stream stream)
+            Data load_file(Stream stream)
             {
                 TextReader reader = new StreamReader(stream);
                     var src = reader.ReadToEnd();
@@ -47,7 +47,7 @@ namespace Engine
                     return shader;
             }
 
-            return App.ResourceManager.FromCacheOrFile(file, load_file) as Shader;
+            return DataCache.FromCacheOrFile(file, load_file) as Shader;
         }
 
 

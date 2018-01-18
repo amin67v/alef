@@ -5,16 +5,19 @@ using Process = System.Diagnostics.Process;
 
 using Engine;
 
-public class Browser
+public class Browser : Panel
 {
-    static readonly Browser instance = new Browser();
+    public static readonly Browser Instance = new Browser();
 
+    InputBuffer current_path_buffer;
     FileSystemWatcher watcher;
-    string current_path;
+    //string current_path;
+    InputBuffer current_path = new InputBuffer(256);
     string target_path = null;
     Array<DirectoryInfo> folders = new Array<DirectoryInfo>();
     Array<FileInfo> files = new Array<FileInfo>();
-    float width = 250;
+
+    SpriteSheetFrame opendir_frame, backdir_frame;
 
     Browser()
     {
@@ -24,93 +27,117 @@ public class Browser
         watcher.Deleted += file_changed;
         watcher.Renamed += file_renamed;
 
-        ChangePath("");
+        var sheet = SpriteSheet.Load("editor/icons.spr");
+        backdir_frame = sheet["BackDirectory"];
+        opendir_frame = sheet["OpenDirectory"];
+
+        change_path(string.Empty);
     }
 
-    public static ref float Width => ref instance.width;
+    public override string Title => nameof(Browser);
 
-    public static void Draw() => instance.draw();
+    public string CurrentPath => current_path.String;
 
-    void draw()
+    protected override void OnGui(Gui gui)
     {
-        var gui = App.Gui;
+        var cpath = CurrentPath;
 
         if (target_path != null)
         {
-            ChangePath(target_path);
+            change_path(target_path);
             target_path = null;
         }
 
-        gui.SetNextWindowPos(Vector2.Zero, GuiCondition.Always);
-        gui.SetNextWindowSize(new Vector2(Width, App.Window.Size.Y), GuiCondition.Always);
-
-        gui.BeginWindow("Browser", WindowFlags.NoCollapse | WindowFlags.NoMove | WindowFlags.NoResize);
-
-        if (gui.Button("Open In Explorer"))
+        // Back directory
+        gui.PushStyleColor(ColorTarget.Button, Color.Transparent);
+        if (gui.ImageButton(backdir_frame))
         {
-            try { Process.Start("explorer.exe", App.GetAbsolutePath(current_path)); } catch { }
+            if (!string.IsNullOrWhiteSpace(cpath))
+            {
+                var idx = cpath.LastIndexOf(Path.DirectorySeparatorChar);
+                if (idx == -1)
+                    target_path = "";
+                else
+                    target_path = cpath.Substring(0, idx);
+            }
         }
+        if (gui.IsLastItemHovered())
+            gui.SetTooltip("Back");
 
+        gui.SameLine(0, 0);
+        gui.InputText(string.Empty, current_path, InputTextFlags.ReadOnly);
         gui.SameLine();
-        if (gui.Button("New"))
-            gui.OpenPopup("new_data");
 
-        if (gui.BeginPopup("new_data"))
+        // Open directory
+        gui.PushID("OpenDirectory");
+        if (gui.ImageButton(opendir_frame))
         {
-            int count = (int)EditableType.Count;
-            for (int i = 0; i < count; i++)
+            try
             {
-                var item = (EditableType)i;
-                if (gui.Selectable(item.ToString()))
-                    Editable.Active = Activator.CreateInstance(Editable.GetTypeFor(item)) as Editable;
-
+                Process.Start("explorer.exe", App.GetAbsolutePath(cpath));
             }
-            gui.EndPopup();
-        }
-
-        if (gui.Button("Back", new Vector2(80, 20)))
-        {
-            if (!string.IsNullOrWhiteSpace(current_path))
+            catch
             {
-                App.Log.Debug("current : " + current_path);
-                target_path = Path.GetRelativePath(App.ExePath, Directory.GetParent(current_path).FullName);
-                App.Log.Debug("target : " + target_path);
+                Log.Error($"Failed to open directory '{App.GetAbsolutePath(cpath)}'");
             }
         }
+        gui.PopID();
 
-        gui.PushStyleVar(StyleVar.ButtonTextAlign, new Vector2(0, .5f));
-        gui.PushStyleColor(ColorTarget.Text, new Color(20, 20, 20, 255));
-        gui.PushStyleColor(ColorTarget.Button, new Color(240, 190, 90, 255));
-        gui.PushStyleColor(ColorTarget.ButtonHovered, new Color(245, 220, 160, 255));
-        gui.PushStyleColor(ColorTarget.ButtonActive, new Color(250, 230, 180, 255));
+        if (gui.IsLastItemHovered())
+            gui.SetTooltip("Open Directory");
 
-        for (int i = 0; i < folders.Count; i++)
+        gui.PopID();
+        gui.PopStyleColor();
+
+        gui.BeginChild("FilesAndFolders", true, WindowFlags.Default);
         {
-            if (gui.Button(folders[i].Name, new Vector2(width - 30, 20)))
-                target_path = folders[i].FullName;
+            string tooltip = null;
+            gui.PushStyleVar(StyleVar.ButtonTextAlign, new Vector2(0, .5f));
+            gui.PushStyleColor(ColorTarget.Text, new Color(20, 20, 20, 255));
+            gui.PushStyleColor(ColorTarget.Button, new Color(240, 190, 90, 255));
+            gui.PushStyleColor(ColorTarget.ButtonHovered, new Color(245, 220, 160, 255));
+            gui.PushStyleColor(ColorTarget.ButtonActive, new Color(250, 230, 180, 255));
+
+            for (int i = 0; i < folders.Count; i++)
+            {
+                if (gui.Button(folders[i].Name, new Vector2(-1, 0)))
+                    target_path = Path.Combine(cpath, folders[i].Name);
+            }
+
+            gui.PopStyleColor(3);
+
+            gui.PushStyleColor(ColorTarget.Button, new Color(200, 200, 200, 255));
+            gui.PushStyleColor(ColorTarget.ButtonHovered, new Color(200, 200, 200, 200));
+            gui.PushStyleColor(ColorTarget.ButtonActive, new Color(200, 200, 200, 150));
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                if (gui.Button(files[i].Name, new Vector2(-1, 0)))
+                {
+                    var rpath = Path.GetRelativePath(App.ExePath, files[i].FullName);
+                    if (Editable.Active == null)
+                        Editable.Active = Editable.Load(rpath);
+                    else
+                        Editable.Active.TrySave(() => Editable.Active = Editable.Load(rpath));
+                }
+                if (gui.IsLastItemHovered())
+                    tooltip = get_file_tooltip(files[i]);
+            }
+
+            gui.PopStyleColor(4);
+            gui.PopStyleVar();
+
+            if (tooltip != null)
+                gui.SetTooltip(tooltip);
         }
-
-        gui.PopStyleColor(3);
-
-        gui.PushStyleColor(ColorTarget.Button, new Color(200, 200, 200, 255));
-        gui.PushStyleColor(ColorTarget.ButtonHovered, new Color(200, 200, 200, 200));
-        gui.PushStyleColor(ColorTarget.ButtonActive, new Color(200, 200, 200, 150));
-
-        for (int i = 0; i < files.Count; i++)
-        {
-            gui.Button(files[i].Name, new Vector2(width - 30, 20));
-        }
-
-        gui.PopStyleColor(4);
-        gui.PopStyleVar();
-
-        gui.EndWindow();
+        gui.EndChild();
     }
 
-    public void ChangePath(string path)
+    void change_path(string path)
     {
-        current_path = path;
+        current_path.String = path;
         var fullpath = App.GetAbsolutePath(path);
+
         folders.Clear();
         var folder_paths = Directory.GetDirectories(fullpath);
         for (int i = 0; i < folder_paths.Length; i++)
@@ -121,30 +148,24 @@ public class Browser
         for (int i = 0; i < file_paths.Length; i++)
         {
             var item = file_paths[i];
-            if (is_known_file(item))
+            if (Editable.IsKnownExtension(Path.GetExtension(item)))
                 files.Push(new FileInfo(item));
         }
     }
 
     void file_changed(object sender, FileSystemEventArgs e)
     {
-        ChangePath(current_path);
+        change_path(CurrentPath);
     }
 
     void file_renamed(object sender, RenamedEventArgs e)
     {
-        ChangePath(current_path);
+        change_path(CurrentPath);
     }
 
-    bool is_known_file(string file)
+    string get_file_tooltip(FileInfo file)
     {
-        for (int i = 0; i < (int)EditableType.Count; i++)
-        {
-            var item = (EditableType)i;
-            var ext = Editable.GetExtensionFor(item);
-            if (file.EndsWith(ext))
-                return true;
-        }
-        return false;
+        return $"Data type: {Editable.ExtensionToDataKind(file.Extension)}\nSize: {(file.Length / 1024f).ToString("0.00")}kb";
     }
+
 }
