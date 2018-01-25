@@ -195,7 +195,7 @@ namespace Engine
 
         public Color(Vector4 vec) : this(vec.X, vec.Y, vec.Z, vec.W) { }
 
-        public float Brightness => 0.00082914f * R  + 0.00278928f * G + 0.00028158f * B;
+        public float Brightness => 0.00082914f * R + 0.00278928f * G + 0.00028158f * B;
 
         /// <summary>
         /// Creates color from Rgb
@@ -288,6 +288,24 @@ namespace Engine
                 h += 360;
 
             return new Vector4(h, s, v, A);
+        }
+
+        /// <summary>
+        /// Converts this color to Argb int representation
+        /// </summary>
+        /// <returns></returns>
+        public int ToArgb()
+        {
+            return (A << 24) | (R << 16) | (G << 8) | B;
+        }
+
+        /// <summary>
+        /// Converts this color to Rgb int representation
+        /// </summary>
+        /// <returns></returns>
+        public int ToRgb()
+        {
+            return (R << 16) | (G << 8) | B;
         }
 
         /// <summary>

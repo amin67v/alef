@@ -1,16 +1,49 @@
 using System;
 using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 using Engine;
 
 public class DataEditor : Disposable, IAppState
 {
-    public void OnBegin() { }
+    static SpriteSheet icons;
 
-    public void OnEnd() 
+    public static SpriteSheet Icons => icons;
+
+    public void OnBegin()
     {
-        Editable.Active?.TrySave(null);
+        void app_quit()
+        {
+            App.OverrideQuit(null);
+            App.Quit();
+        }
+
+        App.OverrideQuit(() =>
+        {
+            if (Editable.Active != null)
+                Editable.Active.Save(app_quit, true);
+            else
+                app_quit();
+        });
+
+        App.Window.OnFileDrop += (s) =>
+        {
+            for (int i = 0; i < s.Length; i++)
+            {
+                Log.Debug(s[i]);
+            }
+        };
+
+        icons = SpriteSheet.Load("editor/icons.spr");
+
+        var app_icon =  Image.FromFile(App.GetAbsolutePath("editor/data-editor.png"));
+        App.Window.SetIcon(app_icon);
+        app_icon.Dispose();
+    }
+
+    public void OnEnd()
+    {
         Editable.Active?.OnEnd();
     }
 
@@ -20,12 +53,15 @@ public class DataEditor : Disposable, IAppState
         gfx.Clear(Color.Gray);
         Gui.Render(OnGui);
         gfx.Display();
+
+        if (Input.IsKeyPressed(KeyCode.Space))
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
     }
 
     public void OnGui(Gui gui)
     {
         Rect remain = new Rect(Vector2.Zero, App.Window.Size);
-        var toolbar = remain; toolbar.Height = remain.YMin = 44;
+        var toolbar = remain; toolbar.Height = remain.YMin = 52;
         var browser = remain; browser.Width = remain.XMin = 250;
         var inspector = remain; inspector.XMin = remain.XMax = (remain.XMax - 320);
         var canvas = remain;
@@ -34,9 +70,9 @@ public class DataEditor : Disposable, IAppState
         Browser.Instance.Draw(gui, browser);
         Inspector.Instance.Draw(gui, inspector);
         Canvas.Instance.Draw(gui, canvas);
-        ContextMenu.Instance.Draw(gui);
+        //ContextMenu.Instance.Draw(gui);
         Dialog.Instance.Draw(gui);
-
+        Cursor.Update(gui);
     }
 
     void custom_style(Gui gui)

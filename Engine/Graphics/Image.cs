@@ -3,7 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using static Engine.Stb;
+using static Engine.StbImage;
 
 namespace Engine
 {
@@ -41,7 +41,7 @@ namespace Engine
             try
             {
                 byte[] bytes = reader.ReadBytes((int)stream.Length);
-                pixels = stbi_load_from_memory(bytes, ref width, ref height);
+                pixels = (Color*)stbi_load_from_memory(bytes, ref width, ref height);
                 free = () => stbi_image_free(pixels);
             }
             finally

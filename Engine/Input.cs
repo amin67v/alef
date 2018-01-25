@@ -94,7 +94,7 @@ namespace Engine
 
         void mouse_up(MouseButton btn) => instance.mouse[(int)btn] = false;
 
-        void text_input(string str) => instance.last_char = str[str.Length - 1];
+        void text_input(char c) => instance.last_char = c;
 
         void mouse_scroll(Vector2 value) => instance.mscroll = value;
 
@@ -161,8 +161,8 @@ namespace Engine
         RightBracket = 48,
         BackSlash = 49,
         SemiColon = 51,
-        DoubleQuate = 52,
-        BackQuote = 53,
+        Apostrophe = 52,
+        Grave = 53,
         Comma = 54,
         Period = 55,
         Slash = 56,

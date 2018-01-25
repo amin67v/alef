@@ -16,6 +16,7 @@ namespace Engine
         IAppState nxt_state = null;
         IGraphicsDevice gfx;
         Window cwindow;
+        Action quit_override;
         string exe_path = null;
         bool is_running = false;
 
@@ -67,7 +68,22 @@ namespace Engine
         /// <summary>
         /// Quit the app.
         /// </summary>
-        public static void Quit() => instance.is_running = false;
+        public static void Quit()
+        {
+            if (instance.quit_override == null)
+            {
+                instance.is_running = false;
+            }
+            else
+            {
+                instance.quit_override();
+            }
+        }
+
+        /// <summary>
+        /// Overrides quit function
+        /// </summary>
+        public static void OverrideQuit(Action quit) => instance.quit_override = quit;
 
         /// <summary>
         /// Returns absolute path for the given file relative to executable path.
@@ -98,7 +114,7 @@ namespace Engine
             Log.Info($"Graphics Driver:\n{gfx.DriverInfo}");
             DataCache.init();
             Input.init();
-            
+
             if (state != null)
             {
                 act_state = state;
@@ -116,7 +132,7 @@ namespace Engine
                 Window.DoEvents();
                 ActiveState.OnFrame();
                 Window.SwapBuffers();
-                
+
                 if (nxt_state != null)
                 {
                     act_state.OnEnd();

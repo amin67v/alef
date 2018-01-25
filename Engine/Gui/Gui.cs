@@ -67,37 +67,6 @@ namespace Engine
             gui_draw(instance);
             ImGui.igRender();
 
-            var cursor = instance.MouseCursor;
-            if (instance.last_cursor != cursor)
-            {
-                switch (cursor)
-                {
-                    case MouseCursorKind.Arrow:
-                        App.Window.SetCursor(SystemCursor.Arrow);
-                        break;
-                    case MouseCursorKind.TextInput:
-                        App.Window.SetCursor(SystemCursor.IBeam);
-                        break;
-                    case MouseCursorKind.Move:
-                        App.Window.SetCursor(SystemCursor.Hand);
-                        break;
-                    case MouseCursorKind.ResizeNS:
-                        App.Window.SetCursor(SystemCursor.SizeNS);
-                        break;
-                    case MouseCursorKind.ResizeEW:
-                        App.Window.SetCursor(SystemCursor.SizeWE);
-                        break;
-                    case MouseCursorKind.ResizeNESW:
-                        App.Window.SetCursor(SystemCursor.SizeNESW);
-                        break;
-                    case MouseCursorKind.ResizeNWSE:
-                        App.Window.SetCursor(SystemCursor.SizeNWSE);
-                        break;
-                }
-                instance.last_cursor = cursor;
-            }
-
-
             var gfx = App.Graphics;
             gfx.SetViewport(0, 0, (int)screen.X, (int)screen.Y);
             gfx.ViewMatrix = Matrix4x4.CreateOrthographicOffCenter(0, screen.X, screen.Y, 0, -1, 1);

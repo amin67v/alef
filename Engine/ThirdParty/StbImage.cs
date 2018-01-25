@@ -4,14 +4,9 @@ using System.Runtime.InteropServices;
 namespace Engine
 {
     [System.Security.SuppressUnmanagedCodeSecurity]
-    static unsafe class Stb
+    static unsafe class StbImage
     {
-        const string lib = "stb";
-
-        static Stb()
-        {
-            stbi_set_flip_vertically_on_load(1);
-        }
+        const string lib = "stb_image";
 
         /************************************************************
         *                        stb_image                          *
@@ -19,13 +14,13 @@ namespace Engine
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void* stbi_load_from_memory([In] IntPtr buffer, int len, ref int w, ref int h, ref int comp, int req_comp);
 
-        public static Color* stbi_load_from_memory(byte[] buffer, ref int w, ref int h)
+        public static void* stbi_load_from_memory(byte[] buffer, ref int w, ref int h)
         {
             var hdl = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             int comp = 0;
             var r = stbi_load_from_memory(hdl.AddrOfPinnedObject(), buffer.Length, ref w, ref h, ref comp, 4);
             hdl.Free();
-            return (Color*)r;
+            return r;
         }
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]

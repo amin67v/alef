@@ -31,29 +31,14 @@ public abstract class Editable
         {
             data_types = new(DataKind, string, Type)[]
             {
-                (DataKind.SpriteSheet, ".spr", typeof(SpritePacker)),
-                (DataKind.Texture, ".tex", null),
+                (DataKind.SpriteSheet, ".spr", typeof(SpriteEditor)),
+                (DataKind.Texture, ".tex", typeof(TextureEditor)),
                 (DataKind.Shape, ".shp", null),
                 (DataKind.Particle, ".prt", null),
                 (DataKind.Entity, ".ent", null),
             };
         }
         return data_types;
-    }
-
-
-    public static void Save(Editable obj, string path)
-    {
-        string fullpath = App.GetAbsolutePath(path);
-        var stream = File.OpenWrite(fullpath);
-        try
-        {
-            obj.Serialize(stream);
-        }
-        finally
-        {
-            stream.Dispose();
-        }
     }
 
     public static Editable Load(string path)
@@ -119,7 +104,7 @@ public abstract class Editable
     public static bool IsKnownExtension(string ext)
     {
         var types = GetDataTypes();
-        
+
         for (int i = 0; i < types.Length; i++)
             if (types[i].Item2 == ext)
                 return true;
@@ -141,7 +126,7 @@ public abstract class Editable
 
     public virtual void OnMouseUp(MouseButton btn, Vector2 pos) { }
 
-    public virtual void OnDrawCanvas(Canvas g) { }
+    public virtual void OnDrawCanvas(Gui gui, Canvas g) { }
 
     public virtual void OnDrawInspector(Gui gui)
     {
@@ -152,8 +137,22 @@ public abstract class Editable
         }
     }
 
-    public void TrySave(Action done)
+    public void Save(Action done = null, bool ask = false)
     {
+        void save(string path)
+        {
+            string fullpath = App.GetAbsolutePath(path);
+            var stream = File.OpenWrite(fullpath);
+            try
+            {
+                Serialize(stream);
+            }
+            finally
+            {
+                stream.Dispose();
+            }
+        }
+
         if (DataPath == null)
         {
             Dialog.UserInput("Some changes have not been saved.\nEnter name for the file to save data into:",
@@ -161,16 +160,26 @@ public abstract class Editable
             {
                 var path = Path.Combine(Browser.Instance.CurrentPath, Dialog.UserText);
                 path = Path.ChangeExtension(path, Editable.DataKindToExtension(Type));
-                Editable.Save(this, path);
+                save(path);
                 done?.Invoke();
             }, done);
         }
         else
         {
-            Editable.Save(this, DataPath);
-            done?.Invoke();
+            if (ask)
+            {
+                Dialog.YesOrNo("Do you want to save changes made to the current file ?", () =>
+                {
+                    save(DataPath);
+                    done?.Invoke();
+                }, done);
+            }
+            else
+            {
+                save(DataPath);
+                done?.Invoke();
+            }
         }
-
     }
 
 }

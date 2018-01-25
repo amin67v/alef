@@ -1,4 +1,6 @@
 using System;
+using System.Numerics;
+
 using Engine;
 
 public class Dialog
@@ -12,6 +14,7 @@ public class Dialog
     InputBuffer text = new InputBuffer(512);
     bool set_to_show;
     bool is_showing;
+    Vector2 btn_size = new Vector2(80, 0);
 
     Dialog() { }
 
@@ -28,12 +31,12 @@ public class Dialog
         Instance.set_to_show = true;
     }
 
-    public static void Ok(string msg, Action ok)
+    public static void Info(string msg)
     {
         Instance.msg = msg;
-        Instance.true_act = ok;
+        Instance.true_act = null;
         Instance.false_act = null;
-        Instance.ask_type = Instance.ok;
+        Instance.ask_type = Instance.info;
         Instance.set_to_show = true;
     }
 
@@ -58,6 +61,16 @@ public class Dialog
         if (gui.BeginPopupModal("ModalDialog", WindowFlags.AlwaysAutoResize | WindowFlags.NoTitleBar | WindowFlags.NoMove))
         {
             ask_type(gui);
+            if (Input.IsKeyPressed(KeyCode.Enter) ||Input.IsKeyPressed(KeyCode.KpEnter))
+            {
+                true_act?.Invoke();
+                close(gui);
+            }
+            else if (Input.IsKeyPressed(KeyCode.Escape))
+            {
+                false_act?.Invoke();
+                close(gui);
+            }
             gui.EndPopup();
         }
     }
@@ -67,29 +80,26 @@ public class Dialog
         gui.Text(msg);
         gui.Separator();
 
-        if (gui.Button("Yes"))
+        if (gui.Button("Yes", btn_size))
         {
             true_act?.Invoke();
             close(gui);
         }
         gui.SameLine();
-        if (gui.Button("No"))
+        if (gui.Button("No", btn_size))
         {
             false_act?.Invoke();
             close(gui);
         }
     }
 
-    void ok(Gui gui)
+    void info(Gui gui)
     {
         gui.Text(msg);
         gui.Separator();
 
-        if (gui.Button("Ok"))
-        {
-            true_act?.Invoke();
+        if (gui.Button("Ok", btn_size))
             close(gui);
-        }
     }
 
     void user_text(Gui gui)
@@ -98,13 +108,13 @@ public class Dialog
         gui.InputText(string.Empty, text, InputTextFlags.Default);
         gui.Separator();
 
-        if (gui.Button("Ok"))
+        if (gui.Button("Ok", btn_size))
         {
             true_act?.Invoke();
             close(gui);
         }
         gui.SameLine();
-        if (gui.Button("Cancel"))
+        if (gui.Button("Cancel", btn_size))
         {
             false_act?.Invoke();
             close(gui);

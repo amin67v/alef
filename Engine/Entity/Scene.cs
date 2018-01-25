@@ -8,7 +8,7 @@ namespace Engine
     {
         internal Array<IDrawable> draw_list;
         Camera cam;
-        Entity root;
+        Entity ent_list;
         bool is_render;
         DebugDraw debug_draw;
 
@@ -36,7 +36,7 @@ namespace Engine
         public Entity Find(string name)
         {
             var hash = name.GetFastHash();
-            var current = root;
+            var current = ent_list;
             while (current != null)
             {
                 if (current.name_hash == hash && current.Name == name)
@@ -58,8 +58,8 @@ namespace Engine
 
             var entity = new T();
             entity.Name = name;
-            entity.next = root;
-            root = entity;
+            entity.next = ent_list;
+            ent_list = entity;
             entity.OnBegin();
             return entity;
         }
@@ -74,8 +74,8 @@ namespace Engine
 
             if (entity.is_destroyed == false)
             {
-                if (root == entity)
-                    root = entity.next;
+                if (ent_list == entity)
+                    ent_list = entity.next;
 
                 entity.OnDestroy();
                 if (entity.prev != null)
@@ -104,7 +104,7 @@ namespace Engine
             OnUpdate(dt);
 
             // update all entities
-            var current = root;
+            var current = ent_list;
             while (current != null)
             {
                 current.OnUpdate(dt);
@@ -139,7 +139,7 @@ namespace Engine
 
         protected override void OnDisposeManaged()
         {
-            var current = root;
+            var current = ent_list;
             while (current != null)
             {
                 Destroy(current);
@@ -152,7 +152,7 @@ namespace Engine
             draw_list.Clear();
             draw_list = null;
 
-            root = null;
+            ent_list = null;
         }
     }
 

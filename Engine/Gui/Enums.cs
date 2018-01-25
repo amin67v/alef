@@ -293,7 +293,7 @@ namespace Engine
 
 
 
-    enum MouseCursorKind
+    public enum MouseCursorKind
     {
         Arrow = 0,
         TextInput,

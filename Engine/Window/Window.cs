@@ -3,8 +3,6 @@ using System.Numerics;
 
 namespace Engine
 {
-    using static Sdl2;
-
     public abstract class Window
     {
         /// <summary>
@@ -53,11 +51,6 @@ namespace Engine
         public event FileDropHandler OnFileDrop;
 
         /// <summary>
-        /// Called when a text drops inside window rect.
-        /// </summary>
-        public event TextDropHandler OnTextDrop;
-
-        /// <summary>
         /// Called when window lose focus.
         /// </summary>
         public event LostFocusHandler OnLostFocus;
@@ -78,9 +71,19 @@ namespace Engine
         public abstract void SetIcon(Image value);
 
         /// <summary>
-        /// Sets cursor to the given value
+        /// Sets the current cursor to the given value
         /// </summary>
-        public abstract void SetCursor(SystemCursor value);
+        public abstract void SetCursor(IntPtr cursor);
+
+        /// <summary>
+        /// Creates a custom cursor with the given image and hot position
+        /// </summary>
+        public abstract IntPtr CreateCursor(Image image, Vector2 hotpos);
+        
+        /// <summary>
+        /// Destroys the cursor
+        /// </summary>
+        public abstract void DestroyCursor(IntPtr curosr);
 
         protected internal abstract void SwapBuffers();
 
@@ -102,13 +105,11 @@ namespace Engine
 
         protected void RaiseMouseScroll(Vector2 delta) => OnMouseScroll?.Invoke(delta);
 
-        protected void RaiseTextInput(string text) => OnTextInput?.Invoke(text);
+        protected void RaiseTextInput(char c) => OnTextInput?.Invoke(c);
 
         protected void RaiseResize(int width, int height) => OnResize?.Invoke(width, height);
 
-        protected void RaiseFileDrop(string text) => OnFileDrop?.Invoke(text);
-
-        protected void RaiseTextDrop(string text) => OnTextDrop?.Invoke(text);
+        protected void RaiseFileDrop(string[] files) => OnFileDrop?.Invoke(files);
 
         protected void RaiseLostFocus() => OnLostFocus?.Invoke();
 
@@ -122,26 +123,8 @@ namespace Engine
     public delegate void MouseButtonHandler(MouseButton btn);
     public delegate void MouseMoveHandler(Vector2 pos);
     public delegate void MouseScrollHandler(Vector2 delta);
-    public delegate void TextInputHandler(string text);
+    public delegate void TextInputHandler(char text);
     public delegate void ResizeHandler(int width, int height);
-    public delegate void FileDropHandler(string text);
-    public delegate void TextDropHandler(string text);
+    public delegate void FileDropHandler(string[] files);
     public delegate void LostFocusHandler();
-
-    public enum SystemCursor
-    {
-        Arrow,
-        IBeam,
-        Wait,
-        Crosshair,
-        WaitArrow,
-        SizeNWSE,
-        SizeNESW,
-        SizeWE,
-        SizeNS,
-        SizeAll,
-        No,
-        Hand,
-        Count
-    }
 }

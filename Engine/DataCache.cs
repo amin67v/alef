@@ -19,7 +19,6 @@ namespace Engine
             Stream stream = null;
             try
             {
-                filename = filename.TrimStart('/');
                 Data res;
                 if (instance.res_map.TryGetValue(filename, out res))
                 {

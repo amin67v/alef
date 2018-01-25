@@ -27,9 +27,8 @@ public class Browser : Panel
         watcher.Deleted += file_changed;
         watcher.Renamed += file_renamed;
 
-        var sheet = SpriteSheet.Load("editor/icons.spr");
-        backdir_frame = sheet["BackDirectory"];
-        opendir_frame = sheet["OpenDirectory"];
+        backdir_frame = DataEditor.Icons["BackDirectory"];
+        opendir_frame = DataEditor.Icons["OpenDirectory"];
 
         change_path(string.Empty);
     }
@@ -69,7 +68,6 @@ public class Browser : Panel
         gui.SameLine();
 
         // Open directory
-        gui.PushID("OpenDirectory");
         if (gui.ImageButton(opendir_frame))
         {
             try
@@ -81,50 +79,76 @@ public class Browser : Panel
                 Log.Error($"Failed to open directory '{App.GetAbsolutePath(cpath)}'");
             }
         }
-        gui.PopID();
 
         if (gui.IsLastItemHovered())
             gui.SetTooltip("Open Directory");
 
-        gui.PopID();
         gui.PopStyleColor();
 
         gui.BeginChild("FilesAndFolders", true, WindowFlags.Default);
         {
             string tooltip = null;
             gui.PushStyleVar(StyleVar.ButtonTextAlign, new Vector2(0, .5f));
-            gui.PushStyleColor(ColorTarget.Text, new Color(20, 20, 20, 255));
-            gui.PushStyleColor(ColorTarget.Button, new Color(240, 190, 90, 255));
-            gui.PushStyleColor(ColorTarget.ButtonHovered, new Color(245, 220, 160, 255));
-            gui.PushStyleColor(ColorTarget.ButtonActive, new Color(250, 230, 180, 255));
 
             for (int i = 0; i < folders.Count; i++)
             {
-                if (gui.Button(folders[i].Name, new Vector2(-1, 0)))
+                if (gui.Button(folders[i].Name, new Vector2(-1, 0), new Color(240, 190, 90, 255)))
                     target_path = Path.Combine(cpath, folders[i].Name);
+
+                if (gui.IsLastItemHovered())
+                    Cursor.Set(CursorMode.Select);
             }
-
-            gui.PopStyleColor(3);
-
-            gui.PushStyleColor(ColorTarget.Button, new Color(200, 200, 200, 255));
-            gui.PushStyleColor(ColorTarget.ButtonHovered, new Color(200, 200, 200, 200));
-            gui.PushStyleColor(ColorTarget.ButtonActive, new Color(200, 200, 200, 150));
 
             for (int i = 0; i < files.Count; i++)
             {
-                if (gui.Button(files[i].Name, new Vector2(-1, 0)))
+                if (gui.Button(files[i].Name, new Vector2(-1, 0), new Color(200, 200, 200, 255)))
                 {
                     var rpath = Path.GetRelativePath(App.ExePath, files[i].FullName);
+
                     if (Editable.Active == null)
+                    {
                         Editable.Active = Editable.Load(rpath);
+                    }
                     else
-                        Editable.Active.TrySave(() => Editable.Active = Editable.Load(rpath));
+                    {
+                        if (Editable.Active.DataPath != rpath)
+                            Editable.Active.Save(() => Editable.Active = Editable.Load(rpath), true);
+                    }
+                }
+
+                if (gui.BeginPopupContextItem($"file_context{i}"))
+                {
+                    var fullpath = files[i].FullName;
+                    var rpath = Path.GetRelativePath(App.ExePath, fullpath);
+                    if (gui.Selectable("Delete"))
+                    {
+                        var filename = files[i].Name;
+                        Dialog.YesOrNo($"Are you sure, you want to delete file '{filename}'?", () =>
+                        {
+                            if (Editable.Active != null)
+                            {
+                                if (Editable.Active.DataPath == rpath)
+                                    Editable.Active = null;
+                            }
+                            File.Delete(fullpath);
+
+                        }, null);
+                    }
+
+                    if (gui.Selectable("Duplicate"))
+                    {
+                        File.Copy(fullpath, fullpath.Insert(fullpath.LastIndexOf('.'), "_duplicate"));
+                    }
+
+                    gui.EndPopup();
                 }
                 if (gui.IsLastItemHovered())
+                {
+                    Cursor.Set(CursorMode.Select);
                     tooltip = get_file_tooltip(files[i]);
+                }
             }
 
-            gui.PopStyleColor(4);
             gui.PopStyleVar();
 
             if (tooltip != null)
@@ -167,5 +191,4 @@ public class Browser : Panel
     {
         return $"Data type: {Editable.ExtensionToDataKind(file.Extension)}\nSize: {(file.Length / 1024f).ToString("0.00")}kb";
     }
-
 }

@@ -6,12 +6,13 @@ using System.Runtime.InteropServices;
 
 using Engine;
 
-public class SpritePacker : Editable
+public class SpriteEditor : Editable
 {
     Array<Frame> frames = new Array<Frame>();
     InputBuffer packer_src = new InputBuffer(256);
     InputBuffer image_path = new InputBuffer(256);
     InputBuffer fsearch = new InputBuffer(128);
+    SpriteSheetFrame search_frame;
     FilterMode filter;
     WrapMode wrap;
     Image img;
@@ -51,15 +52,20 @@ public class SpritePacker : Editable
                 }
                 catch (Exception e)
                 {
-                    Dialog.Ok($"Failed to save texture to file.\n \n{e.Message}", null);
+                    Dialog.Info($"Failed to save texture to file.\n \n{e.Message}");
                 }
             }
         }
 
         if (gui.CollapsingHeader("Frames", TreeNodeFlags.DefaultOpen))
         {
-            if (gui.InputText("Search", fsearch, InputTextFlags.Default))
+            gui.Text(frames.Count.ToString());
+            gui.SameLine();
+            if (gui.InputText(string.Empty, fsearch, InputTextFlags.Default))
                 act_frm = -1;
+
+            gui.SameLine();
+            gui.Image(search_frame);
 
             gui.BeginChild("all_frames", new Vector2(0, 100), true, WindowFlags.Default);
 
@@ -107,7 +113,7 @@ public class SpritePacker : Editable
                 Vector4 rect = frames[i].Rect.ToVector4();
                 gui.DragVector4("Rect", ref rect, float.MinValue, float.MaxValue, 1f, "%.0f", 1);
                 frames[i].Rect = new Rect(rect);
-                gui.DragVector2("Offset", ref frames[i].Offset, float.MinValue, float.MaxValue, 1f, "%.2f", 1);
+                gui.DragVector2("Offset", ref frames[i].Offset, float.MinValue, float.MaxValue, .01f, "%.2f", 1);
             }
         }
 
@@ -121,19 +127,24 @@ public class SpritePacker : Editable
         }
     }
 
-    public override void OnDrawCanvas(Canvas g)
+    public override void OnDrawCanvas(Gui gui, Canvas g)
     {
         var mpos = Input.MousePosition;
         if (Canvas.Instance.IsInteractable)
         {
             if (Input.IsKeyPressed(MouseButton.Right))
-            {
-                ContextMenu.Begin();
-                ContextMenu.AddItem("Add Frame", add_frame);
-                if (act_frm > 0)
-                    ContextMenu.AddItem("Remove Frame", remove_frame);
-                ContextMenu.Show();
-            }
+                gui.OpenPopup("context_menu");
+        }
+
+        if (gui.BeginPopup("context_menu"))
+        {
+            if (gui.Selectable("Add Frame"))
+                add_frame();
+
+            if (act_frm >= 0 && gui.Selectable("Remove Frame"))
+                remove_frame();
+
+            gui.EndPopup();
         }
 
         if (Input.IsKeyPressed(KeyCode.Delete))
@@ -146,8 +157,11 @@ public class SpritePacker : Editable
         if (act_frm >= 0)
         {
             Vector2 offset = (frames[act_frm].Offset * frames[act_frm].Rect.Size) + frames[act_frm].Rect.Position;
-            if (g.PointHandle(ref offset, Color.DodgerBlue))
+            if (g.PointHandle(ref offset, Color.DodgerBlue, CursorMode.Select))
+            {
                 frames[act_frm].Offset = (offset - frames[act_frm].Rect.Position) / frames[act_frm].Rect.Size;
+                Cursor.Set(CursorMode.Move, 1200);
+            }
 
             if (Input.IsKeyReleased(MouseButton.Left))
             {
@@ -176,6 +190,7 @@ public class SpritePacker : Editable
             ChangeImage(new Image(256, 256, Color.Magenta));
 
         App.Window.OnFileDrop += on_file_drop;
+        search_frame = DataEditor.Icons["Search"];
     }
 
     public override void OnEnd()
@@ -193,6 +208,13 @@ public class SpritePacker : Editable
 
         img = value;
         tex = Texture.Create(img, filter, wrap);
+
+        if (img == null)
+            Canvas.Instance.ViewPositionLimits = new Rect(0, 0, 0, 0);
+        else
+            Canvas.Instance.ViewPositionLimits = new Rect(0, 0, img.Width, img.Height);
+        
+        Canvas.Instance.ViewPosition = Canvas.Instance.ViewPositionLimits.Center;
     }
 
     protected override void Deserialize(Stream stream)
@@ -303,25 +325,25 @@ public class SpritePacker : Editable
 
     void add_frame()
     {
-        var frect = new Rect(0, 0, 40, 10);
+        var frect = new Rect(0, 0, 100, 50);
         frect.Center = Canvas.Instance.ScreenToWorld(Input.MousePosition);
         frames.Push(Frame.Create("new frame", frect, Vector2.One * .5f));
     }
 
     void remove_frame()
     {
-        if (act_frm > 0)
+        if (act_frm >= 0)
         {
             frames.RemoveAt(act_frm);
             act_frm = -1;
         }
     }
 
-    void on_file_drop(string file)
+    void on_file_drop(string[] file)
     {
-        if (Directory.Exists(file))
+        if (Directory.Exists(file[0]))
         {
-            packer_src.String = file;
+            packer_src.String = file[0];
             apply_pack();
         }
     }
@@ -349,8 +371,11 @@ public class SpritePacker : Editable
         // add all .png for packing
         files = Directory.GetFiles(path, "*.png");
         for (int i = 0; i < files.Length; i++)
-            images.Push(Image.FromFile(files[i]));
-
+        {
+            var img = Image.FromFile(files[i]);
+            img.FlipVertical();
+            images.Push(img);
+        }
         // sort by area
         int comparsion(Image x, Image y) => (y.Width * y.Height) - (x.Width * x.Height);
         images.Sort(comparsion);
@@ -369,7 +394,7 @@ public class SpritePacker : Editable
             float x, y;
             if (!rp.Pack(images[i].Width + padding, images[i].Height + padding, out x, out y))
             {
-                Dialog.Ok("Failed to pack some images !", null);
+                Dialog.Info("Failed to pack some images !");
                 failed = true;
                 break;
             }

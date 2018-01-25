@@ -24,45 +24,22 @@ namespace Game
 
     public class MyGame : Scene
     {
+        Shader fxaa;
+        MeshBuffer mb;
+
         public override void OnBegin()
         {
             base.OnBegin();
             Spawn<SimpleEntity>("New Sprite entity !!!");
+            
         }
     }
 
     public class SimpleEntity : Entity
     {
-        SpriteSheet spr;
-        Transform xform = new Transform();
-        public int Layer => 0;
-
         public override void OnBegin()
         {
-            spr = SpriteSheet.Load("editor/icons.spr");
 
-            //  var img = new Image(1024, 1024);
-            //  for (int x = 0; x < 1024; x++)
-            //  {
-            //      for (int y = 0; y < 1024; y++)
-            //      {
-            //          byte r = (byte)(Noise.Perlin2D(x / 100f, y / 100f).Remap(-1, 1, 0, 255));
-            //          img[x, y] = new Color(r, r, r);
-            //      }
-            //  }
-            //  img.ToFile("perlin.jpg");
-            //  img.Dispose();
-
-            var frame = spr["OpenDirectory"];
-
-            for (int i = 0; i < 100; i++)
-            {
-                for (int j = 0; j < 100; j++)
-                {
-                    xform.Position = new Vector2(i, j);
-                    StaticBatch.AddSprite(xform, frame);
-                }
-            }
         }
 
         public override void OnUpdate(float dt)

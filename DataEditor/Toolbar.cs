@@ -13,9 +13,8 @@ public class Toolbar : Panel
 
     Toolbar()
     {
-        var sheet = SpriteSheet.Load("editor/icons.spr");
-        new_frame = sheet["New"];
-        save_frame = sheet["Save"];
+        new_frame = DataEditor.Icons["New"];
+        save_frame = DataEditor.Icons["Save"];
     }
 
     public override string Title => nameof(Toolbar);
@@ -26,7 +25,7 @@ public class Toolbar : Panel
                                                                       WindowFlags.NoTitleBar |
                                                                       WindowFlags.MenuBar)
     {
-        gui.PushStyleVar(StyleVar.WindowPadding, new Vector2(6, 0));
+        gui.PushStyleVar(StyleVar.WindowPadding, new Vector2(6, 2));
         base.Draw(gui, rect, flags);
         gui.PopStyleVar();
     }
@@ -37,6 +36,22 @@ public class Toolbar : Panel
         {
             if (gui.BeginMenu("File"))
             {
+                if (gui.BeginMenu("New"))
+                {
+                    var types = Editable.GetDataTypes();
+                    for (int i = 0; i < types.Length; i++)
+                    {
+                        var item = (DataKind)i;
+                        if (gui.MenuItem(types[i].Item1.ToString()))
+                            new_data(item);
+                    }
+                    gui.EndMenu();
+                }
+
+                if (gui.MenuItem("Save"))
+                    save_active();
+
+                gui.Separator();
                 if (gui.MenuItem("Quit"))
                     App.Quit();
 
@@ -45,6 +60,7 @@ public class Toolbar : Panel
             gui.EndMenuBar();
         }
 
+
         gui.PushStyleColor(ColorTarget.Button, Color.Transparent);
 
         if (gui.ImageButton(new_frame))
@@ -52,34 +68,36 @@ public class Toolbar : Panel
 
         if (gui.BeginPopup("new_data"))
         {
-            ContextMenu.Begin();
             var types = Editable.GetDataTypes();
             for (int i = 0; i < types.Length; i++)
             {
                 var item = (DataKind)i;
-                void on_click_item()
-                {
-                    if (Editable.Active == null)
-                        // new immediately !
-                        Editable.Active = Activator.CreateInstance(Editable.DataKindToEditorType(item)) as Editable;
-                    else
-                        // new after save  !
-                        Editable.Active.TrySave(() => Editable.Active = Activator.CreateInstance(Editable.DataKindToEditorType(item)) as Editable);
-                };
-
-                ContextMenu.AddItem(types[i].Item1.ToString(), on_click_item);
+                if (gui.Selectable(types[i].Item1.ToString()))
+                    new_data(item);
             }
-            ContextMenu.Show();
-
             gui.EndPopup();
         }
 
         gui.SameLine(0, 0);
         if (gui.ImageButton(save_frame))
-            Editable.Active?.TrySave(null);
+            save_active();
 
         gui.PopStyleColor();
     }
 
+    void new_data(DataKind item)
+    {
+        if (Editable.Active == null)
+            // new immediately !
+            Editable.Active = Activator.CreateInstance(Editable.DataKindToEditorType(item)) as Editable;
+        else
+            // new after save  !
+            Editable.Active.Save(() => Editable.Active = Activator.CreateInstance(Editable.DataKindToEditorType(item)) as Editable, true);
+    }
+
+    void save_active()
+    {
+        Editable.Active?.Save();
+    }
 
 }

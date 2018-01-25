@@ -16,32 +16,50 @@ namespace Engine
         internal uint id;
         Dictionary<string, int> uniforms = new Dictionary<string, int>();
 
-        public OpenglShader(string vert, string frag)
-        {
+        public OpenglShader(string vert, string frag) : this(vert, null, frag) { }
 
+        public OpenglShader(string vert, string geom, string frag)
+        {
             uint program;
 
-            uint vertID = glCreateShader(ShaderType.VertexShader);
-            uint fragID = glCreateShader(ShaderType.FragmentShader);
+            uint vert_id = glCreateShader(ShaderType.VertexShader);
+            uint frag_id = glCreateShader(ShaderType.FragmentShader);
+            uint geom_id = 0;
+            if (geom != null)
+                geom_id = glCreateShader(ShaderType.GeometryShader);
 
             // Compile vertex shader
-            glShaderSource(vertID, vert);
-            glCompileShader(vertID);
+            glShaderSource(vert_id, vert);
+            glCompileShader(vert_id);
 
-            if (glGetShaderiv(vertID, ShaderParameter.CompileStatus) == 0)
+            if (glGetShaderiv(vert_id, ShaderParameter.CompileStatus) == 0)
             {
-                var msg = glGetShaderInfoLog(vertID);
+                var msg = glGetShaderInfoLog(vert_id);
                 Log.Error(msg);
                 throw new Exception(msg);
             }
 
-            // Compile fragment shader
-            glShaderSource(fragID, frag);
-            glCompileShader(fragID);
-
-            if (glGetShaderiv(fragID, ShaderParameter.CompileStatus) == 0)
+            // Compile geometry shader if available
+            if (geom != null)
             {
-                var msg = glGetShaderInfoLog(fragID);
+                glShaderSource(geom_id, geom);
+                glCompileShader(geom_id);
+
+                if (glGetShaderiv(geom_id, ShaderParameter.CompileStatus) == 0)
+                {
+                    var msg = glGetShaderInfoLog(geom_id);
+                    Log.Error(msg);
+                    throw new Exception(msg);
+                }
+            }
+
+            // Compile fragment shader
+            glShaderSource(frag_id, frag);
+            glCompileShader(frag_id);
+
+            if (glGetShaderiv(frag_id, ShaderParameter.CompileStatus) == 0)
+            {
+                var msg = glGetShaderInfoLog(frag_id);
                 Log.Error(msg);
                 throw new Exception(msg);
             }
@@ -50,8 +68,11 @@ namespace Engine
             try
             {
                 program = glCreateProgram();
-                glAttachShader(program, vertID);
-                glAttachShader(program, fragID);
+                glAttachShader(program, vert_id);
+                glAttachShader(program, frag_id);
+                if (geom != null)
+                    glAttachShader(program, geom_id);
+
                 glLinkProgram(program);
 
                 if (glGetProgramiv(program, ProgramParameter.LinkStatus) == 0)
@@ -65,8 +86,9 @@ namespace Engine
             finally
             {
                 // Delete shader objects
-                glDeleteShader(vertID);
-                glDeleteShader(fragID);
+                glDeleteShader(vert_id);
+                glDeleteShader(frag_id);
+                glDeleteShader(geom_id);
             }
 
             this.id = program;

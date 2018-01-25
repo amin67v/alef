@@ -11,14 +11,15 @@ public class Canvas : Panel
 
     Mesh quad;
     float pnt_sz = 6;
-    float zoom = 1f;
-    float rot;
-    Vector2 pos;
+    float vzoom = 1f;
+    float vrot;
+    Vector2 vpos;
     Vector2 mpos_w;
     Vector2 lm_normal; // last frame
     Vector2 mdelta_w;
     Vector2[] circle;
-    Rect crect;
+    Rect vpos_limit;
+    Rect client_rect;
     Texture ctex; // 1x1 pixel white texture
     Array<Vertex> points;
     Array<Vertex> lines;
@@ -31,6 +32,7 @@ public class Canvas : Panel
     bool grab;
     bool minside;
     bool clicked;
+    bool hovered;
 
     Canvas()
     {
@@ -47,14 +49,32 @@ public class Canvas : Panel
         triangles = new Array<Vertex>(50);
 
         mbuffer = MeshBuffer.Create();
+        Cursor.Set(CursorMode.Arrow);
     }
 
     public override string Title => nameof(Canvas);
 
     public Vector2 ViewPosition
     {
-        get => pos;
-        set => pos = value;
+        get => vpos;
+        set 
+        {
+            vpos = value;
+            vpos.X = MathF.Min(vpos.X, vpos_limit.XMax);
+            vpos.X = MathF.Max(vpos.X, vpos_limit.XMin);
+            vpos.Y = MathF.Min(vpos.Y, vpos_limit.YMax);
+            vpos.Y = MathF.Max(vpos.Y, vpos_limit.YMin);
+        }
+    }
+
+    public Rect ViewPositionLimits
+    {
+        get => vpos_limit;
+        set
+        {
+            vpos_limit = value;
+            ViewPosition = ViewPosition; // refresh it !
+        }
     }
 
     public bool IsInteractable => minside && !Dialog.IsShowing;
@@ -62,27 +82,28 @@ public class Canvas : Panel
     public override void Draw(Gui gui, Rect rect, WindowFlags flags = WindowFlags.Default /* not used */)
     {
         // crect is client rect in screen coord
-        crect = rect;
-        minside = crect.Contains(Input.MousePosition);
+        client_rect = rect;
+        minside = client_rect.Contains(Input.MousePosition);
 
-        if (IsInteractable && Input.IsKeyPressed(MouseButton.Middle))
+        if (IsInteractable)
         {
-            App.Window.SetCursor(SystemCursor.SizeAll);
-            grab = true;
+            if (Input.IsKeyPressed(MouseButton.Middle))
+                grab = true;
         }
-
         if (Input.IsKeyReleased(MouseButton.Middle))
-        {
-            App.Window.SetCursor(SystemCursor.Arrow);
             grab = false;
-        }
 
         if (Input.IsKeyReleased(MouseButton.Left))
         {
             act_id = -1;
         }
 
-        clicked = IsInteractable && Input.IsKeyPressed(MouseButton.Left);
+        if (hovered)
+        {
+            Cursor.Set(CursorMode.Arrow);
+            hovered = false;
+        }
+        clicked = Input.IsKeyPressed(MouseButton.Left);
 
         // convert screen to viewport coord
         rect.Y = App.Window.Size.Y - rect.YMax;
@@ -92,10 +113,10 @@ public class Canvas : Panel
         gfx.SetScissor(rect);
 
         // calculate view matrix
-        var size = crect.Size * zoom;
+        var size = client_rect.Size * vzoom;
         var proj = Matrix4x4.CreateOrthographic(size.X, size.Y, -1, 1);
-        var view = Matrix4x4.CreateFromYawPitchRoll(0, 0, rot);
-        view.Translation = new Vector3(pos.X, pos.Y, 0);
+        var view = Matrix4x4.CreateFromYawPitchRoll(0, 0, vrot);
+        view.Translation = new Vector3(vpos.X, vpos.Y, 0);
         Matrix4x4.Invert(view, out view);
         viewmat = view * proj;
         Matrix4x4.Invert(viewmat, out inv_viewmat);
@@ -105,7 +126,7 @@ public class Canvas : Panel
 
         // apply zoom
         if (IsInteractable)
-            zoom -= Input.MouseScrollDelta.Y * Time.FrameTime * zoom * 4f;
+            vzoom -= Input.MouseScrollDelta.Y * Time.FrameTime * vzoom * 4f;
 
         mpos_w = ScreenToWorld(Input.MousePosition); // transforms pos
         var mpos_wn = ScreenToWorldNormal(Input.MousePosition); // transforms normal
@@ -114,19 +135,20 @@ public class Canvas : Panel
         // apply grab
         if (grab)
         {
-            pos -= mdelta_w;
+            Cursor.Set(CursorMode.Grab, 2000);
+            ViewPosition -= mdelta_w;
 
             // continuous grab
             Vector2 mpos = Input.MousePosition;
             bool cgrab = true;
-            if (mpos.X < crect.X + 10)
-                mpos.X = crect.XMax - 10;
-            else if (mpos.X > crect.XMax - 10)
-                mpos.X = crect.X + 10;
-            else if (mpos.Y < crect.Y + 10)
-                mpos.Y = crect.YMax - 10;
-            else if (mpos.Y > crect.YMax - 10)
-                mpos.Y = crect.Y + 10;
+            if (mpos.X < client_rect.X + 10)
+                mpos.X = client_rect.XMax - 10;
+            else if (mpos.X > client_rect.XMax - 10)
+                mpos.X = client_rect.X + 10;
+            else if (mpos.Y < client_rect.Y + 10)
+                mpos.Y = client_rect.YMax - 10;
+            else if (mpos.Y > client_rect.YMax - 10)
+                mpos.Y = client_rect.Y + 10;
             else
                 cgrab = false;
 
@@ -135,19 +157,28 @@ public class Canvas : Panel
         }
         lm_normal = ScreenToWorldNormal(Input.MousePosition);
 
-        Editable.Active?.OnDrawCanvas(Instance);
+        Editable.Active?.OnDrawCanvas(gui, Instance);
 
         draw_all_shapes();
         nxt_id = 0;
     }
 
-    public bool PointHandle(ref Vector2 pos, Color c)
+    public bool PointHandle(ref Vector2 pos, Color c, CursorMode cursor = CursorMode.Arrow)
     {
         var id = nxt_id++;
-        if (clicked && (WorldToScreen(pos) - Input.MousePosition).Length() < pnt_sz * 1.2f)
+        if (IsInteractable && (WorldToScreen(pos) - Input.MousePosition).Length() < pnt_sz * 1.2f) // hover ?
         {
-            clicked = false;
-            act_id = id;
+            if (!hovered)
+            {
+                Cursor.Set(cursor, 1000);
+                hovered = true;
+            }
+
+            if (clicked)
+            {
+                clicked = false;
+                act_id = id;
+            }
         }
 
         DrawPoint(pos, c);
@@ -163,9 +194,21 @@ public class Canvas : Panel
         DrawFillRect(rect, c2);
         DrawRect(rect, c);
 
-        if (clicked && rect.Contains(mpos_w))
-            return !(clicked = false);
-        
+        if (IsInteractable && rect.Contains(mpos_w))
+        {
+            if (!hovered)
+            {
+                Cursor.Set(CursorMode.Select); ;
+                hovered = true;
+            }
+
+            if (clicked)
+            {
+                clicked = false;
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -174,42 +217,60 @@ public class Canvas : Panel
         var ct = c; ct.A /= 3;
 
         Vector2 tmp = rect.XMinYMin;
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeS))
+            Cursor.Set(CursorMode.SizeS, 1200);
+
         rect.XMinYMin = tmp;
 
         tmp = rect.XMaxYMax;
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeS))
+            Cursor.Set(CursorMode.SizeS, 1200);
         rect.XMaxYMax = tmp;
 
         tmp = rect.XMinYMax;
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeB))
+            Cursor.Set(CursorMode.SizeB, 1200);
         rect.XMinYMax = tmp;
 
         tmp = rect.XMaxYMin;
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeB))
+            Cursor.Set(CursorMode.SizeB, 1200);
         rect.XMaxYMin = tmp;
 
         tmp = new Vector2(rect.XMin, rect.YHalf);
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeH))
+            Cursor.Set(CursorMode.SizeH, 1200);
         rect.XMin = tmp.X;
 
         tmp = new Vector2(rect.XMax, rect.YHalf);
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeH))
+            Cursor.Set(CursorMode.SizeH, 1200);
         rect.XMax = tmp.X;
 
         tmp = new Vector2(rect.XHalf, rect.YMin);
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeV))
+            Cursor.Set(CursorMode.SizeV, 1200);
         rect.YMin = tmp.Y;
 
         tmp = new Vector2(rect.XHalf, rect.YMax);
-        PointHandle(ref tmp, c);
+        if (PointHandle(ref tmp, c, CursorMode.SizeV))
+            Cursor.Set(CursorMode.SizeV, 1200);
         rect.YMax = tmp.Y;
 
         var id = nxt_id++;
-        if (clicked && rect.Contains(mpos_w))
+        if (IsInteractable && rect.Contains(mpos_w))
         {
-            clicked = false;
-            act_id = id;
+            if (!hovered)
+            {
+                Cursor.Set(CursorMode.Move);
+                hovered = true;
+            }
+
+            if (clicked)
+            {
+                clicked = false;
+                act_id = id;
+            }
         }
 
         DrawRect(rect, c);
@@ -341,14 +402,14 @@ public class Canvas : Panel
     {
         value.X = value.X * .5f + .5f;
         value.Y = -value.Y * .5f + .5f;
-        value *= crect.Size;
-        value += crect.Position;
+        value *= client_rect.Size;
+        value += client_rect.Position;
         return value;
     }
 
     Vector2 screen_to_ndc(Vector2 value)
     {
-        value = ((value - crect.Position) / crect.Size);
+        value = ((value - client_rect.Position) / client_rect.Size);
         value.X = (value.X * 2 - 1);
         value.Y = -(value.Y * 2 - 1);
         return value;
@@ -361,7 +422,7 @@ public class Canvas : Panel
         var p2 = Vector2.Transform(new Vector2(1, 1), inv_viewmat);
         var p3 = Vector2.Transform(new Vector2(-1, 1), inv_viewmat);
         var p4 = Vector2.Transform(new Vector2(1, -1), inv_viewmat);
-        float tcoord_mult = (1 / zoom) * 0.05f;
+        float tcoord_mult = (1 / vzoom) * 0.05f;
         quad.SetVertex(0, new Vertex(p1, p1 * tcoord_mult, Color.White));
         quad.SetVertex(1, new Vertex(p2, p2 * tcoord_mult, Color.White));
         quad.SetVertex(2, new Vertex(p3, p3 * tcoord_mult, Color.White));

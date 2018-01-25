@@ -103,13 +103,18 @@ namespace Engine
             return ImGui.igInvisibleButton(id, size);
         }
 
-        public void Image(SpriteSheetFrame frame, Vector2 size, Color background, Color tint)
+        public void Image(SpriteSheetFrame frame)
+        {
+            Image(frame, frame.Rect.Size, Color.White, Color.Transparent);
+        }
+
+        public void Image(SpriteSheetFrame frame, Vector2 size, Color tint, Color border)
         {
             var id = frame.SpriteSheet.Texture.GetHashCode();
             id_tex_map[id] = frame.SpriteSheet.Texture;
-            var uv0 = frame.Vertices[1].Texcoord;
-            var uv1 = frame.Vertices[0].Texcoord;
-            ImGui.igImage(new IntPtr(id), size, uv0, uv1, background.ToVector4(), tint.ToVector4());
+            var uv0 = new Vector2(frame.Vertices[0].Texcoord.X, frame.Vertices[1].Texcoord.Y);
+            var uv1 = new Vector2(frame.Vertices[1].Texcoord.X, frame.Vertices[0].Texcoord.Y);
+            ImGui.igImage(new IntPtr(id), size, uv0, uv1, tint.ToVector4(), border.ToVector4());
         }
 
         public bool ImageButton(SpriteSheetFrame frame, int frame_padding = 4)
@@ -119,11 +124,14 @@ namespace Engine
 
         public bool ImageButton(SpriteSheetFrame frame, Vector2 size, int frame_padding, Color background, Color tint)
         {
+            PushID(frame.GetHashCode());
             var id = frame.SpriteSheet.Texture.GetHashCode();
             id_tex_map[id] = frame.SpriteSheet.Texture;
             var uv0 = new Vector2(frame.Vertices[0].Texcoord.X, frame.Vertices[1].Texcoord.Y);
             var uv1 = new Vector2(frame.Vertices[1].Texcoord.X, frame.Vertices[0].Texcoord.Y);
-            return ImGui.igImageButton(new IntPtr(id), size, uv0, uv1, frame_padding, background.ToVector4(), tint.ToVector4());
+            var r = ImGui.igImageButton(new IntPtr(id), size, uv0, uv1, frame_padding, background.ToVector4(), tint.ToVector4());
+            PopID();
+            return r;
         }
 
         public bool CollapsingHeader(string label, TreeNodeFlags flags)
@@ -402,12 +410,18 @@ namespace Engine
             return Button(message, Vector2.Zero, c);
         }
 
-        public bool Button(string message, Vector2 size, Color color)
+        public bool Button(string message, Vector2 size, Color btn_color)
         {
-            PushStyleColor(ColorTarget.Button, color);
-            PushStyleColor(ColorTarget.ButtonHovered, color.Lighter(0.25f));
-            PushStyleColor(ColorTarget.ButtonActive, color.Lighter(0.5f));
-            PushStyleColor(ColorTarget.Text, color.Brightness > .5f ? Color.Black : Color.White);
+            var text_color = btn_color.Brightness > .5f ? Color.Black : Color.White;
+            return Button(message, size, btn_color, text_color);
+        }
+
+        public bool Button(string message, Vector2 size, Color btn_color, Color text_color)
+        {
+            PushStyleColor(ColorTarget.Button, btn_color);
+            PushStyleColor(ColorTarget.ButtonHovered, btn_color.Lighter(0.25f));
+            PushStyleColor(ColorTarget.ButtonActive, btn_color.Lighter(0.5f));
+            PushStyleColor(ColorTarget.Text, text_color);
             var r = ImGui.igButton(message, size);
             PopStyleColor(4);
 
@@ -721,16 +735,10 @@ namespace Engine
             ImGui.igResetMouseDragDelta(button);
         }
 
-        MouseCursorKind MouseCursor
+        public MouseCursorKind MouseCursor
         {
-            get
-            {
-                return ImGui.igGetMouseCursor();
-            }
-            set
-            {
-                ImGui.igSetMouseCursor(value);
-            }
+            get => ImGui.igGetMouseCursor();
+            set => ImGui.igSetMouseCursor(value);
         }
 
         public Vector2 GetCursorStartPos()

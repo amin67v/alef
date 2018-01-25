@@ -22,18 +22,18 @@ namespace Engine
         {
             string extract(string source, string section)
             {
-                string secStart = $"#{section}";
-                string secEnd = $"#end_{section}";
+                string sec_start = $"#begin_{section}";
+                string sec_end = $"#end_{section}";
 
-                int start = source.IndexOf(secStart);
+                int start = source.IndexOf(sec_start);
                 if (start < 0)
                     return null;
 
-                int end = source.IndexOf(secEnd);
+                int end = source.IndexOf(sec_end);
                 if (end < 0)
                     return null;
 
-                int i0 = start + secStart.Length;
+                int i0 = start + sec_start.Length;
                 return source.Substring(i0, end - i0);
             }
 
