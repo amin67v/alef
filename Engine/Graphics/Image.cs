@@ -3,7 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using static Engine.StbImage;
+using static StbImage;
 
 namespace Engine
 {

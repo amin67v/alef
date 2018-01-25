@@ -311,7 +311,7 @@ public class SpriteEditor : Editable
 
         // compress img data into output stream
         MemoryStream output = new MemoryStream();
-        DeflateStream deflate = new DeflateStream(output, CompressionLevel.Optimal, true);
+        DeflateStream deflate = new DeflateStream(output, CompressionMode.Compress, true);
         byte[] img_data = new byte[img.Width * img.Height * 4];
         Marshal.Copy(img.PixelData, img_data, 0, img_data.Length);
         deflate.Write(img_data, 0, img_data.Length);
@@ -369,7 +369,7 @@ public class SpriteEditor : Editable
             return;
 
         // add all .png for packing
-        files = Directory.GetFiles(path, "*.png");
+        files = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories);
         for (int i = 0; i < files.Length; i++)
         {
             var img = Image.FromFile(files[i]);

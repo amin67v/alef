@@ -23,6 +23,7 @@ public class Browser : Panel
     {
         watcher = new FileSystemWatcher(App.ExePath);
         watcher.EnableRaisingEvents = true;
+        watcher.IncludeSubdirectories = true;
         watcher.Created += file_changed;
         watcher.Deleted += file_changed;
         watcher.Renamed += file_renamed;

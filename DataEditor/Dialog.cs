@@ -40,8 +40,9 @@ public class Dialog
         Instance.set_to_show = true;
     }
 
-    public static void UserInput(string msg, Action ok, Action cancel)
+    public static void UserInput(string msg, Action ok, Action cancel, string text = "")
     {
+        Instance.text.String = text;
         Instance.msg = msg;
         Instance.true_act = ok;
         Instance.false_act = cancel;
