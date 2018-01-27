@@ -131,9 +131,9 @@ namespace Engine
             return new OpenglRenderTarget(width, height, filter, count);
         }
 
-        public Shader CreateShader(string vert, string frag)
+        public Shader CreateShader(string vert, string geom, string frag)
         {
-            return new OpenglShader(vert, frag);
+            return new OpenglShader(vert, geom, frag);
         }
 
         public void SetRenderTarget(RenderTarget value)

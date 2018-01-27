@@ -8,11 +8,19 @@ namespace Engine
     public abstract class Shader : Data
     {
         /// <summary>
+        /// Creates shader using vertex, geometry and fragment source code
+        /// </summary>
+        public static Shader Create(string vert, string geom, string frag)
+        {
+            return App.Graphics.CreateShader(vert, geom, frag);
+        }
+
+        /// <summary>
         /// Creates shader using vertex and fragment source code
         /// </summary>
         public static Shader Create(string vert, string frag)
         {
-            return App.Graphics.CreateShader(vert, frag);
+            return App.Graphics.CreateShader(vert, null, frag);
         }
 
         /// <summary>
@@ -42,8 +50,9 @@ namespace Engine
                 TextReader reader = new StreamReader(stream);
                     var src = reader.ReadToEnd();
                     var vert_src = extract(src, "vert");
+                    var geom_src = extract(src, "geom");
                     var frag_src = extract(src, "frag");
-                    var shader = Shader.Create(vert_src, frag_src);
+                    var shader = Shader.Create(vert_src, geom_src, frag_src);
                     return shader;
             }
 

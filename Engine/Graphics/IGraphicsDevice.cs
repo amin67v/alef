@@ -15,9 +15,9 @@ namespace Engine
         MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count);
         MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count);
         RenderTarget CreateRenderTarget(int width, int height, FilterMode filter, int count);
-        Shader CreateShader(string vert, string frag);
+        Shader CreateShader(string vert, string geom, string frag);
 
-        void SetBlendMode(BlendMode value);             
+        void SetBlendMode(BlendMode value);
         void SetRenderTarget(RenderTarget value);
         void SetShader(Shader value);
         void SetViewport(int x, int y, int w, int h);

@@ -24,22 +24,46 @@ namespace Game
 
     public class MyGame : Scene
     {
-        Shader fxaa;
-        MeshBuffer mb;
-
         public override void OnBegin()
         {
             base.OnBegin();
             Spawn<SimpleEntity>("New Sprite entity !!!");
-            
+
         }
     }
 
-    public class SimpleEntity : Entity
+    public class SimpleEntity : Entity, IDrawable
     {
+        MeshBuffer mb;
+        Texture tex;
+        Shader shader;
+
+        public int Layer => 0;
+
+        public Rect Bounds => new Rect(0, 0, 1, 1);
+
         public override void OnBegin()
         {
+            Array<Vertex> verts = new Array<Vertex>();
+            verts.Push(new Vertex(0, 0, 0, 0, Color.Red));
+            verts.Push(new Vertex(1, 0, 0, 0, Color.Red));
+            verts.Push(new Vertex(0, 1, 0, 0, Color.Red));
+            verts.Push(new Vertex(1, 1, 0, 0, Color.Red));
+            mb = MeshBuffer.Create(verts);
+            tex = Texture.Create(1, 1, FilterMode.Point, WrapMode.Clamp, new Color[] { Color.White });
+            shader = Shader.Load("shaders/geom_test.glsl");
+            App.Graphics.SetPointSize(5);
+        }
 
+        public void Draw()
+        {
+            var gfx = App.Graphics;
+            gfx.SetShader(shader);
+            shader.SetMatrix3x2("model_mat", Matrix3x2.Identity);
+            shader.SetMatrix4x4("view_mat", gfx.ViewMatrix);
+            shader.SetTexture("main_tex", 0, tex);
+            shader.SetFloat("size", .1f);
+            mb.Draw(PrimitiveType.Points);
         }
 
         public override void OnUpdate(float dt)
@@ -79,6 +103,8 @@ namespace Game
 
             cam.Rotation += r;
             cam.ViewSize += z;
+
+            Scene.RegisterForDraw(this);
         }
 
 
