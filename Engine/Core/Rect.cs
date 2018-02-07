@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-
+using static System.MathF;
 namespace Engine
 {
     public struct Rect : IEquatable<Rect>
@@ -15,8 +15,8 @@ namespace Engine
         {
             vec.X = x;
             vec.Y = y;
-            vec.Z = MathF.Max(0, w);
-            vec.W = MathF.Max(0, h);
+            vec.Z = Max(0, w);
+            vec.W = Max(0, h);
         }
 
         /// <summary>
@@ -26,8 +26,8 @@ namespace Engine
         {
             vec.X = pos.X;
             vec.Y = pos.Y;
-            vec.Z = MathF.Max(0, size.X);
-            vec.W = MathF.Max(0, size.Y);
+            vec.Z = Max(0, size.X);
+            vec.W = Max(0, size.Y);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Engine
         public float Width
         {
             get => vec.Z;
-            set => vec.Z = MathF.Max(0, value);
+            set => vec.Z = Max(0, value);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Engine
         public float Height
         {
             get => vec.W;
-            set => vec.W = MathF.Max(0, value);
+            set => vec.W = Max(0, value);
         }
 
         /// <summary>
@@ -252,12 +252,23 @@ namespace Engine
         }
 
         /// <summary>
+        /// Inflate this rect by the given value
+        /// </summary>
+        public void Inflate(float value)
+        {
+            X -= value;
+            Y -= value;
+            Width += 2 * value;
+            Height += 2 * value;
+        }
+
+        /// <summary>
         /// Inflate this rect by x, y
         /// </summary>
         public void Inflate(float x, float y)
         {
             X -= x;
-            XMax += y;
+            Y -= y;
             Width += 2 * x;
             Height += 2 * y;
         }
@@ -267,10 +278,10 @@ namespace Engine
         /// </summary>
         public void Extend(Vector2 point)
         {
-            XMin = MathF.Min(XMin, point.X);
-            XMax = MathF.Max(XMax, point.X);
-            YMin = MathF.Min(YMin, point.Y);
-            YMax = MathF.Max(YMax, point.Y);
+            XMin = Min(XMin, point.X);
+            XMax = Max(XMax, point.X);
+            YMin = Min(YMin, point.Y);
+            YMax = Max(YMax, point.Y);
         }
 
         /// <summary>
@@ -278,10 +289,10 @@ namespace Engine
         /// </summary>
         public void Extend(Rect rect)
         {
-            XMin = MathF.Min(XMin, rect.XMin);
-            XMax = MathF.Max(XMax, rect.XMax);
-            YMin = MathF.Min(YMin, rect.YMin);
-            YMax = MathF.Max(YMax, rect.YMax);
+            XMin = Min(XMin, rect.XMin);
+            XMax = Max(XMax, rect.XMax);
+            YMin = Min(YMin, rect.YMin);
+            YMax = Max(YMax, rect.YMax);
         }
 
         /// <summary>

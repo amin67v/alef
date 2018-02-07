@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using static System.MathF;
 
 namespace Engine
 {
@@ -8,7 +9,7 @@ namespace Engine
         Array<Vertex> vtx_arr = new Array<Vertex>();
         Array<ushort> idx_arr = new Array<ushort>();
         Transform xform;
-        MeshBuffer mb;
+        MeshBuffer<Vertex> mb;
         Texture main_tex;
         Shader shader;
         Rect bounds;
@@ -19,7 +20,7 @@ namespace Engine
         public Mesh()
         {
             shader = DefaultShaders.ColorMult;
-            mb = MeshBuffer.CreateIndexed();
+            mb = MeshBuffer<Vertex>.CreateIndexed();
         }
 
         public int VertexCount => vtx_arr.Count;
@@ -89,10 +90,10 @@ namespace Engine
                     for (int i = 0; i < vtx_arr.Count; i++)
                     {
                         var pos = vtx_arr[i].Position;
-                        xmin = MathF.Min(xmin, pos.X);
-                        xmax = MathF.Max(xmax, pos.X);
-                        ymin = MathF.Min(ymin, pos.Y);
-                        ymax = MathF.Max(ymax, pos.Y);
+                        xmin = Min(xmin, pos.X);
+                        xmax = Max(xmax, pos.X);
+                        ymin = Min(ymin, pos.Y);
+                        ymax = Max(ymax, pos.Y);
                     }
                     bounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
                     dirty &= ~DirtyFlags.Bounds;

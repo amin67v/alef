@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Engine;
+using static System.MathF;
 
 public class Canvas : Panel
 {
@@ -11,7 +12,7 @@ public class Canvas : Panel
 
     Mesh quad;
     float pnt_sz = 6;
-    float vzoom = 1f;
+    float vsize = 1f;
     float vrot;
     Vector2 vpos;
     Vector2 mpos_w;
@@ -24,7 +25,7 @@ public class Canvas : Panel
     Array<Vertex> points;
     Array<Vertex> lines;
     Array<Vertex> triangles;
-    MeshBuffer mbuffer;
+    MeshBuffer<Vertex> mbuffer;
     Matrix4x4 viewmat;
     Matrix4x4 inv_viewmat;
     int act_id = -1;
@@ -37,43 +38,48 @@ public class Canvas : Panel
     Canvas()
     {
         quad = new Mesh();
-        Engine.Texture.Load("editor/checker.png", FilterMode.Point, WrapMode.Repeat);
-
+        
         quad.AddVertex(Vertex.Zero, Vertex.Zero, Vertex.Zero, Vertex.Zero);
         quad.AddIndex(0, 1, 2, 0, 1, 3);
         quad.BlendMode = BlendMode.AlphaBlend;
 
-        ctex = Engine.Texture.Create(1, 1, FilterMode.Point, WrapMode.Clamp, new Color[] { Color.White });
+        ctex = DataCache.Get<Texture>("White.Texture");
         points = new Array<Vertex>(50);
         lines = new Array<Vertex>(50);
         triangles = new Array<Vertex>(50);
 
-        mbuffer = MeshBuffer.Create();
+        mbuffer = MeshBuffer<Vertex>.Create();
         Cursor.Set(CursorMode.Arrow);
     }
 
     public override string Title => nameof(Canvas);
 
-    public Vector2 ViewPosition
+    public float ViewSize
+    {
+        get => vsize;
+        set => vsize = value.Clamp(0.02f, 100f);
+    }
+
+    public Vector2 Pan
     {
         get => vpos;
-        set 
+        set
         {
             vpos = value;
-            vpos.X = MathF.Min(vpos.X, vpos_limit.XMax);
-            vpos.X = MathF.Max(vpos.X, vpos_limit.XMin);
-            vpos.Y = MathF.Min(vpos.Y, vpos_limit.YMax);
-            vpos.Y = MathF.Max(vpos.Y, vpos_limit.YMin);
+            vpos.X = Min(vpos.X, vpos_limit.XMax);
+            vpos.X = Max(vpos.X, vpos_limit.XMin);
+            vpos.Y = Min(vpos.Y, vpos_limit.YMax);
+            vpos.Y = Max(vpos.Y, vpos_limit.YMin);
         }
     }
 
-    public Rect ViewPositionLimits
+    public Rect PanLimit
     {
         get => vpos_limit;
         set
         {
             vpos_limit = value;
-            ViewPosition = ViewPosition; // refresh it !
+            Pan = Pan; // refresh it !
         }
     }
 
@@ -113,7 +119,7 @@ public class Canvas : Panel
         gfx.SetScissor(rect);
 
         // calculate view matrix
-        var size = client_rect.Size * vzoom;
+        var size = client_rect.Size * vsize;
         var proj = Matrix4x4.CreateOrthographic(size.X, size.Y, -1, 1);
         var view = Matrix4x4.CreateFromYawPitchRoll(0, 0, vrot);
         view.Translation = new Vector3(vpos.X, vpos.Y, 0);
@@ -126,7 +132,7 @@ public class Canvas : Panel
 
         // apply zoom
         if (IsInteractable)
-            vzoom -= Input.MouseScrollDelta.Y * Time.FrameTime * vzoom * 4f;
+            vsize -= Input.MouseScrollDelta.Y * Time.FrameTime * vsize * 4f;
 
         mpos_w = ScreenToWorld(Input.MousePosition); // transforms pos
         var mpos_wn = ScreenToWorldNormal(Input.MousePosition); // transforms normal
@@ -136,7 +142,7 @@ public class Canvas : Panel
         if (grab)
         {
             Cursor.Set(CursorMode.Grab, 2000);
-            ViewPosition -= mdelta_w;
+            Pan -= mdelta_w;
 
             // continuous grab
             Vector2 mpos = Input.MousePosition;
@@ -320,8 +326,8 @@ public class Canvas : Panel
             for (int i = 0; i < segments; i++)
             {
                 float angle = i;
-                angle = angle.Remap(0, segments, 0, MathF.PI * 2);
-                circle[i] = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                angle = angle.Remap(0, segments, 0, PI * 2);
+                circle[i] = new Vector2(Cos(angle), Sin(angle));
             }
         }
 
@@ -422,12 +428,12 @@ public class Canvas : Panel
         var p2 = Vector2.Transform(new Vector2(1, 1), inv_viewmat);
         var p3 = Vector2.Transform(new Vector2(-1, 1), inv_viewmat);
         var p4 = Vector2.Transform(new Vector2(1, -1), inv_viewmat);
-        float tcoord_mult = (1 / vzoom) * 0.05f;
+        float tcoord_mult = (1 / vsize) * 0.05f;
         quad.SetVertex(0, new Vertex(p1, p1 * tcoord_mult, Color.White));
         quad.SetVertex(1, new Vertex(p2, p2 * tcoord_mult, Color.White));
         quad.SetVertex(2, new Vertex(p3, p3 * tcoord_mult, Color.White));
         quad.SetVertex(3, new Vertex(p4, p4 * tcoord_mult, Color.White));
-        quad.MainTexture = Engine.Texture.Load("editor/checker.png");
+        quad.MainTexture = DataCache.Get<Texture>("Checker.Texture");
         quad.Draw();
     }
 

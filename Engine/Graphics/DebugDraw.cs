@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Diagnostics;
+using static System.MathF;
 
 namespace Engine
 {
@@ -11,19 +12,19 @@ namespace Engine
         Array<Vertex> points;
         Array<Vertex> lines;
         Array<Vertex> triangles;
-        MeshBuffer mbuffer;
+        MeshBuffer<Vertex> mbuffer;
 
         Vector2[] circle;
 
         public DebugDraw()
         {
-            tex = Texture.Create(1, 1, FilterMode.Point, WrapMode.Clamp, new Color[] { Color.White }); // Need to get Dispose somewhere
+            tex = DataCache.Get<Texture>("White.Texture");
             shader = DefaultShaders.ColorMult;
             points = new Array<Vertex>(50);
             lines = new Array<Vertex>(50);
             triangles = new Array<Vertex>(50);
 
-            mbuffer = MeshBuffer.Create();
+            mbuffer = MeshBuffer<Vertex>.Create();
         }
 
         [Conditional("DEBUG")]
@@ -42,8 +43,8 @@ namespace Engine
                 for (int i = 0; i < segments; i++)
                 {
                     float angle = i;
-                    angle = angle.Remap(0, segments, 0, MathF.PI * 2);
-                    circle[i] = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                    angle = angle.Remap(0, segments, 0, PI * 2);
+                    circle[i] = new Vector2(Cos(angle), Sin(angle));
                 }
             }
 

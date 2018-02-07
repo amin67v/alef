@@ -9,10 +9,10 @@ namespace Engine
         static Gui instance;
 
         Dictionary<int, Texture> id_tex_map = new Dictionary<int, Texture>();
-
         Dictionary<Type, string[]> enum_map = new Dictionary<Type, string[]>();
 
-        MeshBuffer mb;
+        MeshBuffer<Vertex> mb;
+        Texture checker;
         MouseCursorKind last_cursor = MouseCursorKind.Arrow;
 
         Gui() { }
@@ -126,45 +126,45 @@ namespace Engine
         {
             style.WindowRounding = 0;
             style.WindowTitleAlign = Vector2.One * .5f;
-            style.ScrollbarRounding = 3;
-            style.ChildWindowRounding = 3;
-            style.FrameRounding = 3;
+            style.ScrollbarRounding = 2;
+            style.ChildWindowRounding = 2;
+            style.FrameRounding = 2;
             style.ScrollbarSize = 18;
 
-            style.SetColor(ColorTarget.Text, new Color(1.00f, 1.00f, 1.00f, 0.98f));
-            style.SetColor(ColorTarget.TextDisabled, new Color(1.00f, 0.87f, 1.00f, 0.20f));
-            style.SetColor(ColorTarget.WindowBg, new Color(0.16f, 0.18f, 0.20f, 1.00f));
+            style.SetColor(ColorTarget.Text, new Color(1.00f, 1.00f, 1.00f, 1.00f));
+            style.SetColor(ColorTarget.TextDisabled, new Color(1.00f, 0.87f, 1.00f, 0.39f));
+            style.SetColor(ColorTarget.WindowBg, new Color(0.12f, 0.15f, 0.18f, 1.00f));
             style.SetColor(ColorTarget.ChildWindowBg, new Color(0.16f, 0.18f, 0.20f, 1.00f));
-            style.SetColor(ColorTarget.PopupBg, new Color(0.16f, 0.18f, 0.20f, 1.00f));
+            style.SetColor(ColorTarget.PopupBg, new Color(0.12f, 0.15f, 0.18f, 1.00f));
             style.SetColor(ColorTarget.Border, new Color(0.24f, 0.26f, 0.29f, 1.00f));
             style.SetColor(ColorTarget.BorderShadow, new Color(0.00f, 0.00f, 0.00f, 0.00f));
-            style.SetColor(ColorTarget.FrameBg, new Color(0.00f, 0.00f, 0.00f, 0.31f));
-            style.SetColor(ColorTarget.FrameBgHovered, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.FrameBgActive, new Color(0.00f, 0.70f, 0.63f, 1.00f));
-            style.SetColor(ColorTarget.TitleBg, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.TitleBgCollapsed, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.TitleBgActive, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.MenuBarBg, new Color(0.22f, 0.25f, 0.27f, 1.00f));
+            style.SetColor(ColorTarget.FrameBg, new Color(0.22f, 0.31f, 0.37f, 1.00f));
+            style.SetColor(ColorTarget.FrameBgHovered, new Color(0.00f, 0.47f, 0.84f, 1.00f));
+            style.SetColor(ColorTarget.FrameBgActive, new Color(0.19f, 0.57f, 0.87f, 1.00f));
+            style.SetColor(ColorTarget.TitleBg, new Color(0.20f, 0.25f, 0.28f, 1.00f));
+            style.SetColor(ColorTarget.TitleBgCollapsed, new Color(0.20f, 0.25f, 0.28f, 1.00f));
+            style.SetColor(ColorTarget.TitleBgActive, new Color(0.20f, 0.25f, 0.28f, 1.00f));
+            style.SetColor(ColorTarget.MenuBarBg, new Color(0.19f, 0.22f, 0.24f, 1.00f));
             style.SetColor(ColorTarget.ScrollbarBg, new Color(0.00f, 0.00f, 0.00f, 0.31f));
             style.SetColor(ColorTarget.ScrollbarGrab, new Color(0.16f, 0.18f, 0.20f, 1.00f));
-            style.SetColor(ColorTarget.ScrollbarGrabHovered, new Color(0.23f, 0.26f, 0.29f, 1.00f));
-            style.SetColor(ColorTarget.ScrollbarGrabActive, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.ComboBg, new Color(0.13f, 0.15f, 0.16f, 1.00f));
-            style.SetColor(ColorTarget.CheckMark, new Color(1.00f, 1.00f, 1.00f, 0.98f));
+            style.SetColor(ColorTarget.ScrollbarGrabHovered, new Color(0.26f, 0.30f, 0.34f, 1.00f));
+            style.SetColor(ColorTarget.ScrollbarGrabActive, new Color(0.00f, 0.47f, 0.84f, 1.00f));
+            style.SetColor(ColorTarget.ComboBg, new Color(0.17f, 0.24f, 0.28f, 1.00f));
+            style.SetColor(ColorTarget.CheckMark, new Color(1.00f, 0.69f, 0.00f, 0.98f));
             style.SetColor(ColorTarget.SliderGrab, new Color(0.16f, 0.18f, 0.20f, 1.00f));
-            style.SetColor(ColorTarget.SliderGrabActive, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.Button, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.ButtonHovered, new Color(0.00f, 0.70f, 0.63f, 1.00f));
-            style.SetColor(ColorTarget.ButtonActive, new Color(0.00f, 0.85f, 0.75f, 1.00f));
-            style.SetColor(ColorTarget.Header, new Color(0.00f, 0.59f, 0.53f, 1.00f));
-            style.SetColor(ColorTarget.HeaderHovered, new Color(0.00f, 0.70f, 0.63f, 1.00f));
-            style.SetColor(ColorTarget.HeaderActive, new Color(0.00f, 0.85f, 0.75f, 1.00f));
+            style.SetColor(ColorTarget.SliderGrabActive, new Color(0.00f, 0.47f, 0.84f, 1.00f));
+            style.SetColor(ColorTarget.Button, new Color(0.00f, 0.47f, 0.84f, 1.00f));
+            style.SetColor(ColorTarget.ButtonHovered, new Color(0.10f, 0.52f, 0.86f, 1.00f));
+            style.SetColor(ColorTarget.ButtonActive, new Color(0.19f, 0.57f, 0.87f, 1.00f));
+            style.SetColor(ColorTarget.Header, new Color(0.00f, 0.47f, 0.84f, 1.00f));
+            style.SetColor(ColorTarget.HeaderHovered, new Color(0.10f, 0.52f, 0.85f, 1.00f));
+            style.SetColor(ColorTarget.HeaderActive, new Color(0.19f, 0.56f, 0.87f, 1.00f));
             style.SetColor(ColorTarget.Separator, new Color(0.24f, 0.26f, 0.29f, 1.00f));
-            style.SetColor(ColorTarget.SeparatorHovered, new Color(0.18f, 0.21f, 0.24f, 1.00f));
-            style.SetColor(ColorTarget.SeparatorActive, new Color(0.15f, 0.18f, 0.20f, 1.00f));
+            style.SetColor(ColorTarget.SeparatorHovered, new Color(0.31f, 0.33f, 0.36f, 1.00f));
+            style.SetColor(ColorTarget.SeparatorActive, new Color(1.00f, 0.69f, 0.00f, 0.98f));
             style.SetColor(ColorTarget.ResizeGrip, new Color(0.39f, 0.39f, 0.39f, 0.71f));
             style.SetColor(ColorTarget.ResizeGripHovered, new Color(0.56f, 0.56f, 0.56f, 1.00f));
-            style.SetColor(ColorTarget.ResizeGripActive, new Color(0.00f, 0.59f, 0.53f, 1.00f));
+            style.SetColor(ColorTarget.ResizeGripActive, new Color(0.00f, 0.47f, 0.84f, 1.00f));
             style.SetColor(ColorTarget.CloseButton, new Color(0.00f, 0.00f, 0.00f, 0.50f));
             style.SetColor(ColorTarget.CloseButtonHovered, new Color(0.00f, 0.00f, 0.00f, 0.25f));
             style.SetColor(ColorTarget.CloseButtonActive, new Color(1.00f, 0.22f, 0.00f, 1.00f));
@@ -172,8 +172,9 @@ namespace Engine
             style.SetColor(ColorTarget.PlotLinesHovered, new Color(0.90f, 0.70f, 0.00f, 1.00f));
             style.SetColor(ColorTarget.PlotHistogram, new Color(0.90f, 0.70f, 0.00f, 1.00f));
             style.SetColor(ColorTarget.PlotHistogramHovered, new Color(1.00f, 0.16f, 0.00f, 1.00f));
-            style.SetColor(ColorTarget.TextSelectedBg, new Color(0.00f, 0.59f, 0.53f, 1.00f));
+            style.SetColor(ColorTarget.TextSelectedBg, new Color(0.00f, 0.47f, 0.84f, 1.00f));
             style.SetColor(ColorTarget.ModalWindowDarkening, new Color(0.00f, 0.00f, 0.00f, 0.50f));
+
         }
 
         internal static void init()
@@ -213,7 +214,14 @@ namespace Engine
             }
             instance.io.FontAtlas.ClearTexData();
 
-            instance.mb = MeshBuffer.CreateIndexed();
+            instance.mb = MeshBuffer<Vertex>.CreateIndexed();
+
+            Color[] checker_pixels = new Color[]
+            {
+                Color.LightGray, Color.White, Color.White, Color.LightGray
+            };
+
+            instance.checker = DataCache.Get<Texture>("Checker.Texture");
         }
 
         internal static void shutdown()

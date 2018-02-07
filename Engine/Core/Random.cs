@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using static System.MathF;
 
 namespace Engine
 {
@@ -26,7 +27,7 @@ namespace Engine
         /// <summary>
         /// Return a random int number between min and max.
         /// </summary>
-        public int NextInt(int min, int max) => (int)MathF.Floor(NextFloat(min, max));
+        public int NextInt(int min, int max) => (int)Floor(NextFloat(min, max));
 
         /// <summary>
         /// Returns a random float number between 0 and 1.

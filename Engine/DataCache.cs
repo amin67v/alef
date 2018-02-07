@@ -16,6 +16,7 @@ namespace Engine
 
         public static Data FromCacheOrFile(string filename, DataLoadHandler load_func)
         {
+            filename = filename.ToLower().Replace('\\', '/').TrimStart('/');
             Stream stream = null;
             try
             {
@@ -50,7 +51,7 @@ namespace Engine
                         res = load_func(stream);
                     }
 
-                    res.FileName = filename;
+                    res.Name = filename;
                     instance.res_map[filename] = res;
                     return res;
                 }
@@ -59,6 +60,19 @@ namespace Engine
             {
                 stream?.Dispose();
             }
+        }
+
+        public static void Add(string name, Data data)
+        {
+            instance.res_map.Add(name, data);
+            data.Name = name;
+        }
+
+        public static T Get<T>(string name) where T : Data
+        {
+            Data value = null;
+            instance.res_map.TryGetValue(name, out value);
+            return value as T;
         }
 
         internal static void remove(string filename) => instance.res_map.Remove(filename);
@@ -73,6 +87,8 @@ namespace Engine
 
 
             instance.res_map = new Dictionary<string, Data>(50);
+
+            InternalData.init();
         }
 
         internal static void shutdown()
@@ -94,23 +110,23 @@ namespace Engine
 
     public abstract class Data : Disposable
     {
-        string file;
+        string name;
 
         /// <summary>
-        /// The file which used to load this data.
+        /// The name of the asset which used to load/add this data.
         /// </summary>
-        public string FileName
+        public string Name
         {
-            get => file;
-            internal set => file = value;
+            get => name;
+            internal set => name = value;
         }
 
         protected override void OnDisposeUnmanaged()
         {
-            if (!string.IsNullOrEmpty(file))
+            if (!string.IsNullOrEmpty(name))
             {
-                DataCache.remove(file);
-                file = null;
+                DataCache.remove(name);
+                name = null;
             }
         }
     }

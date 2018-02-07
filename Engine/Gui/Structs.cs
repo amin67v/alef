@@ -232,9 +232,6 @@ namespace Engine
     [StructLayout(LayoutKind.Sequential)]
     unsafe struct Storage
     {
-        /// <summary>
-        /// A vector of Storage.Pair values.
-        /// </summary>
         public ImVector Data;
 
         [StructLayout(LayoutKind.Sequential)]

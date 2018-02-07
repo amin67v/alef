@@ -883,9 +883,9 @@ namespace Engine
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ImDrawList_AddTextExt(NativeDrawList* list, NativeFont* font, float font_size, Vector2 pos, uint col, byte* text_begin, byte* text_end, float wrap_width, Vector4* cpu_fine_clip_rect);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ImDrawList_AddImage(NativeDrawList* list, void* user_texture_id, Vector2 a, Vector2 b, Vector2 uv_a, Vector2 uv_b, uint col);
+        public static extern void ImDrawList_AddImage(NativeDrawList* list, IntPtr user_texture_id, Vector2 a, Vector2 b, Vector2 uv_a, Vector2 uv_b, uint col);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ImDrawList_AddImageQuad(NativeDrawList* list, void* user_texture_id, Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uv_a, Vector2 uv_b, Vector2 uv_c, Vector2 uv_d, uint col);
+        public static extern void ImDrawList_AddImageQuad(NativeDrawList* list, IntPtr user_texture_id, Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uv_a, Vector2 uv_b, Vector2 uv_c, Vector2 uv_d, uint col);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ImDrawList_AddPolyline(NativeDrawList* list, Vector2* points, int num_points, uint col, byte closed, float thickness, byte anti_aliased);
         [DllImport(cimguiLib, CallingConvention = CallingConvention.Cdecl)]

@@ -219,6 +219,17 @@ namespace Engine
         }
 
         /// <summary>
+        /// Blends color a with color b with the given amount 
+        /// </summary>
+        public static Color Blend(Color a, Color b, float amount)
+        {
+            return new Color((byte)((b.R - a.R) * amount + a.R),
+                             (byte)((b.G - a.G) * amount + a.G),
+                             (byte)((b.B - a.B) * amount + a.B),
+                             (byte)((b.A - a.A) * amount + a.A));
+        }
+
+        /// <summary>
         /// Creates color from Hsv color space
         /// </summary>
         public static Color FromHsv(float h, float s, float v, float a)
@@ -296,7 +307,16 @@ namespace Engine
         /// <returns></returns>
         public int ToArgb()
         {
-            return (A << 24) | (R << 16) | (G << 8) | B;
+            return (R << 16) | (G << 8) | (B << 0) | (A << 24);
+        }
+
+        /// <summary>
+        /// Converts this color to Rgba int representation
+        /// </summary>
+        /// <returns></returns>
+        public int ToRgba()
+        {
+            return (R << 24) | (G << 16) | (B << 8) | (A << 0);
         }
 
         /// <summary>

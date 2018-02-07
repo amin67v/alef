@@ -107,6 +107,7 @@ namespace Engine
         /// <summary>
         /// Swap two items at index a and b
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Swap(int a, int b)
         {
             Assert.IsTrue((uint)a < count);
@@ -159,7 +160,10 @@ namespace Engine
             return -1;
         }
 
-        public int Find(Predicate<T> match)
+        /// <summary>
+        /// Finds index of an item that matches the given predicate.
+        /// </summary>
+        public int FindIndex(Predicate<T> match)
         {
             for (int i = 0; i < Count; i++)
             {
@@ -172,6 +176,7 @@ namespace Engine
         /// <summary>
         /// Returns true of array contains item.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item) => IndexOf(item) != -1;
 
         /// <summary>
@@ -231,38 +236,19 @@ namespace Engine
         /// <summary>
         /// Sorts items in this array with default comparer.
         /// </summary>
-        public void Sort() => Sort(0, count, null);
+        public void Sort() => Array.Sort<T>(array, 0, count, null);
 
         /// <summary>
         /// Sorts items in this array with the given comparison delegate.
         /// </summary>
-        public void Sort(Comparison<T> compare) => Sort(0, count, compare);
+        public void Sort(IComparer<T> comparer) => Array.Sort<T>(array, 0, count, comparer);
 
         /// <summary>
-        /// Sorts items in this array with the given comparison delegate.
+        /// Sorts items in this array with the given comparer.
         /// </summary>
-        public void Sort(int index, int length, Comparison<T> compare)
+        public void Sort(int index, int length, IComparer<T> comparer)
         {
-            Assert.IsTrue((uint)index <= count, "Index is out of range.");
-            Assert.IsTrue(count - index >= length, "Length cant exceed array count.");
-
-            if (compare == null)
-                compare = Comparer<T>.Default.Compare;
-
-            var i = index;
-            var hi = index + length - 1;
-            while (i < hi)
-            {
-                var x = array[i + 1];
-                var j = i;
-                while (j >= index && compare(x, array[j]) < 0)
-                {
-                    array[j + 1] = array[j];
-                    j--;
-                }
-                array[j + 1] = x;
-                i++;
-            }
+            Array.Sort<T>(array, index, length, comparer);
         }
 
         /// <summary>

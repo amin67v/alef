@@ -16,54 +16,55 @@ namespace Game
     {
         static void Main(string[] args)
         {
-            var cfg = new AppConfig("Game App!!", 640, 480);
-            //cfg.Vsync = true;
+            var cfg = new AppConfig("Game App!!", 1280, 720);
             App.Run(cfg, new MyGame());
         }
     }
 
     public class MyGame : Scene
     {
+        SimpleEntity entity;
         public override void OnBegin()
         {
             base.OnBegin();
-            Spawn<SimpleEntity>("New Sprite entity !!!");
+            entity = Spawn<SimpleEntity>("New Sprite entity !!!");
+        }
 
+        Vector2 btn_pos = Vector2.One * 100;
+        void on_gui(Gui gui)
+        {
+            var particle = entity.RootNode as ParticleSystem;
+
+            gui.Text(particle.AliveCount.ToString());
+            gui.Combo<ParticleSortMode>("Sort Mode", ref particle.SortMode);
+
+            gui.Combo<TweenType>("Rotation Tween", ref particle.RotateTween);
+            gui.InputFloat("Start Rotation", ref particle.RotateStart, 0, 0, 2, InputTextFlags.Default);
+            gui.InputFloat("End Rotation", ref particle.RotateEnd, 0, 0, 2, InputTextFlags.Default);
+
+            gui.Combo<TweenType>("Size Tween", ref particle.SizeTween);
+            gui.InputFloat("Start Size", ref particle.SizeStart, 0, 0, 2, InputTextFlags.Default);
+            gui.InputFloat("End Size", ref particle.SizeEnd, 0, 0, 2, InputTextFlags.Default);
+            gui.Gradient("Color By Life", particle.ColorGradient);
+
+            int emit_per_sec = particle.EmitPerSecond;
+            gui.InputInt("Emit Per Second", ref emit_per_sec, 0, 0, InputTextFlags.Default);
+            particle.EmitPerSecond = emit_per_sec;
+
+        }
+
+        protected override void OnRender()
+        {
+            MainCamera.Render(this);
+            Gui.Render(on_gui);
         }
     }
 
-    public class SimpleEntity : Entity, IDrawable
+    public class SimpleEntity : Entity
     {
-        MeshBuffer mb;
-        Texture tex;
-        Shader shader;
-
-        public int Layer => 0;
-
-        public Rect Bounds => new Rect(0, 0, 1, 1);
-
         public override void OnBegin()
         {
-            Array<Vertex> verts = new Array<Vertex>();
-            verts.Push(new Vertex(0, 0, 0, 0, Color.Red));
-            verts.Push(new Vertex(1, 0, 0, 0, Color.Red));
-            verts.Push(new Vertex(0, 1, 0, 0, Color.Red));
-            verts.Push(new Vertex(1, 1, 0, 0, Color.Red));
-            mb = MeshBuffer.Create(verts);
-            tex = Texture.Create(1, 1, FilterMode.Point, WrapMode.Clamp, new Color[] { Color.White });
-            shader = Shader.Load("shaders/geom_test.glsl");
-            App.Graphics.SetPointSize(5);
-        }
-
-        public void Draw()
-        {
-            var gfx = App.Graphics;
-            gfx.SetShader(shader);
-            shader.SetMatrix3x2("model_mat", Matrix3x2.Identity);
-            shader.SetMatrix4x4("view_mat", gfx.ViewMatrix);
-            shader.SetTexture("main_tex", 0, tex);
-            shader.SetFloat("size", .1f);
-            mb.Draw(PrimitiveType.Points);
+            RootNode = new ParticleSystem();
         }
 
         public override void OnUpdate(float dt)
@@ -104,7 +105,11 @@ namespace Game
             cam.Rotation += r;
             cam.ViewSize += z;
 
-            Scene.RegisterForDraw(this);
+            if (Input.IsKeyDown(KeyCode.Right))
+                RootNode.Rotation += dt;
+
+            if (Input.IsKeyDown(KeyCode.Left))
+                RootNode.Rotation -= dt;
         }
 
 

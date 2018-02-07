@@ -3,6 +3,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using static System.MathF;
 
 using Engine;
 
@@ -12,6 +14,7 @@ public class SpriteEditor : Editable
     InputBuffer packer_src = new InputBuffer(256);
     InputBuffer image_path = new InputBuffer(256);
     InputBuffer fsearch = new InputBuffer(128);
+    Comparer<Image> img_area_compare;
     SpriteSheetFrame search_frame;
     FilterMode filter;
     WrapMode wrap;
@@ -86,7 +89,7 @@ public class SpriteEditor : Editable
                 }
                 else
                 {
-                    if (gui.Button(name, new Vector2(-20, 0)))
+                    if (gui.Button(name, new Vector2(-20, 0), new Color(255, 255, 255, 10), Color.White))
                         act_frm = i;
                 }
                 gui.PopID();
@@ -165,10 +168,10 @@ public class SpriteEditor : Editable
 
             if (Input.IsKeyReleased(MouseButton.Left))
             {
-                frames[act_frm].Rect.X = MathF.Round(frames[act_frm].Rect.X);
-                frames[act_frm].Rect.Y = MathF.Round(frames[act_frm].Rect.Y);
-                frames[act_frm].Rect.Width = MathF.Round(frames[act_frm].Rect.Width);
-                frames[act_frm].Rect.Height = MathF.Round(frames[act_frm].Rect.Height);
+                frames[act_frm].Rect.X = Round(frames[act_frm].Rect.X);
+                frames[act_frm].Rect.Y = Round(frames[act_frm].Rect.Y);
+                frames[act_frm].Rect.Width = Round(frames[act_frm].Rect.Width);
+                frames[act_frm].Rect.Height = Round(frames[act_frm].Rect.Height);
             }
 
             g.RectHandle(ref frames[act_frm].Rect, Color.DodgerBlue);
@@ -191,6 +194,7 @@ public class SpriteEditor : Editable
 
         App.Window.OnFileDrop += on_file_drop;
         search_frame = DataEditor.Icons["Search"];
+        img_area_compare = Comparer<Image>.Create((Image x, Image y) => (y.Width * y.Height) - (x.Width * x.Height));
     }
 
     public override void OnEnd()
@@ -210,11 +214,11 @@ public class SpriteEditor : Editable
         tex = Texture.Create(img, filter, wrap);
 
         if (img == null)
-            Canvas.Instance.ViewPositionLimits = new Rect(0, 0, 0, 0);
+            Canvas.Instance.PanLimit = new Rect(0, 0, 0, 0);
         else
-            Canvas.Instance.ViewPositionLimits = new Rect(0, 0, img.Width, img.Height);
-        
-        Canvas.Instance.ViewPosition = Canvas.Instance.ViewPositionLimits.Center;
+            Canvas.Instance.PanLimit = new Rect(0, 0, img.Width, img.Height);
+
+        Canvas.Instance.Pan = Canvas.Instance.PanLimit.Center;
     }
 
     protected override void Deserialize(Stream stream)
@@ -377,8 +381,7 @@ public class SpriteEditor : Editable
             images.Push(img);
         }
         // sort by area
-        int comparsion(Image x, Image y) => (y.Width * y.Height) - (x.Width * x.Height);
-        images.Sort(comparsion);
+        images.Sort(img_area_compare);
 
         var rp = new RectPack();
         act_frm = -1;

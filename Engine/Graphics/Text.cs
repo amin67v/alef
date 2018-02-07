@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using static System.MathF;
 
 namespace Engine
 {
@@ -12,7 +13,7 @@ namespace Engine
         Color color = Color.White;
         float line = 1;
         Array<Vertex> verts = null;
-        MeshBuffer mesh = null;
+        MeshBuffer<Vertex> mesh = null;
         Shader shader = null;
         bool dirty = true;
 
@@ -25,7 +26,7 @@ namespace Engine
 
             int vtx_count = string.IsNullOrEmpty(content) ? 0 : content.Length * 6;
             verts = new Array<Vertex>(vtx_count);
-            mesh = MeshBuffer.Create(IntPtr.Zero, vtx_count);
+            mesh = MeshBuffer<Vertex>.Create(IntPtr.Zero, vtx_count);
             shader = DefaultShaders.Font;
         }
 
@@ -115,9 +116,9 @@ namespace Engine
                 if ((align & TextAlignment.Left) != 0)
                     return;
                 else if ((align & TextAlignment.Right) != 0)
-                    xpush = MathF.Round(pos.X);
+                    xpush = Round(pos.X);
                 else
-                    xpush = MathF.Round(pos.X * .5f);
+                    xpush = Round(pos.X * .5f);
 
                 for (int i = line_start_idx; i < line_end_idx; i++)
                     verts.Items[i].Position.X -= xpush;
@@ -130,9 +131,9 @@ namespace Engine
                 if ((align & TextAlignment.Top) != 0)
                     return;
                 else if ((align & TextAlignment.Bottom) != 0)
-                    ypush = MathF.Round(pos.Y + font.Height * .5f);
+                    ypush = Round(pos.Y + font.Height * .5f);
                 else
-                    ypush = MathF.Round(pos.Y * .5f + font.Height * .5f);
+                    ypush = Round(pos.Y * .5f + font.Height * .5f);
 
                 for (int i = 0; i < verts.Count; i++)
                     verts.Items[i].Position.Y -= ypush;

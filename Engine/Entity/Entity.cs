@@ -30,7 +30,7 @@ namespace Engine
         /// Gets or sets root node for this entity
         /// </summary>
         /// <returns></returns>
-        public EntityNode Root 
+        public EntityNode RootNode
         {
             get => root;
             set => root = value;
@@ -49,10 +49,7 @@ namespace Engine
         /// <summary>
         /// Called at the start of each frame
         /// </summary>
-        public virtual void OnUpdate(float dt)
-        {
-            root?.process(dt);
-        }
+        public virtual void OnUpdate(float dt) { }
 
         /// <summary>
         /// Called when entity is going to be destroyed

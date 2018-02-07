@@ -1,12 +1,14 @@
 using System;
 using System.IO;
 using System.Numerics;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Engine
 {
     using static OpenGL;
-    class OpenglMeshBuffer : MeshBuffer
+
+    class OpenglMeshBuffer<T> : MeshBuffer<T> where T : struct, IVertex
     {
         uint vao;
         uint vbo;
@@ -22,7 +24,8 @@ namespace Engine
 
         public OpenglMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count, bool has_index = true)
         {
-            this.vbo_size = vtx_count * Vertex.SizeInBytes;
+            int vtx_size = default(T).SizeInBytes;
+            this.vbo_size = vtx_count * vtx_size;
             this.vtx_count = vtx_count;
             this.vbo = glGenBuffer();
             glBindBuffer(BufferTarget.ArrayBuffer, this.vbo);
@@ -42,12 +45,36 @@ namespace Engine
             glBindBuffer(BufferTarget.ArrayBuffer, this.vbo);
             if (has_index)
                 glBindBuffer(BufferTarget.ElementArrayBuffer, this.ibo);
-            glVertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Vertex.SizeInBytes, new IntPtr(0));
-            glVertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, Vertex.SizeInBytes, new IntPtr(8));
-            glVertexAttribPointer(2, 4, VertexAttribPointerType.UnsignedByte, true, Vertex.SizeInBytes, new IntPtr(16));
-            glEnableVertexAttribArray(0);
-            glEnableVertexAttribArray(1);
-            glEnableVertexAttribArray(2);
+
+            var attribs = default(T).Format.Split('.');
+            IntPtr offset = IntPtr.Zero;
+            for (uint i = 0; i < attribs.Length; i++)
+            {
+                glEnableVertexAttribArray(i);
+                switch (attribs[i])
+                {
+                    case "float":
+                        glVertexAttribPointer(i, 1, VertexAttribPointerType.Float, false, vtx_size, offset);
+                        offset += 4;
+                        break;
+                    case "vec2":
+                        glVertexAttribPointer(i, 2, VertexAttribPointerType.Float, false, vtx_size, offset);
+                        offset += 8;
+                        break;
+                    case "vec3":
+                        glVertexAttribPointer(i, 3, VertexAttribPointerType.Float, false, vtx_size, offset);
+                        offset += 12;
+                        break;
+                    case "vec4":
+                        glVertexAttribPointer(i, 4, VertexAttribPointerType.Float, false, vtx_size, offset);
+                        offset += 16;
+                        break;
+                    case "color":
+                        glVertexAttribPointer(i, 4, VertexAttribPointerType.UnsignedByte, true, vtx_size, offset);
+                        offset += 4;
+                        break;
+                }
+            }
         }
 
         public override int VertexCount => vtx_count;
@@ -72,7 +99,7 @@ namespace Engine
 
         public override void UpdateVertices(IntPtr data, int count)
         {
-            var size = count * Vertex.SizeInBytes;
+            var size = count * default(T).SizeInBytes;
             glBindBuffer(BufferTarget.ArrayBuffer, vbo);
             if (size > vbo_size)
             {

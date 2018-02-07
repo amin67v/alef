@@ -395,20 +395,11 @@ namespace Engine
                 displayFormatMax);
         }
 
-        public bool Button(string message)
-        {
-            return ImGui.igButton(message, Vector2.Zero);
-        }
+        public bool Button(string message) => Button(message, Vector2.Zero);
 
-        public bool Button(string message, Vector2 size)
-        {
-            return ImGui.igButton(message, size);
-        }
+        public bool Button(string message, Vector2 size) => ImGui.igButton(message, size);
 
-        public bool Button(string message, Color c)
-        {
-            return Button(message, Vector2.Zero, c);
-        }
+        public bool Button(string message, Color c) => Button(message, Vector2.Zero, c);
 
         public bool Button(string message, Vector2 size, Color btn_color)
         {
@@ -1005,7 +996,7 @@ namespace Engine
             ImGui.igPopClipRect();
         }
 
-        public bool IsLastItemHovered()
+        public bool IsItemHovered()
         {
             return ImGui.igIsItemHovered();
         }
@@ -1015,12 +1006,12 @@ namespace Engine
             return ImGui.igIsItemRectHovered();
         }
 
-        public bool IsLastItemActive()
+        public bool IsItemActive()
         {
             return ImGui.igIsItemActive();
         }
 
-        public bool IsLastItemVisible()
+        public bool IsItemVisible()
         {
             return ImGui.igIsItemVisible();
         }
@@ -1065,21 +1056,21 @@ namespace Engine
             ImGui.igTreePop();
         }
 
-        public Vector2 GetLastItemRectSize()
+        public Vector2 GetItemRectSize()
         {
             Vector2 result;
             ImGui.igGetItemRectSize(out result);
             return result;
         }
 
-        public Vector2 GetLastItemRectMin()
+        public Vector2 GetItemRectMin()
         {
             Vector2 result;
             ImGui.igGetItemRectMin(out result);
             return result;
         }
 
-        public Vector2 GetLastItemRectMax()
+        public Vector2 GetItemRectMax()
         {
             Vector2 result;
             ImGui.igGetItemRectMax(out result);
@@ -1116,6 +1107,47 @@ namespace Engine
             ImGui.igCalcListClipping(itemsCount, itemsHeight, ref outItemsDisplayStart, ref outItemsDisplayEnd);
         }
 
+        public unsafe void AddLine(Vector2 a, Vector2 b, Color color, float thickness)
+        {
+            ImGui.ImDrawList_AddLine(ImGui.igGetWindowDrawList(), a, b, (uint)color.GetHashCode(), thickness);
+        }
+
+        public unsafe void AddRect(Rect rect, Color color, float thickness, float rounding = 0)
+        {
+            ImGui.ImDrawList_AddRect(ImGui.igGetWindowDrawList(), rect.XMinYMin, rect.XMaxYMax, (uint)color.GetHashCode(), rounding, 0xff, thickness);
+        }
+
+        public unsafe void AddRectFilled(Rect rect, Color color, float rounding = 0)
+        {
+            ImGui.ImDrawList_AddRectFilled(ImGui.igGetWindowDrawList(), rect.XMinYMin, rect.XMaxYMax, (uint)color.GetHashCode(), rounding, 0xff);
+        }
+
+        public unsafe void AddRectFilledMultiColor(Rect rect, Color top_left, Color top_right, Color bot_right, Color bot_left)
+        {
+            ImGui.ImDrawList_AddRectFilledMultiColor(ImGui.igGetWindowDrawList(), rect.XMinYMin, rect.XMaxYMax, (uint)top_left.GetHashCode(),
+                                                                                                                (uint)top_right.GetHashCode(),
+                                                                                                                (uint)bot_right.GetHashCode(),
+                                                                                                                (uint)bot_left.GetHashCode());
+        }
+
+        public unsafe void AddCircle(Vector2 pos, float radius, Color color, int segments, float thickness)
+        {
+            ImGui.ImDrawList_AddCircle(ImGui.igGetWindowDrawList(), pos, radius, (uint)color.GetHashCode(), segments, thickness);
+        }
+
+        public unsafe void AddCircleFilled(Vector2 pos, float radius, Color color, int segments)
+        {
+            ImGui.ImDrawList_AddCircleFilled(ImGui.igGetWindowDrawList(), pos, radius, (uint)color.GetHashCode(), segments);
+        }
+
+        public unsafe void AddImage(Texture tex, Rect rect, Rect uv, Color color)
+        {
+            var id = tex.GetHashCode();
+            id_tex_map[id] = tex;
+            ImGui.ImDrawList_AddImage(ImGui.igGetWindowDrawList(), new IntPtr(id), rect.XMinYMin, rect.XMaxYMax,
+                                      uv.XMinYMin, uv.XMaxYMax, (uint)color.GetHashCode());
+        }
+
         unsafe void PushFont(ImFont font)
         {
             ImGui.igPushFont(font.NativeFont);
@@ -1125,5 +1157,6 @@ namespace Engine
         {
             ImGui.igPopFont();
         }
+
     }
 }

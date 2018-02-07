@@ -37,7 +37,7 @@ public class DataEditor : Disposable, IAppState
 
         icons = SpriteSheet.Load("editor/icons.spr");
 
-        var app_icon =  Image.FromFile(App.GetAbsolutePath("editor/data-editor.png"));
+        var app_icon = Image.FromFile(App.GetAbsolutePath("editor/data-editor.png"));
         App.Window.SetIcon(app_icon);
         app_icon.Dispose();
     }
@@ -61,16 +61,15 @@ public class DataEditor : Disposable, IAppState
     public void OnGui(Gui gui)
     {
         Rect remain = new Rect(Vector2.Zero, App.Window.Size);
-        var toolbar = remain; toolbar.Height = remain.YMin = 52;
         var browser = remain; browser.Width = remain.XMin = 250;
         var inspector = remain; inspector.XMin = remain.XMax = (remain.XMax - 320);
+        var toolbar = remain; toolbar.Height = remain.YMin = 28;
         var canvas = remain;
 
         Toolbar.Instance.Draw(gui, toolbar);
         Browser.Instance.Draw(gui, browser);
         Inspector.Instance.Draw(gui, inspector);
         Canvas.Instance.Draw(gui, canvas);
-        //ContextMenu.Instance.Draw(gui);
         Dialog.Instance.Draw(gui);
         Cursor.Update(gui);
     }
@@ -93,8 +92,15 @@ public class DataEditor : Disposable, IAppState
         {
             var target = (ColorTarget)i;
             var c = gui.Style.GetColor(target);
+
             gui.ColorEdit(target.ToString(), ref c, ColorEditFlags.Default | ColorEditFlags.AlphaPreview);
             gui.Style.SetColor(target, c);
+            gui.SameLine();
+            if (gui.Button($"Lighter{i}"))
+                gui.Style.SetColor(target, gui.Style.GetColor(target).Lighter(0.1f));
+            gui.SameLine();
+            if (gui.Button($"Darker{i}"))
+                gui.Style.SetColor(target, gui.Style.GetColor(target).Darker(0.1f));
         }
 
     }

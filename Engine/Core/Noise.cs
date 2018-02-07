@@ -1,11 +1,11 @@
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-
 using static System.MathF;
 
 namespace Engine
 {
+    using static MathF;
     public static class Noise
     {
         static readonly byte[] perm =
@@ -36,7 +36,7 @@ namespace Engine
             var grad_a = grad1D(perm[xi], x);
             var grad_b = grad1D(perm[xi + 1], x - 1);
 
-            return grad_a.Blend(grad_b, u) * 2;
+            return Lerp(grad_a, grad_b, u);
         }
 
         public static float Perlin2D(float x, float y)
@@ -58,10 +58,10 @@ namespace Engine
             var grad_c = grad2D(perm[a + 1], x - 1, y);
             var grad_d = grad2D(perm[b + 1], x - 1, y - 1);
 
-            var ab = grad_a.Blend(grad_b, u);
-            var cd = grad_c.Blend(grad_d, u);
+            var ab = Lerp(grad_a, grad_b, u);
+            var cd = Lerp(grad_c, grad_d, u);
 
-            return ab.Blend(cd, v);
+            return Lerp(ab, cd, v);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

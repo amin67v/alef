@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using static System.MathF;
 
 namespace Engine
 {
@@ -10,7 +11,7 @@ namespace Engine
         Transform xform;
         SpriteSheet spr;
         Shader shader;
-        MeshBuffer mb;
+        MeshBuffer<Vertex> mb;
         BlendMode blend;
         Rect bounds;
         int layer;
@@ -28,7 +29,7 @@ namespace Engine
             this.shader = shader;
             this.xform = xform;
             this.blend = blend_mode;
-            mb = MeshBuffer.Create();
+            mb = MeshBuffer<Vertex>.Create();
         }
 
         /// <summary>
@@ -47,10 +48,10 @@ namespace Engine
                     for (int i = 0; i < verts.Count; i++)
                     {
                         var pos = verts[i].Position;
-                        xmin = MathF.Min(xmin, pos.X);
-                        xmax = MathF.Max(xmax, pos.X);
-                        ymin = MathF.Min(ymin, pos.Y);
-                        ymax = MathF.Max(ymax, pos.Y);
+                        xmin = Min(xmin, pos.X);
+                        xmax = Max(xmax, pos.X);
+                        ymin = Min(ymin, pos.Y);
+                        ymax = Max(ymax, pos.Y);
                     }
                     bounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
                     bounds_dirty = false;

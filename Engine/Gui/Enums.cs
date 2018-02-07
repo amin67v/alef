@@ -69,9 +69,6 @@ namespace Engine
         Multiline = 1 << 20
     }
 
-    /// <summary>
-    /// Flags for ImGui::Selectable()
-    /// </summary>
     public enum SelectableFlags
     {
         // Default: 0

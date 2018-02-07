@@ -12,8 +12,8 @@ namespace Engine
         void Display();
 
         Texture CreateTexture(int width, int height, FilterMode filter, WrapMode wrap, IntPtr data);
-        MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count);
-        MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count);
+        MeshBuffer<T> CreateMeshBuffer<T>(IntPtr vtx_data, int vtx_count) where T : struct, IVertex;
+        MeshBuffer<T> CreateMeshBuffer<T>(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count) where T : struct, IVertex;
         RenderTarget CreateRenderTarget(int width, int height, FilterMode filter, int count);
         Shader CreateShader(string vert, string geom, string frag);
 

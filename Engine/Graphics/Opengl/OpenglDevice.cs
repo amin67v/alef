@@ -116,14 +116,14 @@ namespace Engine
             return new OpenglTexture(width, height, filter, wrap, data);
         }
 
-        public MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count)
+        public MeshBuffer<T> CreateMeshBuffer<T>(IntPtr vtx_data, int vtx_count) where T : struct, IVertex
         {
-            return new OpenglMeshBuffer(vtx_data, vtx_count);
+            return new OpenglMeshBuffer<T>(vtx_data, vtx_count);
         }
 
-        public MeshBuffer CreateMeshBuffer(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count)
+        public MeshBuffer<T> CreateMeshBuffer<T>(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count) where T : struct, IVertex
         {
-            return new OpenglMeshBuffer(vtx_data, vtx_count, idx_data, idx_count);
+            return new OpenglMeshBuffer<T>(vtx_data, vtx_count, idx_data, idx_count);
         }
 
         public RenderTarget CreateRenderTarget(int width, int height, FilterMode filter, int count)

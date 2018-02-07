@@ -61,7 +61,7 @@ public class Browser : Panel
                     target_path = cpath.Substring(0, idx);
             }
         }
-        if (gui.IsLastItemHovered())
+        if (gui.IsItemHovered())
             gui.SetTooltip("Back");
 
         gui.SameLine(0, 0);
@@ -81,7 +81,7 @@ public class Browser : Panel
             }
         }
 
-        if (gui.IsLastItemHovered())
+        if (gui.IsItemHovered())
             gui.SetTooltip("Open Directory");
 
         gui.PopStyleColor();
@@ -96,7 +96,7 @@ public class Browser : Panel
                 if (gui.Button(folders[i].Name, new Vector2(-1, 0), new Color(240, 190, 90, 255)))
                     target_path = Path.Combine(cpath, folders[i].Name);
 
-                if (gui.IsLastItemHovered())
+                if (gui.IsItemHovered())
                     Cursor.Set(CursorMode.Select);
             }
 
@@ -143,7 +143,7 @@ public class Browser : Panel
 
                     gui.EndPopup();
                 }
-                if (gui.IsLastItemHovered())
+                if (gui.IsItemHovered())
                 {
                     Cursor.Set(CursorMode.Select);
                     tooltip = get_file_tooltip(files[i]);

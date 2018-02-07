@@ -41,37 +41,5 @@ namespace Engine
                 return hash;
             }
         }
-
-        /// <summary>
-        /// Remap this value from (min1, max1) to (min2, max2) range
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Remap(this float value, float min1, float max1, float min2, float max2)
-        {
-            var t = (value - min1) / (max1 - min1);
-            return min2.Blend(max2, t);
-
-        }
-
-        /// <summary>
-        /// Blend this value to the other value with the specified amount.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Blend(this float value, float other, float amount)
-        {
-            amount = amount.Clamp(0, 1);
-            return (other - value) * amount + value;
-        }
-
-        /// <summary>
-        /// Clamp this value between min and max
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Clamp(this float value, float min, float max)
-        {
-            return MathF.Min(max, MathF.Max(min, value));
-        }
-
-
     }
 }

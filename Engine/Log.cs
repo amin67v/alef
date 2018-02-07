@@ -50,33 +50,33 @@ namespace Engine
         /// <summary>
         /// prints a debug message to the output.
         /// </summary>
-        public static void Debug(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Debug(object msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Debug, msg, file, line);
+            instance.write(LogLevel.Debug, msg.ToString(), file, line);
         }
 
         /// <summary>
         /// prints an info message to the output.
         /// </summary>
-        public static void Info(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Info(object msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Info, msg, file, line);
+            instance.write(LogLevel.Info, msg.ToString(), file, line);
         }
 
         /// <summary>
         /// prints a warning message to the output.
         /// </summary>
-        public static void Warning(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Warning(object msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Warning, msg, file, line);
+            instance.write(LogLevel.Warning, msg.ToString(), file, line);
         }
 
         /// <summary>
         /// prints an error message to the output.
         /// </summary>
-        public static void Error(string msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void Error(object msg, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            instance.write(LogLevel.Error, msg, file, line);
+            instance.write(LogLevel.Error, msg.ToString(), file, line);
         }
 
         void write(LogLevel lvl, string message, string file, int line)

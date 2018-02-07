@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using static System.MathF;
 
 namespace Engine
 {
@@ -60,7 +61,7 @@ namespace Engine
             get => size;
             set
             {
-                size = MathF.Max(0, value);
+                size = Max(0, value);
                 dirty = true;
             }
         }
@@ -82,10 +83,10 @@ namespace Engine
             get => viewport;
             set
             {
-                value.X = MathF.Max(0, value.X);
-                value.Y = MathF.Max(0, value.Y);
-                value.Width = MathF.Min(1, value.Width);
-                value.Height = MathF.Min(1, value.Height);
+                value.X = Max(0, value.X);
+                value.Y = Max(0, value.Y);
+                value.Width = Min(1, value.Width);
+                value.Height = Min(1, value.Height);
                 viewport = value;
                 dirty = true;
             }
@@ -225,10 +226,10 @@ namespace Engine
                     var b = Vector2.Transform(new Vector2(s, s), inv_matrix);
                     var c = Vector2.Transform(new Vector2(-s, s), inv_matrix);
                     var d = Vector2.Transform(new Vector2(s, -s), inv_matrix);
-                    r.XMin = MathF.Min(MathF.Min(a.X, b.X), MathF.Min(c.X, d.X));
-                    r.XMax = MathF.Max(MathF.Max(a.X, b.X), MathF.Max(c.X, d.X));
-                    r.YMin = MathF.Min(MathF.Min(a.Y, b.Y), MathF.Min(c.Y, d.Y));
-                    r.YMax = MathF.Max(MathF.Max(a.Y, b.Y), MathF.Max(c.Y, d.Y));
+                    r.XMin = Min(Min(a.X, b.X), Min(c.X, d.X));
+                    r.XMax = Max(Max(a.X, b.X), Max(c.X, d.X));
+                    r.YMin = Min(Min(a.Y, b.Y), Min(c.Y, d.Y));
+                    r.YMax = Max(Max(a.Y, b.Y), Max(c.Y, d.Y));
                     view_rect = r;
                 }
 

@@ -9,8 +9,9 @@ namespace Engine
         internal Array<IDrawable> draw_list;
         Camera cam;
         Entity ent_list;
-        bool is_render;
         DebugDraw debug_draw;
+        Comparer<IDrawable> draw_comparer;
+        bool is_render;
 
         public event Action OnPreRender;
         public event Action OnPostRender;
@@ -93,6 +94,7 @@ namespace Engine
             cam = new Camera();
             draw_list = new Array<IDrawable>(50);
             debug_draw = new DebugDraw();
+            draw_comparer = Comparer<IDrawable>.Create((IDrawable x, IDrawable y) => x.Layer - y.Layer);
         }
 
         public virtual void OnEnd() { }
@@ -108,6 +110,7 @@ namespace Engine
             while (current != null)
             {
                 current.OnUpdate(dt);
+                current.RootNode?.process(dt);
                 current = current.next;
             }
 
@@ -115,8 +118,7 @@ namespace Engine
             is_render = true;
             OnPreRender?.Invoke();
             // sort draw list based on their layer
-            int comparsion(IDrawable x, IDrawable y) => x.Layer - y.Layer;
-            draw_list.Sort(comparsion);
+            draw_list.Sort(draw_comparer);
             OnRender();
             draw_list.Clear();
             App.Graphics.Display();

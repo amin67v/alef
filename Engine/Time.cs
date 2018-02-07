@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using static System.MathF;
 
 namespace Engine
 {
@@ -33,7 +34,7 @@ namespace Engine
         public static float Speed
         {
             get => instance.speed;
-            set => instance.speed = MathF.Max(0, value);
+            set => instance.speed = Max(0, value);
         }
 
         internal static void update()

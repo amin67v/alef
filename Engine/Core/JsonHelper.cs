@@ -13,7 +13,7 @@ namespace Engine
         public static string PrettifyJson(string input)
         {
             const string indent = "    ";
-
+            
             bool is_escaped(StringBuilder sb, int index)
             {
                 bool escaped = false;

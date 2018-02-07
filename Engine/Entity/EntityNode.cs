@@ -10,8 +10,8 @@ namespace Engine
         Matrix3x2 matrix = Matrix3x2.Identity;
         Matrix3x2 inv_matrix = Matrix3x2.Identity;
         Vector2 pos = Vector2.Zero;
+        Vector2 scale = Vector2.One;
         float rot = 0;
-        float scale = 1;
         int dirty = 0xff;
 
         public EntityNode Parent
@@ -48,7 +48,7 @@ namespace Engine
             }
         }
 
-        public float Scale
+        public Vector2 Scale
         {
             get => scale;
             set
@@ -66,8 +66,10 @@ namespace Engine
                 {
                     matrix = Matrix3x2.CreateRotation(rot);
                     matrix.Translation = pos;
-                    matrix.M11 *= scale;
-                    matrix.M22 *= scale;
+                    matrix.M11 *= scale.X;
+                    matrix.M12 *= scale.X;
+                    matrix.M21 *= scale.Y;
+                    matrix.M22 *= scale.Y;
                     dirty &= ~0x01;
                 }
 
@@ -95,12 +97,6 @@ namespace Engine
         public Vector2 LocalToWorldNormal(Vector2 normal) => Vector2.TransformNormal(normal, Matrix);
 
         public Vector2 WorldToLocalNormal(Vector2 normal) => Vector2.TransformNormal(normal, InvMatrix);
-
-        public void CreateChild<T>() where T : EntityNode, new()
-        {
-            var node = new T();
-            node.Parent = this;
-        }
 
         /// <summary>
         /// Called at the start of each frame

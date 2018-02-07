@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public abstract class MeshBuffer : Disposable
+    public abstract class MeshBuffer<T> : Disposable where T : struct, IVertex
     {
         /// <summary>
         /// Number of vertices this mesh buffer contains
@@ -36,7 +36,7 @@ namespace Engine
         /// <summary>
         /// Creates an empty mesh buffer
         /// </summary>
-        public static MeshBuffer Create()
+        public static MeshBuffer<T> Create()
         {
             return Create(IntPtr.Zero, 0);
         }
@@ -44,7 +44,7 @@ namespace Engine
         /// <summary>
         /// Creates an empty mesh buffer including index buffer
         /// </summary>
-        public static MeshBuffer CreateIndexed()
+        public static MeshBuffer<T> CreateIndexed()
         {
             return CreateIndexed(IntPtr.Zero, 0, IntPtr.Zero, 0);
         }
@@ -52,7 +52,7 @@ namespace Engine
         /// <summary>
         /// Creates a mesh buffer with the provided vertex array
         /// </summary>
-        public static MeshBuffer Create(Array<Vertex> vertices)
+        public static MeshBuffer<T> Create(Array<T> vertices)
         {
             var pin = GCHandle.Alloc(vertices.Items, GCHandleType.Pinned);
             var mb = Create(pin.AddrOfPinnedObject(), vertices.Count);
@@ -63,7 +63,7 @@ namespace Engine
         /// <summary>
         /// Creates a mesh buffer with the provided vertex and index array
         /// </summary>
-        public static MeshBuffer CreateIndexed(Array<Vertex> vertices, Array<ushort> indices)
+        public static MeshBuffer<T> CreateIndexed(Array<T> vertices, Array<ushort> indices)
         {
             var pin = GCHandle.Alloc(vertices.Items, GCHandleType.Pinned);
             var pin2 = GCHandle.Alloc(indices.Items, GCHandleType.Pinned);
@@ -76,23 +76,23 @@ namespace Engine
         /// <summary>
         /// Creates a mesh buffer with the provided pointer to the vertex data
         /// </summary>
-        public static MeshBuffer Create(IntPtr vtx_data, int vtx_count)
+        public static MeshBuffer<T> Create(IntPtr vtx_data, int vtx_count)
         {
-            return App.Graphics.CreateMeshBuffer(vtx_data, vtx_count);
+            return App.Graphics.CreateMeshBuffer<T>(vtx_data, vtx_count);
         }
 
         /// <summary>
         /// Creates a mesh buffer with the provided pointers to vertex and index data
         /// </summary>
-        public static MeshBuffer CreateIndexed(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count)
+        public static MeshBuffer<T> CreateIndexed(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count)
         {
-            return App.Graphics.CreateMeshBuffer(vtx_data, vtx_count, idx_data, idx_count);
+            return App.Graphics.CreateMeshBuffer<T>(vtx_data, vtx_count, idx_data, idx_count);
         }
 
         /// <summary>
         /// Updates vertex buffer with the provided vertex array
         /// </summary>
-        public void UpdateVertices(Array<Vertex> vertices)
+        public void UpdateVertices(Array<T> vertices)
         {
             var pin = GCHandle.Alloc(vertices.Items, GCHandleType.Pinned);
             UpdateVertices(pin.AddrOfPinnedObject(), vertices.Count);

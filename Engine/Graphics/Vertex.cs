@@ -4,12 +4,27 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Vertex : IEquatable<Vertex>
+    public interface IVertex
     {
-        public static readonly int SizeInBytes = Marshal.SizeOf<Vertex>();
+        int SizeInBytes { get; }
 
+        string Format { get; }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Vertex : IEquatable<Vertex>, IVertex
+    {
         public static readonly Vertex Zero = new Vertex(0, 0, 0, 0, Color.White);
+
+        public int SizeInBytes
+        {
+            get
+            {
+                unsafe { return sizeof(Vertex); }
+            }
+        }
+
+        public string Format => "vec2.vec2.color";
 
         public Vector2 Position;
         public Vector2 Texcoord;
