@@ -71,7 +71,7 @@ namespace Engine
             gfx.SetViewport(0, 0, (int)screen.X, (int)screen.Y);
             gfx.ViewMatrix = Matrix4x4.CreateOrthographicOffCenter(0, screen.X, screen.Y, 0, -1, 1);
             gfx.SetBlendMode(BlendMode.AlphaBlend);
-            var shader = DefaultShaders.ColorMult;
+            var shader = Data.Get<Shader>("Mult.Shader");
             gfx.SetShader(shader);
             shader.SetMatrix4x4("view_mat", gfx.ViewMatrix);
             shader.SetMatrix3x2("model_mat", Matrix3x2.Identity);
@@ -221,7 +221,7 @@ namespace Engine
                 Color.LightGray, Color.White, Color.White, Color.LightGray
             };
 
-            instance.checker = DataCache.Get<Texture>("Checker.Texture");
+            instance.checker = Data.Get<Texture>("Checker.Texture");
         }
 
         internal static void shutdown()

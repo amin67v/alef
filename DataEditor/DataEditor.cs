@@ -11,7 +11,7 @@ public class DataEditor : Disposable, IAppState
 
     public static SpriteSheet Icons => icons;
 
-    public void OnBegin()
+    public void OnEnter()
     {
         void app_quit()
         {
@@ -42,7 +42,7 @@ public class DataEditor : Disposable, IAppState
         app_icon.Dispose();
     }
 
-    public void OnEnd()
+    public void OnExit()
     {
         Editable.Active?.OnEnd();
     }

@@ -11,13 +11,13 @@ namespace Engine
         void OnFrame();
 
         /// <summary>
-        /// Called when this state begins.
+        /// Called the moment this state becomes the active one.
         /// </summary>
-        void OnBegin();
+        void OnEnter();
 
         /// <summary>
-        /// Called when quiting this state.
+        /// Called the moment this state leaves the active one.
         /// </summary>
-        void OnEnd();
+        void OnExit();
     }
 }

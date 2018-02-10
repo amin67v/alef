@@ -1,72 +1,78 @@
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 
 namespace Engine
 {
-    public class StaticBatch : Entity
+    public class BatchManager : Entity
     {
-        static StaticBatch instance;
+        static BatchManager instance;
 
         Dictionary<BatchKey, SpriteBatch> batch_map;
-        float batch_area_size = 100;
+        Shader default_shader;
+        Vector2 batch_size = Vector2.One * 100;
 
-        public static void AddSprite(Transform xform, SpriteSheetFrame frame)
+        public Vector2 BatchSize
         {
-            AddSprite(xform, frame, 0, DefaultShaders.ColorMult, BlendMode.AlphaBlend, Color.White);
+            get => batch_size;
+            set => batch_size = value;
         }
 
-        public static void AddSprite(Transform xform, SpriteSheetFrame frame, int layer, Color color)
-        {
-            AddSprite(xform, frame, layer, DefaultShaders.ColorMult, BlendMode.AlphaBlend, color);
-        }
-
-        public static void AddSprite(Transform xform, SpriteSheetFrame frame, int layer, Shader shader, BlendMode blend_mode, Color color)
+        public static void AddSprite(SpriteNode node)
         {
             if (instance == null)
-                instance = Scene.Spawn<StaticBatch>("StaticBatch");
+                instance = Spawn<BatchManager>("BatchManager");
 
             var key = new BatchKey()
             {
-                Sprite = frame.SpriteSheet,
-                Shader = shader,
-                BlendMode = blend_mode,
-                Layer = layer,
-                X = (int)(xform.Position.X / instance.batch_area_size),
-                Y = (int)(xform.Position.Y / instance.batch_area_size),
+                Sprite = node.Frame.SpriteSheet,
+                Shader = node.Shader,
+                BlendMode = node.BlendMode,
+                Layer = node.Layer,
+                X = (int)(node.Position.X / instance.BatchSize.X),
+                Y = (int)(node.Position.Y / instance.BatchSize.Y),
             };
 
             SpriteBatch target;
             if (!instance.batch_map.TryGetValue(key, out target))
             {
-                target = new SpriteBatch(frame.SpriteSheet, shader, null, blend_mode, layer, 20);
+                target = new SpriteBatch();
+                target.MainTexture = node.Frame.SpriteSheet.Texture;
+                target.Shader = node.Shader;
+                target.BlendMode = node.BlendMode;
+                target.Layer = node.Layer;
                 instance.batch_map.Add(key, target);
             }
 
-            target.AddSprite(xform, frame, color);
+            target.AddSprite(node);
         }
 
-        public void SetBatchAreaSize(float value) => batch_area_size = value;
-
-        public override void OnBegin()
+        protected override void OnBegin()
         {
             batch_map = new Dictionary<BatchKey, SpriteBatch>();
-            Scene.OnPreRender += on_pre_render;
+            Scene.Active.OnPreRender += on_pre_render;
+            default_shader = Data.Get<Shader>("Mult.Shader");
+            CreateRootNode<EntityNode>();
         }
 
-        public override void OnDestroy()
+        protected override void OnDestroy()
         {
             foreach (var item in batch_map.Values)
                 item.Dispose();
-
+            
             batch_map.Clear();
-            Scene.OnPreRender -= on_pre_render;
+            Scene.Active.OnPreRender -= on_pre_render;
             instance = null;
         }
 
         void on_pre_render()
         {
             foreach (var item in batch_map.Values)
-                Scene.RegisterForDraw(item);
+            {
+                item.Rebuild();
+                Scene.Active.AddDrawable(item);
+                item.Clear();
+            }
         }
 
         struct BatchKey : IEquatable<BatchKey>

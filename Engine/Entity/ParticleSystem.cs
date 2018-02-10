@@ -43,8 +43,8 @@ namespace Engine
             buffer = MeshBuffer<ParticleVertex>.Create();
             verts = new Array<ParticleVertex>(50);
             forces = new Array<Vector2>();
-            shader = Shader.Load("shaders/particle.glsl");
-            tex = DataCache.Get<Texture>("White.Texture");
+            shader = Data.Get<Shader>("Particle.Shader");
+            tex = Data.Get<Texture>("White.Texture");
             color = new Gradient();
         }
 
@@ -174,7 +174,7 @@ namespace Engine
 
             sort();
 
-            (App.ActiveState as Scene)?.RegisterForDraw(this);
+            (App.ActiveState as Scene)?.AddDrawable(this);
         }
 
         void emit()

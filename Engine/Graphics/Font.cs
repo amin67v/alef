@@ -74,7 +74,7 @@ namespace Engine
 
             }
 
-            return DataCache.FromCacheOrFile(file, load_file) as Font;
+            return Data.FromCacheOrFile(file, load_file) as Font;
         }
 
         protected override void OnDisposeUnmanaged()

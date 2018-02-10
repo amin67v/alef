@@ -112,13 +112,13 @@ namespace Engine
             Time.init();
             gfx = new OpenglDevice();
             Log.Info($"Graphics Driver:\n{gfx.DriverInfo}");
-            DataCache.init();
+            Data.init();
             Input.init();
 
             if (state != null)
             {
                 act_state = state;
-                act_state.OnBegin();
+                act_state.OnEnter();
             }
             else
             {
@@ -135,18 +135,18 @@ namespace Engine
 
                 if (nxt_state != null)
                 {
-                    act_state.OnEnd();
+                    act_state.OnExit();
                     act_state = nxt_state;
-                    act_state.OnBegin();
+                    act_state.OnEnter();
                     nxt_state = null;
                 }
             }
 
-            ActiveState.OnEnd();
+            ActiveState.OnExit();
             nxt_state = act_state = null;
             Input.shutdown();
             Gui.shutdown();
-            DataCache.shutdown();
+            Data.shutdown();
             Window.ShutDown();
             Time.shutdown();
             Log.shutdown();

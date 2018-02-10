@@ -57,10 +57,10 @@ namespace Engine
                 if (BeginPopupContextItem($"key_context{i}"))
                 {
                     var key_color = grad.GetColor(i);
-                    ColorEdit(string.Empty, ref key_color);
+                    ColorPicker(string.Empty, ref key_color, ColorEditFlags.NoSidePreview);
                     grad.SetColor(i, key_color);
 
-                    if (i > 0 && i < grad.KeyCount - 1 && Button("Remove"))
+                    if (i > 0 && i < grad.KeyCount - 1 && Button("Remove", new Vector2(-1, 20)))
                     {
                         del_index = i;
                         CloseCurrentPopup();
@@ -79,7 +79,7 @@ namespace Engine
             if (InvisibleButton("add_key", grect.Size))
             {
                 var new_key_pos = ((GetMousePos().X - gpos.X) / grect.Width).Clamp(0.05f, 0.95f); ;
-                grad.AddKey(new_key_pos, Color.White);
+                grad.AddKey(new_key_pos);
             }
             // gradient label
             SameLine(0, 4);

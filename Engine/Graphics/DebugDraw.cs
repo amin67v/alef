@@ -18,8 +18,8 @@ namespace Engine
 
         public DebugDraw()
         {
-            tex = DataCache.Get<Texture>("White.Texture");
-            shader = DefaultShaders.ColorMult;
+            tex = Data.Get<Texture>("White.Texture");
+            shader = Data.Get<Shader>("Mult.Shader");
             points = new Array<Vertex>(50);
             lines = new Array<Vertex>(50);
             triangles = new Array<Vertex>(50);

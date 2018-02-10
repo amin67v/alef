@@ -39,7 +39,7 @@ namespace Engine
         /// </summary>
         public static SpriteSheet Load(string file)
         {
-            return DataCache.FromCacheOrFile(file, deserialize) as SpriteSheet;
+            return Data.FromCacheOrFile(file, deserialize) as SpriteSheet;
         }
 
         static SpriteSheet deserialize(Stream stream)
@@ -135,13 +135,11 @@ namespace Engine
             rect /= ppu;
             offset /= ppu;
             rect.Position = -offset * rect.Size;
-            verts = new Vertex[6];
+            verts = new Vertex[4];
             verts[0] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);
             verts[1] = new Vertex(rect.XMaxYMax, texcoord.XMaxYMax, Color.White);
             verts[2] = new Vertex(rect.XMinYMax, texcoord.XMinYMax, Color.White);
-            verts[3] = new Vertex(rect.XMinYMin, texcoord.XMinYMin, Color.White);
-            verts[4] = new Vertex(rect.XMaxYMax, texcoord.XMaxYMax, Color.White);
-            verts[5] = new Vertex(rect.XMaxYMin, texcoord.XMaxYMin, Color.White);
+            verts[3] = new Vertex(rect.XMaxYMin, texcoord.XMaxYMin, Color.White);
         }
 
         /// <summary>

@@ -5,163 +5,65 @@ using static System.MathF;
 
 namespace Engine
 {
-    public class SpriteBatch : Disposable, IDrawable
+    public class SpriteBatch : DrawableMesh
     {
-        Array<Vertex> verts;
-        Transform xform;
-        SpriteSheet spr;
-        Shader shader;
-        MeshBuffer<Vertex> mb;
-        BlendMode blend;
-        Rect bounds;
-        int layer;
-        bool mb_dirty = true;
-        bool bounds_dirty = true;
+        static IComparer<SpriteNode> sort_by_order = Comparer<SpriteNode>.Create((SpriteNode x, SpriteNode y) => x.OrderInBuffer - y.OrderInBuffer);
 
-        public SpriteBatch(SpriteSheet spr, int layer)
-            : this(spr, DefaultShaders.ColorMult, null, BlendMode.AlphaBlend, layer, 20) { }
+        Array<SpriteNode> nodes;
 
-        public SpriteBatch(SpriteSheet spr, Shader shader, Transform xform, BlendMode blend_mode, int layer, int capacity)
+        public SpriteBatch()
         {
-            verts = new Array<Vertex>(capacity * 6);
-            this.spr = spr;
-            this.layer = layer;
-            this.shader = shader;
-            this.xform = xform;
-            this.blend = blend_mode;
-            mb = MeshBuffer<Vertex>.Create();
+            nodes = new Array<SpriteNode>();
         }
 
         /// <summary>
-        /// Bounding rect which all vertices are inside
+        /// Add sprite node to the batch
+        /// Note: You need to call rebuild after this to apply changes
         /// </summary>
-        public Rect Bounds
+        public void AddSprite(SpriteNode node) => nodes.Push(node);
+
+        /// <summary>
+        /// Removes sprite node from the batch
+        /// Note: You need to call rebuild after this to apply changes
+        /// </summary>
+        public void RemoveSprite(SpriteNode node) => nodes.Remove(node);
+
+        /// <summary>
+        /// Clears batch from all sprite nodes
+        /// </summary>
+        public void Clear() => nodes.Clear();
+
+        /// <summary>
+        /// Rebuilds batch from the sprite nodes
+        /// </summary>
+        public void Rebuild()
         {
-            get
+            nodes.Sort(sort_by_order);
+            VertexArray.Clear();
+            IndexArray.Clear();
+            for (int i = 0; i < nodes.Count; i++)
             {
-                if (bounds_dirty)
+                for (int j = 0; j < 4; j++)
                 {
-                    float xmin = float.MaxValue;
-                    float xmax = float.MinValue;
-                    float ymin = float.MaxValue;
-                    float ymax = float.MinValue;
-                    for (int i = 0; i < verts.Count; i++)
-                    {
-                        var pos = verts[i].Position;
-                        xmin = Min(xmin, pos.X);
-                        xmax = Max(xmax, pos.X);
-                        ymin = Min(ymin, pos.Y);
-                        ymax = Max(ymax, pos.Y);
-                    }
-                    bounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
-                    bounds_dirty = false;
+                    var pos = nodes[i].LocalToWorld(nodes[i].Frame.Vertices[j].Position);
+                    VertexArray.Push(new Vertex(pos, nodes[i].Frame.Vertices[j].Texcoord, nodes[i].Color));
                 }
-                return bounds;
+                var offset = (ushort)(i * 4);
+                IndexArray.Push((ushort)(offset + 0));
+                IndexArray.Push((ushort)(offset + 1));
+                IndexArray.Push((ushort)(offset + 2));
+                IndexArray.Push((ushort)(offset + 0));
+                IndexArray.Push((ushort)(offset + 1));
+                IndexArray.Push((ushort)(offset + 3));
             }
-        }
-
-        public int Layer
-        {
-            get => layer;
-            set => layer = value;
-        }
-
-        /// <summary>
-        /// BlendMode used to draw this batch
-        /// </summary>
-        public BlendMode BlendMode
-        {
-            get => blend;
-            set => blend = value;
-        }
-
-        /// <summary>
-        /// Shader used to draw this batch
-        /// </summary>
-        public Shader Shader
-        {
-            get => shader;
-            set => shader = value;
-        }
-
-        /// <summary>
-        /// Transform this batch is attached to
-        /// </summary>
-        public Transform Transform
-        {
-            get => xform;
-            set => xform = value;
-        }
-
-        /// <summary>
-        /// The number of sprite this batch contains
-        /// </summary>
-        public int Count => verts.Count / 6;
-
-        /// <summary>
-        /// Adds sprite to the batch with the given transform and color
-        /// </summary>
-        public void AddSprite(Transform xform, SpriteSheetFrame frame, Color color)
-        {
-            var sprite_verts = frame.Vertices;
-            for (int i = 0; i < sprite_verts.Length; i++)
-            {
-                var pos = xform.LocalToWorld(sprite_verts[i].Position);
-                verts.Push(new Vertex(pos, sprite_verts[i].Texcoord, color));
-            }
-            mb_dirty = bounds_dirty = true;
-        }
-
-        /// <summary>
-        /// Clears batch from all sprites
-        /// </summary>
-        public void Clear()
-        {
-            verts.Clear(false);
-            mb_dirty = bounds_dirty = true;
-        }
-
-        public void Draw()
-        {
-            if (verts.Count > 0)
-            {
-                var gfx = App.Graphics;
-                gfx.SetBlendMode(blend);
-                gfx.SetShader(shader);
-                OnSetUniforms();
-
-                if (mb_dirty)
-                {
-                    mb.UpdateVertices(verts);
-                    mb_dirty = false;
-                }
-
-                (App.ActiveState as Scene)?.DebugDraw.Rect(Bounds, Color.Red);
-                mb.Draw(PrimitiveType.Triangles);
-            }
-        }
-
-        /// <summary>
-        /// Override to set custom uniforms
-        /// </summary>
-        protected virtual void OnSetUniforms()
-        {
-            shader.SetTexture("main_tex", 0, spr.Texture);
-            shader.SetMatrix4x4("view_mat", App.Graphics.ViewMatrix);
-            if (xform != null)
-                shader.SetMatrix3x2("model_mat", xform.Matrix);
-            else
-                shader.SetMatrix3x2("model_mat", Matrix3x2.Identity);
+            UpdateAll();
         }
 
         protected override void OnDisposeManaged()
         {
-            verts.Clear(false);
-            verts = null;
-            xform = null;
-            spr = null;
-            shader = null;
-            mb.Dispose();
+            base.OnDisposeManaged();
+            nodes.Clear();
+            nodes = null;
         }
     }
 }

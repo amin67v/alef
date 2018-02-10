@@ -10,7 +10,7 @@ public class Canvas : Panel
 {
     public static readonly Canvas Instance = new Canvas();
 
-    Mesh quad;
+    DrawableMesh quad;
     float pnt_sz = 6;
     float vsize = 1f;
     float vrot;
@@ -37,13 +37,22 @@ public class Canvas : Panel
 
     Canvas()
     {
-        quad = new Mesh();
+        quad = new DrawableMesh();
+        quad.VertexArray.Push(Vertex.Zero);
+        quad.VertexArray.Push(Vertex.Zero);
+        quad.VertexArray.Push(Vertex.Zero);
+        quad.VertexArray.Push(Vertex.Zero);
         
-        quad.AddVertex(Vertex.Zero, Vertex.Zero, Vertex.Zero, Vertex.Zero);
-        quad.AddIndex(0, 1, 2, 0, 1, 3);
+        quad.IndexArray.Push(0);
+        quad.IndexArray.Push(1);
+        quad.IndexArray.Push(2);
+        quad.IndexArray.Push(0);
+        quad.IndexArray.Push(1);
+        quad.IndexArray.Push(3);
+
         quad.BlendMode = BlendMode.AlphaBlend;
 
-        ctex = DataCache.Get<Texture>("White.Texture");
+        ctex = Data.Get<Texture>("White.Texture");
         points = new Array<Vertex>(50);
         lines = new Array<Vertex>(50);
         triangles = new Array<Vertex>(50);
@@ -305,10 +314,11 @@ public class Canvas : Panel
     public void DrawTexture(Texture tex, Rect src, Rect dest, Color c)
     {
         quad.MainTexture = tex;
-        quad.SetVertex(0, new Vertex(dest.X, dest.Y, src.X, src.Y, c));
-        quad.SetVertex(1, new Vertex(dest.XMax, dest.YMax, src.XMax, src.YMax, c));
-        quad.SetVertex(2, new Vertex(dest.X, dest.YMax, src.X, src.YMax, c));
-        quad.SetVertex(3, new Vertex(dest.XMax, dest.Y, src.XMax, src.Y, c));
+        quad.VertexArray[0] = new Vertex(dest.X, dest.Y, src.X, src.Y, c);
+        quad.VertexArray[1] =  new Vertex(dest.XMax, dest.YMax, src.XMax, src.YMax, c);
+        quad.VertexArray[2] =  new Vertex(dest.X, dest.YMax, src.X, src.YMax, c);
+        quad.VertexArray[3] =  new Vertex(dest.XMax, dest.Y, src.XMax, src.Y, c);
+        quad.UpdateAll();
         quad.Draw();
     }
 
@@ -429,11 +439,12 @@ public class Canvas : Panel
         var p3 = Vector2.Transform(new Vector2(-1, 1), inv_viewmat);
         var p4 = Vector2.Transform(new Vector2(1, -1), inv_viewmat);
         float tcoord_mult = (1 / vsize) * 0.05f;
-        quad.SetVertex(0, new Vertex(p1, p1 * tcoord_mult, Color.White));
-        quad.SetVertex(1, new Vertex(p2, p2 * tcoord_mult, Color.White));
-        quad.SetVertex(2, new Vertex(p3, p3 * tcoord_mult, Color.White));
-        quad.SetVertex(3, new Vertex(p4, p4 * tcoord_mult, Color.White));
-        quad.MainTexture = DataCache.Get<Texture>("Checker.Texture");
+        quad.VertexArray[0] = new Vertex(p1, p1 * tcoord_mult, Color.White);
+        quad.VertexArray[1] = new Vertex(p2, p2 * tcoord_mult, Color.White);
+        quad.VertexArray[2] = new Vertex(p3, p3 * tcoord_mult, Color.White);
+        quad.VertexArray[3] = new Vertex(p4, p4 * tcoord_mult, Color.White);
+        quad.UpdateAll();
+        quad.MainTexture = Data.Get<Texture>("Checker.Texture");
         quad.Draw();
     }
 
@@ -443,7 +454,7 @@ public class Canvas : Panel
         gfx.SetPointSize(pnt_sz);
         gfx.SetLineWidth(1);
         gfx.SetBlendMode(BlendMode.AlphaBlend);
-        var shader = DefaultShaders.ColorMult;
+        var shader = Data.Get<Shader>("Mult.Shader");
         gfx.SetShader(shader);
         shader.SetTexture("main_tex", 0, ctex);
         shader.SetMatrix3x2("model_mat", Matrix3x2.Identity);

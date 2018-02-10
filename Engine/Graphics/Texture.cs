@@ -86,7 +86,7 @@ namespace Engine
                 return tex;
             }
 
-            return DataCache.FromCacheOrFile(file, load_file) as Texture;
+            return Data.FromCacheOrFile(file, load_file) as Texture;
         }
     }
 }

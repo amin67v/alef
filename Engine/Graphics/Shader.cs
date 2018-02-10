@@ -56,7 +56,7 @@ namespace Engine
                     return shader;
             }
 
-            return DataCache.FromCacheOrFile(file, load_file) as Shader;
+            return Data.FromCacheOrFile(file, load_file) as Shader;
         }
 
 

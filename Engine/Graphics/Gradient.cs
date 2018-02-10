@@ -8,7 +8,7 @@ namespace Engine
         Array<ColorKey> keys = new Array<ColorKey>();
         Color[] baked = new Color[256];
         int id = 0;
-        bool dirty = true;
+
 
         public Gradient()
         {
@@ -18,25 +18,15 @@ namespace Engine
 
         public int KeyCount => keys.Count;
 
-        public Color Sample(float t)
-        {
-            uint index = Math.Min((uint)(t * 255), 255);
-            if (dirty)
-            {
-                for (int i = 0; i < 256; i++)
-                    baked[i] = evaluate(i / 255f);
+        public Color Sample(float t) => baked[Math.Min((uint)(t * 255), 255)];
 
-                dirty = false;
-            }
-            return baked[index];
-        }
+        public int AddKey(float pos) => AddKey(pos, evaluate(pos));
 
         public int AddKey(float pos, Color color)
         {
-            pos = pos.Clamp(0, 1);
             keys.Push(new ColorKey(id, pos, color));
             keys.Sort();
-            dirty = true;
+            bake();
             return id++;
         }
 
@@ -46,7 +36,7 @@ namespace Engine
                 return;
 
             keys.RemoveAt(index);
-            dirty = true;
+            bake();
         }
 
         public Color GetColor(int index) => keys[index].Color;
@@ -54,7 +44,7 @@ namespace Engine
         public void SetColor(int index, Color value)
         {
             keys[index].Color = value;
-            dirty = true;
+            bake();
         }
 
         public float GetPosition(int index) => keys[index].Position;
@@ -63,12 +53,12 @@ namespace Engine
         {
             keys[index].Position = value;
             keys.Sort();
-            dirty = true;
+            bake();
         }
 
         public int GetId(int index) => keys[index].Id;
 
-        public int IndexOf(int id) => keys.FindIndex((item) =>  item.Id == id);
+        public int IndexOf(int id) => keys.FindIndex((item) => item.Id == id);
 
         Color evaluate(float t)
         {
@@ -88,6 +78,12 @@ namespace Engine
             }
 
             return Color.Blend(keys[a].Color, keys[b].Color, t.Normalize(keys[a].Position, keys[b].Position));
+        }
+
+        void bake()
+        {
+            for (int i = 0; i < 256; i++)
+                baked[i] = evaluate(i / 255f);
         }
 
         struct ColorKey : IComparable<ColorKey>

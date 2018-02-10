@@ -4,100 +4,64 @@ using System.Collections.Generic;
 
 namespace Engine
 {
-    public class Scene : Disposable, IAppState
+    public class Scene : IAppState
     {
         internal Array<IDrawable> draw_list;
-        Camera cam;
-        Entity ent_list;
-        DebugDraw debug_draw;
+        internal Entity head;
         Comparer<IDrawable> draw_comparer;
-        bool is_render;
+        DebugDraw debug_draw;
+        Camera main_cam;
+        bool rendering;
 
         public event Action OnPreRender;
         public event Action OnPostRender;
 
         /// <summary>
+        /// Gets the active scene
+        /// </summary>
+        public static Scene Active => App.ActiveState as Scene;
+
+        /// <summary>
         /// Gets scene main camera
         /// </summary>
-        public Camera MainCamera => cam;
+        public Camera MainCamera => main_cam;
 
         /// <summary>
         /// Returns true if we are inside rendering function, otherwide false
         /// </summary>
-        public bool IsRendering => is_render;
+        public bool IsRendering => rendering;
 
         /// <summary>
         /// Use to draw visual stuff for debugging purposes
         /// </summary>
         public DebugDraw DebugDraw => debug_draw;
 
-        /// <summary>
-        /// Finds first entity whose name match the given value
-        /// </summary>
-        public Entity Find(string name)
+
+        public virtual void OnEnter()
         {
-            var hash = name.GetFastHash();
-            var current = ent_list;
-            while (current != null)
-            {
-                if (current.name_hash == hash && current.Name == name)
-                    return current;
-
-                current = current.next;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Spawns a new entity of type T
-        /// </summary>
-        public T Spawn<T>(string name) where T : Entity, new()
-        {
-            if (is_render)
-                throw new Exception("You can't spawn entity inside draw method");
-
-            var entity = new T();
-            entity.Name = name;
-            entity.next = ent_list;
-            ent_list = entity;
-            entity.OnBegin();
-            return entity;
-        }
-
-        /// <summary>
-        /// Destroys the given entity
-        /// </summary>
-        public void Destroy(Entity entity)
-        {
-            if (is_render)
-                throw new Exception("You can't destroy entity inside draw method");
-
-            if (entity.is_destroyed == false)
-            {
-                if (ent_list == entity)
-                    ent_list = entity.next;
-
-                entity.OnDestroy();
-                if (entity.prev != null)
-                    entity.prev.next = entity.next;
-
-                if (entity.next != null)
-                    entity.next.prev = entity.prev;
-
-                entity.is_destroyed = true;
-            }
-        }
-
-        public virtual void OnBegin()
-        {
-            cam = new Camera();
+            main_cam = new Camera();
             draw_list = new Array<IDrawable>(50);
             debug_draw = new DebugDraw();
             draw_comparer = Comparer<IDrawable>.Create((IDrawable x, IDrawable y) => x.Layer - y.Layer);
         }
 
-        public virtual void OnEnd() { }
+        public virtual void OnExit()
+        {
+            var current = head;
+            while (current != null)
+            {
+                current.Destroy();
+                current = current.next;
+            }
+
+            OnPostRender = null;
+            OnPreRender = null;
+
+            draw_list.Clear();
+            draw_list = null;
+
+            head = null;
+        }
 
         public void OnFrame()
         {
@@ -106,16 +70,15 @@ namespace Engine
             OnUpdate(dt);
 
             // update all entities
-            var current = ent_list;
+            var current = head;
             while (current != null)
             {
-                current.OnUpdate(dt);
-                current.RootNode?.process(dt);
+                current.update(dt);
                 current = current.next;
             }
 
             // sort and render drawables
-            is_render = true;
+            rendering = true;
             OnPreRender?.Invoke();
             // sort draw list based on their layer
             draw_list.Sort(draw_comparer);
@@ -124,10 +87,10 @@ namespace Engine
             App.Graphics.Display();
             OnPostRender?.Invoke();
             DebugDraw.Clear();
-            is_render = false;
+            rendering = false;
         }
 
-        public void RegisterForDraw(IDrawable drawable) => draw_list.Push(drawable);
+        public void AddDrawable(IDrawable drawable) => draw_list.Push(drawable);
 
         /// <summary>
         /// Called at the start of each frame
@@ -138,24 +101,6 @@ namespace Engine
         /// Called when scene needs to be rendered
         /// </summary>
         protected virtual void OnRender() => MainCamera.Render(this);
-
-        protected override void OnDisposeManaged()
-        {
-            var current = ent_list;
-            while (current != null)
-            {
-                Destroy(current);
-                current = current.next;
-            }
-
-            OnPostRender = null;
-            OnPreRender = null;
-
-            draw_list.Clear();
-            draw_list = null;
-
-            ent_list = null;
-        }
     }
 
 }

@@ -24,32 +24,32 @@ namespace Game
     public class MyGame : Scene
     {
         SimpleEntity entity;
-        public override void OnBegin()
+        public override void OnEnter()
         {
-            base.OnBegin();
-            entity = Spawn<SimpleEntity>("New Sprite entity !!!");
+            base.OnEnter();
+            entity = Entity.Spawn<SimpleEntity>("New Sprite entity !!!");
         }
 
         Vector2 btn_pos = Vector2.One * 100;
         void on_gui(Gui gui)
         {
-            var particle = entity.RootNode as ParticleSystem;
-
-            gui.Text(particle.AliveCount.ToString());
-            gui.Combo<ParticleSortMode>("Sort Mode", ref particle.SortMode);
-
-            gui.Combo<TweenType>("Rotation Tween", ref particle.RotateTween);
-            gui.InputFloat("Start Rotation", ref particle.RotateStart, 0, 0, 2, InputTextFlags.Default);
-            gui.InputFloat("End Rotation", ref particle.RotateEnd, 0, 0, 2, InputTextFlags.Default);
-
-            gui.Combo<TweenType>("Size Tween", ref particle.SizeTween);
-            gui.InputFloat("Start Size", ref particle.SizeStart, 0, 0, 2, InputTextFlags.Default);
-            gui.InputFloat("End Size", ref particle.SizeEnd, 0, 0, 2, InputTextFlags.Default);
-            gui.Gradient("Color By Life", particle.ColorGradient);
-
-            int emit_per_sec = particle.EmitPerSecond;
-            gui.InputInt("Emit Per Second", ref emit_per_sec, 0, 0, InputTextFlags.Default);
-            particle.EmitPerSecond = emit_per_sec;
+            //var particle = entity.RootNode as ParticleSystem;
+            //
+            //gui.Text(particle.AliveCount.ToString());
+            //gui.Combo<ParticleSortMode>("Sort Mode", ref particle.SortMode);
+            //
+            //gui.Combo<TweenType>("Rotation Tween", ref particle.RotateTween);
+            //gui.InputFloat("Start Rotation", ref particle.RotateStart, 0, 0, 2, InputTextFlags.Default);
+            //gui.InputFloat("End Rotation", ref particle.RotateEnd, 0, 0, 2, InputTextFlags.Default);
+            //
+            //gui.Combo<TweenType>("Size Tween", ref particle.SizeTween);
+            //gui.InputFloat("Start Size", ref particle.SizeStart, 0, 0, 2, InputTextFlags.Default);
+            //gui.InputFloat("End Size", ref particle.SizeEnd, 0, 0, 2, InputTextFlags.Default);
+            //gui.Gradient("Color By Life", particle.ColorGradient);
+            //
+            //int emit_per_sec = particle.EmitPerSecond;
+            //gui.InputInt("Emit Per Second", ref emit_per_sec, 0, 0, InputTextFlags.Default);
+            //particle.EmitPerSecond = emit_per_sec;
 
         }
 
@@ -62,14 +62,25 @@ namespace Game
 
     public class SimpleEntity : Entity
     {
-        public override void OnBegin()
+        protected override void OnBegin()
         {
-            RootNode = new ParticleSystem();
+            CreateRootNode<EntityNode>();
+            //CreateRootNode<ParticleSystem>();
+
+            for (int x = 0; x < 1000; x++)
+            {
+                for (int y = 0; y < 100; y++)
+                {
+                    var sprite = RootNode.CreateChild<SpriteNode>("sprite1");
+                    sprite.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-idle-1"];
+                    sprite.Position = new Vector2(x, y);
+                }
+            }
         }
 
-        public override void OnUpdate(float dt)
+        protected override void OnUpdate(float dt)
         {
-            var cam = Scene.MainCamera;
+            var cam = Scene.Active.MainCamera;
 
             float x = 0;
             float y = 0;

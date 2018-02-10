@@ -146,11 +146,11 @@ namespace Engine
 
         internal static void init()
         {
-            DataCache.Add("Mult.Shader", Shader.Create(vert_standard, frag_color_mult));
-            DataCache.Add("Mix.Shader", Shader.Create(vert_standard, frag_color_mix));
-            DataCache.Add("Particle.Shader", Shader.Create(vert_particle, geom_particle, frag_particle));
-            DataCache.Add("White.Texture", Texture.Create(1, 1, FilterMode.Point, WrapMode.Repeat, new Color[] { Color.White }));
-            DataCache.Add("Checker.Texture", Texture.Create(2, 2, FilterMode.Point, WrapMode.Repeat, new Color[] { Color.LightGray, Color.White, Color.White, Color.LightGray }));
+            Data.Add("Mult.Shader", Shader.Create(vert_standard, frag_color_mult));
+            Data.Add("Mix.Shader", Shader.Create(vert_standard, frag_color_mix));
+            Data.Add("Particle.Shader", Shader.Create(vert_particle, geom_particle, frag_particle));
+            Data.Add("White.Texture", Texture.Create(1, 1, FilterMode.Point, WrapMode.Repeat, new Color[] { Color.White }));
+            Data.Add("Checker.Texture", Texture.Create(2, 2, FilterMode.Point, WrapMode.Repeat, new Color[] { Color.LightGray, Color.White, Color.White, Color.LightGray }));
         }
     }
 }
