@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 
 [System.Security.SuppressUnmanagedCodeSecurity]
-unsafe static class StbImage
+public unsafe static class StbImage
 {
     const string lib = "stb_image";
 

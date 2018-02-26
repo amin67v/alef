@@ -38,7 +38,8 @@ namespace Engine
                 var col_gpos = new Vector2(gpos.X + grad.GetPosition(i) * grect.Width, gpos.Y + grect.Height * .5f);
 
                 AddCircleFilled(col_gpos, 4, Color.White, 16);
-                AddCircleFilled(col_gpos, 2.75f, grad.GetColor(i), 16);
+                var c = grad.GetColor(i); c.A = 255;
+                AddCircleFilled(col_gpos, 2.75f, c, 16);
 
                 SetCursorScreenPos(col_gpos - Vector2.One * 10);
 

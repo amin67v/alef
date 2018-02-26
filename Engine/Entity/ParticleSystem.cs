@@ -3,13 +3,15 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using static System.MathF;
 
 namespace Engine
 {
     using static MathF;
 
-    public class ParticleSystem : EntityNode, IDrawable
+    public class ParticleSystem : Entity.Node, IDrawable
     {
         static Comparer<ParticleVertex> younger_comparer = Comparer<ParticleVertex>.Create((x, y) => x.Life < y.Life ? -1 : 1);
         static Comparer<ParticleVertex> older_comparer = Comparer<ParticleVertex>.Create((x, y) => x.Life > y.Life ? -1 : 1);
@@ -38,16 +40,6 @@ namespace Engine
         bool rand_rot = false;
         bool auto_update_bounds = true;
 
-        public ParticleSystem()
-        {
-            buffer = MeshBuffer<ParticleVertex>.Create();
-            verts = new Array<ParticleVertex>(50);
-            forces = new Array<Vector2>();
-            shader = Data.Get<Shader>("Particle.Shader");
-            tex = Data.Get<Texture>("White.Texture");
-            color = new Gradient();
-        }
-
         public int AllocatedCount => verts.Items.Length;
 
         public int AliveCount => verts.Count;
@@ -67,7 +59,7 @@ namespace Engine
             get => (int)(1f / emit_rate);
             set
             {
-                emit_rate = 1f / value; 
+                emit_rate = 1f / value;
             }
         }
 
@@ -128,6 +120,17 @@ namespace Engine
 
             (App.ActiveState as Scene)?.DebugDraw.Rect(Bounds, Color.Red);
             buffer.Draw(PrimitiveType.Points);
+        }
+
+        protected override void OnBegin() 
+        {
+            buffer = MeshBuffer<ParticleVertex>.Create();
+            verts = new Array<ParticleVertex>(50);
+            forces = new Array<Vector2>();
+            shader = Data.Get<Shader>("Particle.Shader");
+            tex = Data.Get<Texture>("White.Texture");
+            color = new Gradient();
+            UseUpdate();
         }
 
         protected override void OnUpdate(float dt)

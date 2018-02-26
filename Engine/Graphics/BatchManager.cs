@@ -8,9 +8,11 @@ namespace Engine
     {
         static BatchManager instance;
 
-        Dictionary<BatchKey, SpriteBatch> batch_map;
+        //Dictionary<BatchKey, SpriteBatch> static_batch_map;
+        Dictionary<BatchKey, SpriteBatch> dynamic_batch_map;
+
         Shader default_shader;
-        Vector2 batch_size = Vector2.One * 100;
+        Vector2 batch_size = Vector2.One * 50;
 
         public Vector2 BatchSize
         {
@@ -34,14 +36,14 @@ namespace Engine
             };
 
             SpriteBatch target;
-            if (!instance.batch_map.TryGetValue(key, out target))
+            if (!instance.dynamic_batch_map.TryGetValue(key, out target))
             {
                 target = new SpriteBatch();
                 target.MainTexture = node.Frame.SpriteSheet.Texture;
                 target.Shader = node.Shader;
                 target.BlendMode = node.BlendMode;
                 target.Layer = node.Layer;
-                instance.batch_map.Add(key, target);
+                instance.dynamic_batch_map.Add(key, target);
             }
 
             target.AddSprite(node);
@@ -49,29 +51,30 @@ namespace Engine
 
         protected override void OnBegin()
         {
-            batch_map = new Dictionary<BatchKey, SpriteBatch>();
+            dynamic_batch_map = new Dictionary<BatchKey, SpriteBatch>();
             Scene.Active.OnPreRender += on_pre_render;
             default_shader = Data.Get<Shader>("Mult.Shader");
-            CreateRootNode<EntityNode>();
+            CreateRootNode<Node>();
         }
 
         protected override void OnDestroy()
         {
-            foreach (var item in batch_map.Values)
+            foreach (var item in dynamic_batch_map.Values)
                 item.Dispose();
-            
-            batch_map.Clear();
+
+            dynamic_batch_map.Clear();
             Scene.Active.OnPreRender -= on_pre_render;
             instance = null;
         }
 
         void on_pre_render()
         {
-            foreach (var item in batch_map.Values)
+            foreach (var item in dynamic_batch_map.Values)
             {
                 item.Rebuild();
-                Scene.Active.AddDrawable(item);
                 item.Clear();
+                Scene.Active.AddDrawable(item);
+                Scene.Active.DebugDraw.Rect(item.Bounds, Color.Red);
             }
         }
 

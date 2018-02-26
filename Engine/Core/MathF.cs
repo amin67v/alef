@@ -18,6 +18,22 @@ namespace Engine
         public static float Lerp(float a, float b, float t) => (b - a) * t + a;
 
         /// <summary>
+        /// Returns next higher power of two from the given value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int NextPot(this int value)
+        {
+            value--;
+            value |= value >> 1;
+            value |= value >> 2;
+            value |= value >> 4;
+            value |= value >> 8;
+            value |= value >> 16;
+            value++;
+            return value;
+        }
+
+        /// <summary>
         /// Clamps float value between min and max
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

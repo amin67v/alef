@@ -2,11 +2,12 @@ using System;
 
 namespace Engine
 {
-    public class Entity
+    public partial class Entity
     {
         internal Entity next, prev;
+        Action<float> node_update;
+        Node root;
         string name;
-        EntityNode root;
         int name_hash;
         bool is_destroyed;
 
@@ -26,12 +27,7 @@ namespace Engine
         /// <summary>
         /// Gets or sets root node for this entity
         /// </summary>
-        /// <returns></returns>
-        public EntityNode RootNode
-        {
-            get => root;
-            internal set => root = value;
-        }
+        public Node RootNode => root;
 
         /// <summary>
         /// Returns true if the entity is destroyed and invalid, otherwise true
@@ -139,9 +135,9 @@ namespace Engine
         /// Creates root node of type T for this entity
         /// if root node already exist it will become child for the new root node
         /// </summary>
-        public T CreateRootNode<T>() where T : EntityNode, new()
+        public T CreateRootNode<T>() where T : Node, new()
         {
-            return EntityNode.CreateRoot<T>(this);
+            return Node.CreateRoot<T>(this);
         }
 
         /// <summary>
@@ -162,8 +158,7 @@ namespace Engine
         internal void update(float dt)
         {
             OnUpdate(dt);
-            RootNode?.update(dt);
+            node_update?.Invoke(dt);
         }
-
     }
 }

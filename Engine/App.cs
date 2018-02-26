@@ -137,6 +137,7 @@ namespace Engine
                 {
                     act_state.OnExit();
                     act_state = nxt_state;
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
                     act_state.OnEnter();
                     nxt_state = null;
                 }

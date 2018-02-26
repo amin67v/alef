@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Engine
 {
-    using static Sdl2;
+    using static SDL2.SDL;
 
     class Sdl2Window : Window
     {
@@ -44,14 +44,14 @@ namespace Engine
             size = new Vector2(cfg.Width, cfg.Height);
             title = cfg.Title;
             if (ptr == IntPtr.Zero)
-                throw new Exception($"Failed to create sdl window.\n{get_string(SDL_GetError())}");
+                throw new Exception($"Failed to create sdl window.\n{SDL_GetError()}");
 
             ctx = SDL_GL_CreateContext(ptr);
             if (ctx == IntPtr.Zero)
-                throw new Exception($"Failed to create opengl context.\n{get_string(SDL_GetError())}");
+                throw new Exception($"Failed to create opengl context.\n{SDL_GetError()}");
 
             if (SDL_GL_MakeCurrent(ptr, ctx) != 0)
-                throw new Exception($"Failed to make opengl context current.\n{get_string(SDL_GetError())}");
+                throw new Exception($"Failed to make opengl context current.\n{SDL_GetError()}");
 
             SDL_GL_SetSwapInterval(cfg.Vsync ? 1 : 0);
         }
@@ -92,7 +92,7 @@ namespace Engine
         {
             var surface = create_sdl_surface(image);
             var r = SDL_CreateColorCursor(surface, (int)hotpos.X, (int)hotpos.Y);
-            SDL_free(surface);
+            SDL_FreeSurface(surface);
             return r;
         }
 
@@ -123,7 +123,7 @@ namespace Engine
                         App.Quit();
                         break;
                     case SDL_EventType.SDL_WINDOWEVENT:
-                        switch (e.window.@event)
+                        switch (e.window.windowEvent)
                         {
                             case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                                 size = new Vector2(e.window.data1, e.window.data2);
@@ -162,7 +162,7 @@ namespace Engine
                     case SDL_EventType.SDL_TEXTINPUT:
                         unsafe
                         {
-                            var str = get_string(new IntPtr(e.text.text));
+                            var str = UTF8_ToManaged(new IntPtr(e.text.text));
                             RaiseTextInput(str[str.Length - 1]);
                         }
                         break;
@@ -173,9 +173,8 @@ namespace Engine
                         RaiseMouseMove(new Vector2(e.motion.x, e.motion.y));
                         break;
                     case SDL_EventType.SDL_DROPFILE:
-                        var dropfile = get_string(e.drop.file);
+                        var dropfile = UTF8_ToManaged(e.drop.file, true);
                         droped_files.Push(dropfile);
-                        SDL_free(e.drop.file);
                         break;
                     case SDL_EventType.SDL_DROPTEXT:
                         if (e.drop.file != IntPtr.Zero)
@@ -205,11 +204,6 @@ namespace Engine
                 surface = SDL_CreateRGBSurfaceFrom(value.PixelData, value.Width, value.Height, 32, value.Width * 4, 0xff000000u, 0x00ff0000u, 0x0000ff00u, 0x000000ffu);
 
             return surface;
-        }
-
-        string get_string(IntPtr ptr)
-        {
-            return System.Runtime.InteropServices.Marshal.PtrToStringUTF8(ptr);
         }
 
         protected internal override void ShutDown()

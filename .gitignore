@@ -13,6 +13,7 @@ Engine/obj
 Editor/obj
 Game/obj
 DataEditor/obj
+ThirdParty/obj
 Editor/log.txt
 Game/log.txt
 DataEditor/log.txt

@@ -33,28 +33,29 @@ namespace Game
         Vector2 btn_pos = Vector2.One * 100;
         void on_gui(Gui gui)
         {
-            //var particle = entity.RootNode as ParticleSystem;
-            //
-            //gui.Text(particle.AliveCount.ToString());
-            //gui.Combo<ParticleSortMode>("Sort Mode", ref particle.SortMode);
-            //
-            //gui.Combo<TweenType>("Rotation Tween", ref particle.RotateTween);
-            //gui.InputFloat("Start Rotation", ref particle.RotateStart, 0, 0, 2, InputTextFlags.Default);
-            //gui.InputFloat("End Rotation", ref particle.RotateEnd, 0, 0, 2, InputTextFlags.Default);
-            //
-            //gui.Combo<TweenType>("Size Tween", ref particle.SizeTween);
-            //gui.InputFloat("Start Size", ref particle.SizeStart, 0, 0, 2, InputTextFlags.Default);
-            //gui.InputFloat("End Size", ref particle.SizeEnd, 0, 0, 2, InputTextFlags.Default);
-            //gui.Gradient("Color By Life", particle.ColorGradient);
-            //
-            //int emit_per_sec = particle.EmitPerSecond;
-            //gui.InputInt("Emit Per Second", ref emit_per_sec, 0, 0, InputTextFlags.Default);
-            //particle.EmitPerSecond = emit_per_sec;
+            var particle = entity.RootNode as ParticleSystem;
+            
+            gui.Text(particle.AliveCount.ToString());
+            gui.Combo<ParticleSortMode>("Sort Mode", ref particle.SortMode);
+            
+            gui.Combo<TweenType>("Rotation Tween", ref particle.RotateTween);
+            gui.InputFloat("Start Rotation", ref particle.RotateStart, 0, 0, 2, InputTextFlags.Default);
+            gui.InputFloat("End Rotation", ref particle.RotateEnd, 0, 0, 2, InputTextFlags.Default);
+            
+            gui.Combo<TweenType>("Size Tween", ref particle.SizeTween);
+            gui.InputFloat("Start Size", ref particle.SizeStart, 0, 0, 2, InputTextFlags.Default);
+            gui.InputFloat("End Size", ref particle.SizeEnd, 0, 0, 2, InputTextFlags.Default);
+            gui.Gradient("Color By Life", particle.ColorGradient);
+            
+            int emit_per_sec = particle.EmitPerSecond;
+            gui.InputInt("Emit Per Second", ref emit_per_sec, 0, 0, InputTextFlags.Default);
+            particle.EmitPerSecond = emit_per_sec;
 
         }
 
         protected override void OnRender()
         {
+            
             MainCamera.Render(this);
             Gui.Render(on_gui);
         }
@@ -62,24 +63,38 @@ namespace Game
 
     public class SimpleEntity : Entity
     {
+        SpriteNode node2;
+        int frame;
         protected override void OnBegin()
         {
-            CreateRootNode<EntityNode>();
-            //CreateRootNode<ParticleSystem>();
+            //CreateRootNode<EntityNode>();
+            CreateRootNode<ParticleSystem>();
 
-            for (int x = 0; x < 1000; x++)
-            {
-                for (int y = 0; y < 100; y++)
-                {
-                    var sprite = RootNode.CreateChild<SpriteNode>("sprite1");
-                    sprite.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-idle-1"];
-                    sprite.Position = new Vector2(x, y);
-                }
-            }
+            var node1 = RootNode.CreateChild<SpriteNode>("node1");
+            node2 = RootNode.CreateChild<SpriteNode>("node2");
+            node1.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-idle-1"];
+            node2.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-walk-1"];
+            node2.Position = Vector2.One * 10;
+
+            //for (int x = 0; x < 100; x++)
+            //{
+            //    for (int y = 0; y < 10; y++)
+            //    {
+            //        var sprite = RootNode.CreateChild<SpriteNode>("sprite1");
+            //        sprite.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-idle-1"];
+            //        sprite.Position = new Vector2(x, y);
+            //    }
+            //}
         }
 
         protected override void OnUpdate(float dt)
         {
+            // if (Time.SinceStart > 10)
+            // {
+            //     RootNode?.Destroy();
+            // }
+
+            node2.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-walk-" + (int)((Time.SinceStart * 10) % 6 + 1)];
             var cam = Scene.Active.MainCamera;
 
             float x = 0;

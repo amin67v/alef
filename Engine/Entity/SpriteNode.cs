@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Engine
 {
-    public class SpriteNode : EntityNode
+    public class SpriteNode : Entity.Node
     {
         SpriteSheetFrame frame;
         BlendMode blend;
@@ -54,6 +54,7 @@ namespace Engine
             Shader = Data.Get<Shader>("Mult.Shader");
             Color = Color.White;
             BlendMode = BlendMode.AlphaBlend;
+            UseUpdate();
         }
 
         protected override void OnUpdate(float dt)

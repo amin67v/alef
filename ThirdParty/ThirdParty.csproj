@@ -1,12 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <OutputPath>../bin</OutputPath>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ThirdParty\ThirdParty.csproj" />
-    <PackageReference Include="System.Json" Version="4.4.0" />
-  </ItemGroup>
 </Project>
