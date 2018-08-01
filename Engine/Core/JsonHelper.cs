@@ -10,18 +10,18 @@ namespace Engine
         /// <summary>
         /// Returns a pretty version of the input json!
         /// </summary>
-        public static string PrettifyJson(string input)
+        public static string Prettify(string input)
         {
             const string indent = "    ";
             
-            bool is_escaped(StringBuilder sb, int index)
+            bool isEscaped(StringBuilder sb, int index)
             {
                 bool escaped = false;
                 while (index > 0 && sb[--index] == '\\') escaped = !escaped;
                 return escaped;
             }
 
-            void append_indent(StringBuilder sb, int count)
+            void appendIndent(StringBuilder sb, int count)
             {
                 for (; count > 0; --count) sb.Append(indent);
             }
@@ -39,12 +39,12 @@ namespace Engine
                     case '{':
                     case '[':
                         output.AppendLine();
-                        append_indent(output, depth);
+                        appendIndent(output, depth);
                         output.Append(ch);
                         if (!quote.HasValue)
                         {
                             output.AppendLine();
-                            append_indent(output, ++depth);
+                            appendIndent(output, ++depth);
                         }
                         break;
                     case '}':
@@ -54,7 +54,7 @@ namespace Engine
                         else
                         {
                             output.AppendLine();
-                            append_indent(output, --depth);
+                            appendIndent(output, --depth);
                             output.Append(ch);
                         }
                         break;
@@ -63,7 +63,7 @@ namespace Engine
                         output.Append(ch);
                         if (quote.HasValue)
                         {
-                            if (!is_escaped(output, i))
+                            if (!isEscaped(output, i))
                                 quote = null;
                         }
                         else quote = ch;
@@ -73,7 +73,7 @@ namespace Engine
                         if (!quote.HasValue)
                         {
                             output.AppendLine();
-                            append_indent(output, depth);
+                            appendIndent(output, depth);
                         }
                         break;
                     case ':':

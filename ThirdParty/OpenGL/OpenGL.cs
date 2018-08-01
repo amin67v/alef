@@ -5,7 +5,7 @@
  * Copyright (c) 2006 - 2010 The Open Toolkit library.
  * Copyright (c) 2010 - 2017 Giawa (http://www.giawa.com) 
  */
- 
+
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -13,10 +13,10 @@ using System.Text;
 
 public unsafe static partial class OpenGL
 {
-    static GetProcAddress get_proc_address = null;
-    static string[] str_arr = new string[1];
-    static uint[] uint_arr = new uint[1];
-    static int[] int_arr = new int[1];
+    static GetProcAddress getProcAddress = null;
+    static string[] stringArray = new string[1];
+    static uint[] uintArray = new uint[1];
+    static int[] intArray = new int[1];
     static bool init = false;
 
     public static void LoadFunctions()
@@ -25,11 +25,11 @@ public unsafe static partial class OpenGL
             return;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            get_proc_address = wglGetProcAddress;
+            getProcAddress = wglGetProcAddress;
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            get_proc_address = glxGetProcAddress;
+            getProcAddress = glxGetProcAddress;
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            get_proc_address = osxGetProcAddress;
+            getProcAddress = osxGetProcAddress;
         else
             return;
 
@@ -59,7 +59,7 @@ public unsafe static partial class OpenGL
 
     internal static Delegate GetProcDelegate(string proc, Type type)
     {
-        var address = get_proc_address(proc);
+        var address = getProcAddress(proc);
         if (address.ToInt64() < 3)
             return null;
         else
@@ -149,9 +149,9 @@ public unsafe static partial class OpenGL
     public static FramebufferErrorCode glCheckNamedFramebufferStatus(uint framebuffer, FramebufferTarget target) { return Delegates.glCheckNamedFramebufferStatus(framebuffer, target); }
     public static void glClampColor(ClampColorTarget target, ClampColorMode clamp) { Delegates.glClampColor(target, clamp); }
     public static void glClear(ClearBufferMask mask) { Delegates.glClear(mask); }
-    public static void glClearBufferiv(ClearBuffer buffer, int drawbuffer, int[] value) { Delegates.glClearBufferiv(buffer, drawbuffer, value); }
-    public static void glClearBufferuiv(ClearBuffer buffer, int drawbuffer, uint[] value) { Delegates.glClearBufferuiv(buffer, drawbuffer, value); }
-    public static void glClearBufferfv(ClearBuffer buffer, int drawbuffer, float[] value) { Delegates.glClearBufferfv(buffer, drawbuffer, value); }
+    public static void glClearBufferiv(ClearBuffer buffer, int drawbuffer, int* value) { Delegates.glClearBufferiv(buffer, drawbuffer, value); }
+    public static void glClearBufferuiv(ClearBuffer buffer, int drawbuffer, uint* value) { Delegates.glClearBufferuiv(buffer, drawbuffer, value); }
+    public static void glClearBufferfv(ClearBuffer buffer, int drawbuffer, float* value) { Delegates.glClearBufferfv(buffer, drawbuffer, value); }
     public static void glClearBufferfi(ClearBuffer buffer, int drawbuffer, float depth, int stencil) { Delegates.glClearBufferfi(buffer, drawbuffer, depth, stencil); }
     public static void glClearNamedFramebufferiv(uint framebuffer, ClearBuffer buffer, int drawbuffer, int[] value) { Delegates.glClearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value); }
     public static void glClearNamedFramebufferuiv(uint framebuffer, ClearBuffer buffer, int drawbuffer, uint[] value) { Delegates.glClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value); }
@@ -208,34 +208,39 @@ public unsafe static partial class OpenGL
     public static void glDeleteBuffers(int n, uint[] buffers) { Delegates.glDeleteBuffers(n, buffers); }
     public static void glDeleteBuffer(uint buffer)
     {
-        uint_arr[0] = buffer;
-        Delegates.glDeleteBuffers(1, uint_arr);
+        uintArray[0] = buffer;
+        Delegates.glDeleteBuffers(1, uintArray);
     }
     public static void glDeleteFramebuffers(int n, uint[] framebuffers) { Delegates.glDeleteFramebuffers(n, framebuffers); }
     public static void glDeleteFramebuffer(uint framebuffer)
     {
-        uint_arr[0] = framebuffer;
-        Delegates.glDeleteFramebuffers(1, uint_arr);
+        uintArray[0] = framebuffer;
+        Delegates.glDeleteFramebuffers(1, uintArray);
     }
     public static void glDeleteProgram(uint program) { Delegates.glDeleteProgram(program); }
     public static void glDeleteProgramPipelines(int n, uint[] pipelines) { Delegates.glDeleteProgramPipelines(n, pipelines); }
     public static void glDeleteQueries(int n, uint[] ids) { Delegates.glDeleteQueries(n, ids); }
     public static void glDeleteRenderbuffers(int n, uint[] renderbuffers) { Delegates.glDeleteRenderbuffers(n, renderbuffers); }
+    public static void glDeleteRenderbuffer(uint renderbuffer)
+    {
+        uintArray[0] = renderbuffer;
+        Delegates.glDeleteRenderbuffers(1, uintArray);
+    }
     public static void glDeleteSamplers(int n, uint[] samplers) { Delegates.glDeleteSamplers(n, samplers); }
     public static void glDeleteShader(uint shader) { Delegates.glDeleteShader(shader); }
     public static void glDeleteSync(IntPtr sync) { Delegates.glDeleteSync(sync); }
     public static void glDeleteTextures(int n, uint[] textures) { Delegates.glDeleteTextures(n, textures); }
     public static void glDeleteTexture(uint texture)
     {
-        uint_arr[0] = texture;
-        Delegates.glDeleteTextures(1, uint_arr);
+        uintArray[0] = texture;
+        Delegates.glDeleteTextures(1, uintArray);
     }
     public static void glDeleteTransformFeedbacks(int n, uint[] ids) { Delegates.glDeleteTransformFeedbacks(n, ids); }
     public static void glDeleteVertexArrays(int n, uint[] arrays) { Delegates.glDeleteVertexArrays(n, arrays); }
     public static void glDeleteVertexArray(uint array)
     {
-        uint_arr[0] = array;
-        Delegates.glDeleteVertexArrays(1, uint_arr);
+        uintArray[0] = array;
+        Delegates.glDeleteVertexArrays(1, uintArray);
     }
     public static void glDepthFunc(DepthFunction func) { Delegates.glDepthFunc(func); }
     public static void glDepthMask(bool flag) { Delegates.glDepthMask(flag); }
@@ -295,38 +300,48 @@ public unsafe static partial class OpenGL
     public static void glGenBuffers(int n, [Out] uint[] buffers) { Delegates.glGenBuffers(n, buffers); }
     public static uint glGenBuffer()
     {
-        Delegates.glGenBuffers(1, uint_arr);
-        return uint_arr[0];
+        Delegates.glGenBuffers(1, uintArray);
+        return uintArray[0];
     }
     public static void glGenerateMipmap(TextureTarget target) { Delegates.glGenerateMipmap(target); }
     public static void glGenerateTextureMipmap(uint texture) { Delegates.glGenerateTextureMipmap(texture); }
     public static void glGenFramebuffers(int n, [Out] uint[] ids) { Delegates.glGenFramebuffers(n, ids); }
     public static uint glGenFramebuffer()
     {
-        Delegates.glGenFramebuffers(1, uint_arr);
-        return uint_arr[0];
+        Delegates.glGenFramebuffers(1, uintArray);
+        return uintArray[0];
     }
     public static void glGenProgramPipelines(int n, [Out] uint[] pipelines) { Delegates.glGenProgramPipelines(n, pipelines); }
     public static void glGenQueries(int n, [Out] uint[] ids) { Delegates.glGenQueries(n, ids); }
     public static void glGenRenderbuffers(int n, [Out] uint[] renderbuffers) { Delegates.glGenRenderbuffers(n, renderbuffers); }
+    public static uint glGenRenderbuffer()
+    {
+        Delegates.glGenRenderbuffers(1, uintArray);
+        return uintArray[0];
+    }
     public static void glGenSamplers(int n, [Out] uint[] samplers) { Delegates.glGenSamplers(n, samplers); }
     public static void glGenTextures(int n, [Out] uint[] textures) { Delegates.glGenTextures(n, textures); }
     public static uint glGenTexture()
     {
-        Delegates.glGenTextures(1, uint_arr);
-        return uint_arr[0];
+        Delegates.glGenTextures(1, uintArray);
+        return uintArray[0];
     }
     public static void glGenTransformFeedbacks(int n, [Out] uint[] ids) { Delegates.glGenTransformFeedbacks(n, ids); }
     public static void glGenVertexArrays(int n, [Out] uint[] arrays) { Delegates.glGenVertexArrays(n, arrays); }
     public static uint glGenVertexArray()
     {
-        Delegates.glGenVertexArrays(1, uint_arr);
-        return uint_arr[0];
+        Delegates.glGenVertexArrays(1, uintArray);
+        return uintArray[0];
     }
     public static void glGetboolv(GetPName pname, [Out] bool[] data) { Delegates.glGetboolv(pname, data); }
     public static void glGetdoublev(GetPName pname, [Out] double[] data) { Delegates.glGetdoublev(pname, data); }
     public static void glGetFloatv(GetPName pname, [Out] float[] data) { Delegates.glGetFloatv(pname, data); }
     public static void glGetIntegerv(GetPName pname, [Out] int[] data) { Delegates.glGetIntegerv(pname, data); }
+    public static int glGetIntegerv(GetPName pname)
+    {
+        Delegates.glGetIntegerv(pname, intArray);
+        return intArray[0];
+    }
     public static void glGetInteger64v(ArbSync pname, [Out] long[] data) { Delegates.glGetInteger64v(pname, data); }
     public static void glGetbooli_v(GetPName target, uint index, [Out] bool[] data) { Delegates.glGetbooli_v(target, index, data); }
     public static void glGetIntegeri_v(GetPName target, uint index, [Out] int[] data) { Delegates.glGetIntegeri_v(target, index, data); }
@@ -374,22 +389,22 @@ public unsafe static partial class OpenGL
     public static void glGetProgramiv(uint program, ProgramParameter pname, [Out] int[] @params) { Delegates.glGetProgramiv(program, pname, @params); }
     public static int glGetProgramiv(uint program, ProgramParameter pname)
     {
-        Delegates.glGetProgramiv(program, pname, int_arr);
-        return int_arr[0];
+        Delegates.glGetProgramiv(program, pname, intArray);
+        return intArray[0];
     }
     public static void glGetProgramBinary(uint program, int bufsize, [Out] int[] length, [Out] int[] binaryFormat, [Out] IntPtr binary) { Delegates.glGetProgramBinary(program, bufsize, length, binaryFormat, binary); }
     public static void glGetProgramInfoLog(uint program, int maxLength, [Out] int[] length, [Out] StringBuilder infoLog) { Delegates.glGetProgramInfoLog(program, maxLength, length, infoLog); }
     public static string glGetProgramInfoLog(uint program)
     {
-        Delegates.glGetProgramiv(program, ProgramParameter.InfoLogLength, int_arr);
-        if (int_arr[0] == 0)
+        Delegates.glGetProgramiv(program, ProgramParameter.InfoLogLength, intArray);
+        if (intArray[0] == 0)
         {
             return string.Empty;
         }
         else
         {
-            StringBuilder sb = new StringBuilder(int_arr[0] * 2);
-            Delegates.glGetProgramInfoLog(program, sb.Capacity, int_arr, sb);
+            StringBuilder sb = new StringBuilder(intArray[0] * 2);
+            Delegates.glGetProgramInfoLog(program, sb.Capacity, intArray, sb);
             return sb.ToString();
         }
     }
@@ -417,21 +432,21 @@ public unsafe static partial class OpenGL
     public static void glGetShaderiv(uint shader, ShaderParameter pname, [Out] int[] @params) { Delegates.glGetShaderiv(shader, pname, @params); }
     public static int glGetShaderiv(uint shader, ShaderParameter pname)
     {
-        Delegates.glGetShaderiv(shader, pname, int_arr);
-        return int_arr[0];
+        Delegates.glGetShaderiv(shader, pname, intArray);
+        return intArray[0];
     }
     public static void glGetShaderInfoLog(uint shader, int maxLength, [Out] int[] length, [Out] StringBuilder infoLog) { Delegates.glGetShaderInfoLog(shader, maxLength, length, infoLog); }
     public static string glGetShaderInfoLog(uint shader)
     {
-        Delegates.glGetShaderiv(shader, ShaderParameter.InfoLogLength, int_arr);
-        if (int_arr[0] == 0)
+        Delegates.glGetShaderiv(shader, ShaderParameter.InfoLogLength, intArray);
+        if (intArray[0] == 0)
         {
             return string.Empty;
         }
         else
         {
-            StringBuilder sb = new StringBuilder(int_arr[0] * 2);
-            Delegates.glGetShaderInfoLog(shader, sb.Capacity, int_arr, sb);
+            StringBuilder sb = new StringBuilder(intArray[0] * 2);
+            Delegates.glGetShaderInfoLog(shader, sb.Capacity, intArray, sb);
             return sb.ToString();
         }
     }
@@ -597,9 +612,9 @@ public unsafe static partial class OpenGL
     public static void glShaderSource(uint shader, int count, string[] @string, int[] length) { Delegates.glShaderSource(shader, count, @string, length); }
     public static void glShaderSource(uint shader, string src)
     {
-        str_arr[0] = src;
-        int_arr[0] = src.Length;
-        Delegates.glShaderSource(shader, 1, str_arr, int_arr);
+        stringArray[0] = src;
+        intArray[0] = src.Length;
+        Delegates.glShaderSource(shader, 1, stringArray, intArray);
     }
     public static void glShaderStorageBlockBinding(uint program, uint storageBlockIndex, uint storageBlockBinding) { Delegates.glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding); }
     public static void glStencilFunc(StencilFunction func, int @ref, uint mask) { Delegates.glStencilFunc(func, @ref, mask); }

@@ -1,0 +1,8 @@
+{
+    "Image": "Engine/BlueNoise64.png",
+    "FilterMode": "Point",
+    "WrapMode": "Repeat",
+    "GenerateMipmap": false,
+    "Compress": false,
+    "sRgb": false
+}

@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO.Compression;
 
 using Engine;
+using Random = Engine.Random;
+using static Engine.Math;
 
 namespace Game
 {
@@ -16,128 +18,113 @@ namespace Game
     {
         static void Main(string[] args)
         {
-            var cfg = new AppConfig("Game App!!", 1280, 720);
-            App.Run(cfg, new MyGame());
+            Engine.Game.Run<MyGame>(new GameConfig(1280, 720, false, false));
         }
     }
 
-    public class MyGame : Scene
+    class MyGame : Engine.Game
     {
-        SimpleEntity entity;
-        public override void OnEnter()
+        CameraNode camera;
+        Vector3 camRot;
+
+        public override string Name => "My Test Game !";
+
+        protected override void Load()
         {
-            base.OnEnter();
-            entity = Entity.Spawn<SimpleEntity>("New Sprite entity !!!");
-        }
+            ActiveScene = new Scene();
+            ActiveScene.MainCamera = camera = ActiveScene.Spawn<CameraNode>("Camera");
+            camera.Position = new Vector3(12f, 18f, 20f);
+            camera.Rotation = FromEuler(new Vector3(-32, 40, 0) * DegToRad);
 
-        Vector2 btn_pos = Vector2.One * 100;
-        void on_gui(Gui gui)
-        {
-            var particle = entity.RootNode as ParticleSystem;
-            
-            gui.Text(particle.AliveCount.ToString());
-            gui.Combo<ParticleSortMode>("Sort Mode", ref particle.SortMode);
-            
-            gui.Combo<TweenType>("Rotation Tween", ref particle.RotateTween);
-            gui.InputFloat("Start Rotation", ref particle.RotateStart, 0, 0, 2, InputTextFlags.Default);
-            gui.InputFloat("End Rotation", ref particle.RotateEnd, 0, 0, 2, InputTextFlags.Default);
-            
-            gui.Combo<TweenType>("Size Tween", ref particle.SizeTween);
-            gui.InputFloat("Start Size", ref particle.SizeStart, 0, 0, 2, InputTextFlags.Default);
-            gui.InputFloat("End Size", ref particle.SizeEnd, 0, 0, 2, InputTextFlags.Default);
-            gui.Gradient("Color By Life", particle.ColorGradient);
-            
-            int emit_per_sec = particle.EmitPerSecond;
-            gui.InputInt("Emit Per Second", ref emit_per_sec, 0, 0, InputTextFlags.Default);
-            particle.EmitPerSecond = emit_per_sec;
+            Renderer.Lighting.ReflectionSource = CubeMap.Load("DaySkybox.json");
 
-        }
+            var modelNode = ActiveScene.Spawn<ModelNode>("Model");
+            modelNode.Model = Model.Load("TestModel2.dae");
 
-        protected override void OnRender()
-        {
-            
-            MainCamera.Render(this);
-            Gui.Render(on_gui);
-        }
-    }
-
-    public class SimpleEntity : Entity
-    {
-        SpriteNode node2;
-        int frame;
-        protected override void OnBegin()
-        {
-            //CreateRootNode<EntityNode>();
-            CreateRootNode<ParticleSystem>();
-
-            var node1 = RootNode.CreateChild<SpriteNode>("node1");
-            node2 = RootNode.CreateChild<SpriteNode>("node2");
-            node1.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-idle-1"];
-            node2.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-walk-1"];
-            node2.Position = Vector2.One * 10;
-
-            //for (int x = 0; x < 100; x++)
-            //{
-            //    for (int y = 0; y < 10; y++)
-            //    {
-            //        var sprite = RootNode.CreateChild<SpriteNode>("sprite1");
-            //        sprite.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-idle-1"];
-            //        sprite.Position = new Vector2(x, y);
-            //    }
-            //}
+            camRot = ToEuler(camera.Rotation) * RadToDeg;
         }
 
         protected override void OnUpdate(float dt)
         {
-            // if (Time.SinceStart > 10)
-            // {
-            //     RootNode?.Destroy();
-            // }
+            if (Input.IsKeyDown(MouseButton.Right))
+            {
+                camRot.Y -= Input.MouseDeltaPosition.X * 0.1f;
+                camRot.X -= Input.MouseDeltaPosition.Y * 0.1f;
+            }
 
-            node2.Frame = SpriteSheet.Load("sprites/BeardedMan.spr")["bearded-walk-" + (int)((Time.SinceStart * 10) % 6 + 1)];
-            var cam = Scene.Active.MainCamera;
+            camera.Rotation = FromEuler(camRot * DegToRad);
+            camRot = ToEuler(camera.Rotation) * RadToDeg;
 
-            float x = 0;
-            float y = 0;
-            float r = 0;
-            float z = 0;
-
-            if (Input.IsKeyDown(KeyCode.A))
-                x -= dt;
-
-            if (Input.IsKeyDown(KeyCode.D))
-                x += dt;
-
-            if (Input.IsKeyDown(KeyCode.S))
-                y -= dt;
+            float zMove = 0;
+            float xMove = 0;
 
             if (Input.IsKeyDown(KeyCode.W))
-                y += dt;
+                zMove -= 0.5f;
 
-            if (Input.IsKeyDown(KeyCode.E))
-                r += dt;
+            if (Input.IsKeyDown(KeyCode.S))
+                zMove += 0.5f;
 
-            if (Input.IsKeyDown(KeyCode.Q))
-                r -= dt;
+            if (Input.IsKeyDown(KeyCode.A))
+                xMove -= 0.5f;
 
-            if (Input.IsKeyDown(KeyCode.F))
-                z += dt * 100;
+            if (Input.IsKeyDown(KeyCode.D))
+                xMove += 0.5f;
 
-            if (Input.IsKeyDown(KeyCode.R))
-                z -= dt * 100;
+            if (Input.IsKeyDown(KeyCode.LShift))
+            {
+                zMove *= 10f;
+                xMove *= 10f;
+            }
 
-            cam.Position += new Vector2(x, y) * cam.ViewSize * (Input.IsKeyDown(KeyCode.LShift) ? 4f : .2f);
+            camera.Position += camera.Forward * zMove * dt * 4f;
+            camera.Position += camera.Right * xMove * dt * 4f;
 
-            cam.Rotation += r;
-            cam.ViewSize += z;
-
-            if (Input.IsKeyDown(KeyCode.Right))
-                RootNode.Rotation += dt;
-
-            if (Input.IsKeyDown(KeyCode.Left))
-                RootNode.Rotation -= dt;
+            if (Input.IsKeyPressed(KeyCode.Escape))
+                Quit();
         }
 
+        protected override void OnRender()
+        {
+            Renderer.Render(ActiveScene);
+            Gui.Render(onGui);
+        }
 
+        void onGui(Gui gui)
+        {
+            gui.TextLabel("Frame Time", (Time.FrameTime * 1000).ToString("0.00 ms"));
+            Renderer.Debug = gui.EnumEdit("Debug View", Renderer.Debug);
+
+            if (gui.Header("Environment Light"))
+            {
+                Renderer.Lighting.Exposure = gui.FloatEdit("Exposure", Renderer.Lighting.Exposure);
+
+                Renderer.Lighting.SkyColor = gui.ColorEdit("SkyColor", Renderer.Lighting.SkyColor);
+                Renderer.Lighting.GroundColor = gui.ColorEdit("GroundColor", Renderer.Lighting.GroundColor);
+                Renderer.Lighting.SkyIntensity = gui.FloatEdit("SkyIntensity", Renderer.Lighting.SkyIntensity);
+                Renderer.Lighting.GroundIntensity = gui.FloatEdit("GroundIntensity", Renderer.Lighting.GroundIntensity);
+
+                Renderer.SSAO.Radius = gui.FloatEdit("SSAO Radius", Renderer.SSAO.Radius);
+                Renderer.SSAO.Quality = gui.EnumEdit<SSAOQuality>("SSAO Quality", Renderer.SSAO.Quality);
+
+                Renderer.SSAO.Power = gui.FloatEdit("SSAO Power", Renderer.SSAO.Power);
+
+                Renderer.Lighting.FogColor = gui.ColorEdit("Fog Color", Renderer.Lighting.FogColor);
+                Renderer.Lighting.FogIntensity = gui.FloatEdit("Fog Intensity", Renderer.Lighting.FogIntensity);
+                Renderer.Lighting.FogDensity = gui.FloatEdit("Fog Density", Renderer.Lighting.FogDensity);
+            }
+
+            if (gui.Header("Sun Light"))
+            {
+                Renderer.Lighting.SunLight = gui.BoolEdit("Enabled", Renderer.Lighting.SunLight);
+                Renderer.Lighting.SunColor = gui.ColorEdit("Color", Renderer.Lighting.SunColor);
+                Renderer.Lighting.SunIntensity = gui.FloatEdit("Intensity", Renderer.Lighting.SunIntensity);
+                Renderer.Lighting.SunDirection = gui.Vector3Edit("Direction", Renderer.Lighting.SunDirection);
+                Renderer.Shadow.Center = gui.Vector3Edit("Shadow Center", Renderer.Shadow.Center);
+                Renderer.Shadow.Range = gui.FloatEdit("Shadow Volume", Renderer.Shadow.Range);
+                Renderer.Shadow.Bias = gui.FloatEdit("Shadow Bias", Renderer.Shadow.Bias);
+                Renderer.Shadow.Softness = gui.FloatEdit("Shadow Softness", Renderer.Shadow.Softness);
+            }
+        }
     }
+
 }

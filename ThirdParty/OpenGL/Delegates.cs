@@ -72,9 +72,9 @@ public static partial class OpenGL
         public delegate FramebufferErrorCode CheckNamedFramebufferStatus(uint framebuffer, FramebufferTarget target);
         public delegate void ClampColor(ClampColorTarget target, ClampColorMode clamp);
         public delegate void Clear(ClearBufferMask mask);
-        public delegate void ClearBufferiv(ClearBuffer buffer, int drawbuffer, int[] value);
-        public delegate void ClearBufferuiv(ClearBuffer buffer, int drawbuffer, uint[] value);
-        public delegate void ClearBufferfv(ClearBuffer buffer, int drawbuffer, float[] value);
+        public delegate void ClearBufferiv(ClearBuffer buffer, int drawbuffer, int* value);
+        public delegate void ClearBufferuiv(ClearBuffer buffer, int drawbuffer, uint* value);
+        public delegate void ClearBufferfv(ClearBuffer buffer, int drawbuffer, float* value);
         public delegate void ClearBufferfi(ClearBuffer buffer, int drawbuffer, float depth, int stencil);
         public delegate void ClearNamedFramebufferiv(uint framebuffer, ClearBuffer buffer, int drawbuffer, int[] value);
         public delegate void ClearNamedFramebufferuiv(uint framebuffer, ClearBuffer buffer, int drawbuffer, uint[] value);

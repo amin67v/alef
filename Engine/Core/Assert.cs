@@ -12,12 +12,12 @@ namespace Engine
         /// </summary>
         [DebuggerHidden]
         [Conditional("DEBUG")]
-        public static void IsTrue(bool condition, string fail_msg = null, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        public static void IsTrue(bool condition, string description = null, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             if (!condition)
             {
                 file = Path.GetFileName(file);
-                var msg = $"({file}:{line}) Assertion failed. {fail_msg}";
+                var msg = $"({file}:{line}) Assertion failed. {description}";
                 throw new Exception(msg);
             }
         }

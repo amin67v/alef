@@ -39,6 +39,11 @@ namespace Engine
         }
 
         /// <summary>
+        /// Rect with zero position and size.
+        /// </summary>
+        public static Rect Zero => new Rect();
+
+        /// <summary>
         /// The x coord of the rect.
         /// </summary>
         public float X
@@ -327,16 +332,6 @@ namespace Engine
         {
             l.vec /= r;
             return l;
-        }
-
-        public static Rect operator *(Rect l, Vector2 r)
-        {
-            return new Rect(l.vec.X * r.X, l.vec.Y * r.Y, l.vec.Z * r.X, l.vec.W * r.Y);
-        }
-
-        public static Rect operator /(Rect l, Vector2 r)
-        {
-            return new Rect(l.vec.X / r.X, l.vec.Y / r.Y, l.vec.Z / r.X, l.vec.W / r.Y);
         }
 
         public static bool operator ==(Rect a, Rect b) => a.Equals(b);

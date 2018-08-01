@@ -1,10 +1,51 @@
 using System;
+using System.IO;
+using System.Json;
+using System.Numerics;
 using System.Runtime.InteropServices;
+
+using Assimp;
 
 namespace Engine
 {
-    public abstract class MeshBuffer<T> : Disposable where T : struct, IVertex
+    public abstract class MeshBuffer : Resource
     {
+        /// <summary>
+        /// Gets internal screen quad mesh buffer
+        /// </summary>
+        public static MeshBuffer ScreenQuad
+        {
+            get
+            {
+                MeshBuffer value = ResourceManager.Get<MeshBuffer>("MeshBuffer.ScreenQuad");
+                if (value == null)
+                {
+                    Vertex[] vertices = new Vertex[4];
+                    vertices[0].Position = new Vector3(-1, -1, 0);
+                    vertices[0].Normal = new Vector3(0, 0, 0);
+                    vertices[0].Texcoord = new Vector3(0, 0, 0);
+
+                    vertices[1].Position = new Vector3(1, 1, 0);
+                    vertices[1].Normal = new Vector3(0, 0, 0);
+                    vertices[1].Texcoord = new Vector3(1, 1, 0);
+
+                    vertices[2].Position = new Vector3(-1, 1, 0);
+                    vertices[2].Normal = new Vector3(0, 0, 0);
+                    vertices[2].Texcoord = new Vector3(0, 1, 0);
+
+                    vertices[3].Position = new Vector3(1, -1, 0);
+                    vertices[3].Normal = new Vector3(0, 0, 0);
+                    vertices[3].Texcoord = new Vector3(1, 0, 0);
+
+                    ushort[] indices = { 0, 1, 2, 0, 3, 1 };
+
+                    value = MeshBuffer.Create(Vertex.Format, PrimitiveType.Triangles, vertices, indices);
+                    ResourceManager.Add("MeshBuffer.ScreenQuad", value);
+                }
+                return value;
+            }
+        }
+
         /// <summary>
         /// Number of vertices this mesh buffer contains
         /// </summary>
@@ -16,107 +57,66 @@ namespace Engine
         public abstract int IndexCount { get; }
 
         /// <summary>
-        /// Does this mesh buffer use index buffer?
+        /// primitive type used to draw this mesh buffer
         /// </summary>
-        public abstract bool HasIndexBuffer { get; }
+        public abstract PrimitiveType PrimitiveType { get; }
 
         /// <summary>
-        /// Draw this mesh buffer
+        /// Vertex format used to build this mesh buffer
         /// </summary>
-        public void Draw(PrimitiveType type)
-        {
-            Draw(0, HasIndexBuffer ? IndexCount : VertexCount, type);
-        }
+        public abstract VertexFormat VertexFormat { get; }
 
         /// <summary>
-        /// Draw this mesh buffer
-        /// </summary>
-        public abstract void Draw(int offset, int count, PrimitiveType type);
-
-        /// <summary>
-        /// Creates an empty mesh buffer
-        /// </summary>
-        public static MeshBuffer<T> Create()
-        {
-            return Create(IntPtr.Zero, 0);
-        }
-
-        /// <summary>
-        /// Creates an empty mesh buffer including index buffer
-        /// </summary>
-        public static MeshBuffer<T> CreateIndexed()
-        {
-            return CreateIndexed(IntPtr.Zero, 0, IntPtr.Zero, 0);
-        }
-
-        /// <summary>
-        /// Creates a mesh buffer with the provided vertex array
-        /// </summary>
-        public static MeshBuffer<T> Create(Array<T> vertices)
-        {
-            var pin = GCHandle.Alloc(vertices.Items, GCHandleType.Pinned);
-            var mb = Create(pin.AddrOfPinnedObject(), vertices.Count);
-            pin.Free();
-            return mb;
-        }
-
-        /// <summary>
-        /// Creates a mesh buffer with the provided vertex and index array
-        /// </summary>
-        public static MeshBuffer<T> CreateIndexed(Array<T> vertices, Array<ushort> indices)
-        {
-            var pin = GCHandle.Alloc(vertices.Items, GCHandleType.Pinned);
-            var pin2 = GCHandle.Alloc(indices.Items, GCHandleType.Pinned);
-            var mb = CreateIndexed(pin.AddrOfPinnedObject(), vertices.Count, pin2.AddrOfPinnedObject(), indices.Count);
-            pin.Free();
-            pin2.Free();
-            return mb;
-        }
-
-        /// <summary>
-        /// Creates a mesh buffer with the provided pointer to the vertex data
-        /// </summary>
-        public static MeshBuffer<T> Create(IntPtr vtx_data, int vtx_count)
-        {
-            return App.Graphics.CreateMeshBuffer<T>(vtx_data, vtx_count);
-        }
-
-        /// <summary>
-        /// Creates a mesh buffer with the provided pointers to vertex and index data
-        /// </summary>
-        public static MeshBuffer<T> CreateIndexed(IntPtr vtx_data, int vtx_count, IntPtr idx_data, int idx_count)
-        {
-            return App.Graphics.CreateMeshBuffer<T>(vtx_data, vtx_count, idx_data, idx_count);
-        }
-
-        /// <summary>
-        /// Updates vertex buffer with the provided vertex array
-        /// </summary>
-        public void UpdateVertices(Array<T> vertices)
-        {
-            var pin = GCHandle.Alloc(vertices.Items, GCHandleType.Pinned);
-            UpdateVertices(pin.AddrOfPinnedObject(), vertices.Count);
-            pin.Free();
-        }
-
-        /// <summary>
-        /// Updates vertex buffer with the provided pointer to vertex data
+        /// Updates vertices with the given vertex data
         /// </summary>
         public abstract void UpdateVertices(IntPtr data, int count);
 
         /// <summary>
-        /// Updates index buffer with the provided index array
+        /// Updates vertices with the given vertex array
         /// </summary>
-        public void UpdateIndices(Array<ushort> indices)
+        public void UpdateVertices<T>(Array<T> vertices)
         {
-            var pin = GCHandle.Alloc(indices.Items, GCHandleType.Pinned);
-            UpdateIndices(pin.AddrOfPinnedObject(), indices.Count);
-            pin.Free();
+
+            var hdl = vertices.GetPinnedHandle();
+            UpdateVertices(hdl.AddrOfPinnedObject(), vertices.Count);
+            hdl.Free();
         }
 
         /// <summary>
-        /// Updates index buffer with the provided pointer to index data
+        /// Updates indices with the given index data
         /// </summary>
         public abstract void UpdateIndices(IntPtr data, int count);
+
+        // /// <summary>
+        // /// Updates indices with the given index array
+        // /// </summary>
+        public void UpdateIndices(Array<ushort> indices)
+        {
+            var hdl = indices.GetPinnedHandle();
+            UpdateIndices(hdl.AddrOfPinnedObject(), indices.Count);
+            hdl.Free();
+        }
+
+        public static MeshBuffer Create<T>(VertexFormat format, PrimitiveType primitive, T[] vertices, ushort[] indices) where T : struct
+        {
+            var vertHdl = GCHandle.Alloc(vertices, GCHandleType.Pinned);
+            var indHdl = GCHandle.Alloc(indices, GCHandleType.Pinned);
+            var buffer = Graphics.CreateMeshBuffer(format, primitive, vertHdl.AddrOfPinnedObject(), vertices.Length,
+                                                                          indHdl.AddrOfPinnedObject(), indices.Length);
+            vertHdl.Free();
+            indHdl.Free();
+            return buffer;
+        }
+
+        public static MeshBuffer Create<T>(VertexFormat format, PrimitiveType primitive, Array<T> vertices, Array<ushort> indices) where T : struct
+        {
+            var pinVertices = vertices.GetPinnedHandle();
+            var pinIndices = indices.GetPinnedHandle();
+            var buffer = Graphics.CreateMeshBuffer(format, primitive, pinVertices.AddrOfPinnedObject(), vertices.Count,
+                                                                      pinIndices.AddrOfPinnedObject(), indices.Count);
+            pinVertices.Free();
+            pinIndices.Free();
+            return buffer;
+        }
     }
 }

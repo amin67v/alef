@@ -1,57 +1,43 @@
 using System;
 using System.Diagnostics;
-using static System.MathF;
 
 namespace Engine
 {
+
     /// <summary>
-    /// Time related info about the current app
+    /// Time related info about the app
     /// </summary>
     public sealed class Time
     {
-        static Time instance;
-
         Stopwatch sw = new Stopwatch();
         float speed = 1;
         float ft;
         float time;
 
-        Time() { }
-
         /// <summary>
         /// Gets the total elapsed time since start of the app, in seconds.
         /// </summary>
-        public static float SinceStart => instance.time;
+        public float SinceStart => time;
 
         /// <summary>
         /// Total time spent on the last frame.
         /// </summary>
-        public static float FrameTime => instance.ft;
+        public float FrameTime => ft;
 
         /// <summary>
         /// Gets or sets the speed of time.
         /// </summary>
-        public static float Speed
+        public float Speed
         {
-            get => instance.speed;
-            set => instance.speed = Max(0, value);
+            get => speed;
+            set => speed = Math.Max(0, value);
         }
 
-        internal static void update()
+        internal void NewFrame()
         {
-            instance.ft = (float)instance.sw.Elapsed.TotalSeconds;
-            instance.time += instance.ft * instance.speed;
-            instance.sw.Restart();
-        }
-
-        internal static void init()
-        {
-            instance = new Time();
-        }
-
-        internal static void shutdown()
-        {
-            instance = null;
+            ft = (float)sw.Elapsed.TotalSeconds;
+            time += ft * speed;
+            sw.Restart();
         }
     }
 }

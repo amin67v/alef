@@ -3,110 +3,120 @@ using System.Numerics;
 
 namespace Engine
 {
-    public sealed class Input
+    public sealed class Input : ObjectBase
     {
-        static Input instance;
-
-        Vector2 mpos;
-        Vector2 mscroll;
+        Vector2 mousePos;
+        Vector2 lastMousePos;
+        Vector2 deltaMousePos;
+        Vector2 mouseScrollDelta;
         bool[] keys;
         bool[] mouse;
-        bool[] keys_last;
-        bool[] mouse_last;
-        char last_char;
+        bool[] lastFrameKeys;
+        bool[] lastFrameMouse;
+        char lastChar;
+        bool lockMouse;
 
-        Input() { }
-
-        public static Vector2 MouseScrollDelta => instance.mscroll;
-
-        public static char GetLastKeyChar() => instance.last_char;
-
-        public static bool IsKeyDown(KeyCode key) => instance.keys[(int)key];
-
-        public static bool IsKeyPressed(KeyCode key) => instance.keys[(int)key] && !instance.keys_last[(int)key];
-
-        public static bool IsKeyReleased(KeyCode key) => !instance.keys[(int)key] && instance.keys_last[(int)key];
-
-        public static bool IsKeyDown(MouseButton button) => instance.mouse[(int)button];
-
-        public static bool IsKeyPressed(MouseButton button) => instance.mouse[(int)button] && !(instance.mouse_last[(int)button]);
-
-        public static bool IsKeyReleased(MouseButton button) => !instance.mouse[(int)button] && (instance.mouse_last[(int)button]);
-
-        public static Vector2 MousePosition
+        internal Input()
         {
-            get => instance.mpos;
+            keys = new bool[512];
+            lastFrameKeys = new bool[512];
+            mouse = new bool[3];
+            lastFrameMouse = new bool[3];
+
+            lastMousePos = mousePos = Window.GetMousePosition();
+
+            Window.OnFocusChanged += focusChanged;
+            Window.OnKeyPressed += keyDown;
+            Window.OnKeyReleased += keyUp;
+            Window.OnMouseButtonPressed += mouseDown;
+            Window.OnMouseButtonReleased += mouseUp;
+            Window.OnTextInput += textInput;
+            Window.OnMouseScroll += mouseScroll;
+        }
+
+        public char GetLastKeyChar() => lastChar;
+
+        public bool IsKeyDown(KeyCode key) => keys[(int)key];
+
+        public bool IsKeyPressed(KeyCode key) => keys[(int)key] && !lastFrameKeys[(int)key];
+
+        public bool IsKeyReleased(KeyCode key) => !keys[(int)key] && lastFrameKeys[(int)key];
+
+        public bool IsKeyDown(MouseButton button) => mouse[(int)button];
+
+        public bool IsKeyPressed(MouseButton button) => mouse[(int)button] && !(lastFrameMouse[(int)button]);
+
+        public bool IsKeyReleased(MouseButton button) => !mouse[(int)button] && (lastFrameMouse[(int)button]);
+
+        public Vector2 MouseScrollDelta => mouseScrollDelta;
+
+        public bool LockCursor
+        {
+            get => lockMouse;
+            set => lockMouse = value;
+        }
+
+        public Vector2 MousePosition
+        {
+            get => mousePos;
             set
             {
-                instance.mpos = value;
-                App.Window.WrapMouse(value);
+                mousePos = value;
+                Window.SetMousePosition(value);
             }
         }
 
-        internal static void init()
-        {
-            instance = new Input();
-            instance.keys = new bool[512];
-            instance.keys_last = new bool[512];
-            instance.mouse = new bool[3];
-            instance.mouse_last = new bool[3];
+        public Vector2 MouseDeltaPosition => deltaMousePos;
 
-            App.Window.OnLostFocus += instance.lost_focus;
-            App.Window.OnKeyPressed += instance.key_down;
-            App.Window.OnKeyReleased += instance.key_up;
-            App.Window.OnMouseButtonPressed += instance.mouse_down;
-            App.Window.OnMouseButtonReleased += instance.mouse_up;
-            App.Window.OnTextInput += instance.text_input;
-            App.Window.OnMouseScroll += instance.mouse_scroll;
-            App.Window.OnMouseMove += instance.mouse_pos;
+        protected override void OnDestroy()
+        {
+            Window.OnFocusChanged -= focusChanged;
+            Window.OnKeyPressed -= keyDown;
+            Window.OnKeyReleased -= keyUp;
+            Window.OnMouseButtonPressed -= mouseDown;
+            Window.OnMouseButtonReleased -= mouseUp;
+            Window.OnTextInput -= textInput;
+            Window.OnMouseScroll -= mouseScroll;
         }
 
-        internal static void shutdown()
+        internal void PreWindowEvents()
         {
-            App.Window.OnLostFocus -= instance.lost_focus;
-            App.Window.OnKeyPressed -= instance.key_down;
-            App.Window.OnKeyReleased -= instance.key_up;
-            App.Window.OnMouseButtonPressed -= instance.mouse_down;
-            App.Window.OnMouseButtonReleased -= instance.mouse_up;
-            App.Window.OnTextInput -= instance.text_input;
-            App.Window.OnMouseScroll -= instance.mouse_scroll;
-            App.Window.OnMouseMove -= instance.mouse_pos;
-
-            instance = null;
+            Array.Copy(keys, lastFrameKeys, keys.Length);
+            Array.Copy(mouse, lastFrameMouse, mouse.Length);
+            mouseScrollDelta = Vector2.Zero;
+            lastChar = (char)0;
         }
 
-        internal static void update()
+        internal void PostWindowEvents()
         {
-            Array.Copy(instance.keys, instance.keys_last, instance.keys.Length);
-            Array.Copy(instance.mouse, instance.mouse_last, instance.mouse.Length);
-
-            instance.mscroll = Vector2.Zero;
-            instance.last_char = (char)0;
+            mousePos = Window.GetMousePosition();
+            deltaMousePos = MousePosition - lastMousePos;
+            if (lockMouse && Window.IsFocused)
+                MousePosition = new Vector2(Window.Width, Window.Height) * .5f;
+            lastMousePos = MousePosition;
         }
 
-        void lost_focus() => instance.reset_key_state();
+        void focusChanged(bool isFocused) => resetKeyState();
 
-        void key_down(KeyCode code) => instance.keys[(int)code] = true;
+        void keyDown(KeyCode code) => keys[(int)code] = true;
 
-        void key_up(KeyCode code) => instance.keys[(int)code] = false;
+        void keyUp(KeyCode code) => keys[(int)code] = false;
 
-        void mouse_down(MouseButton btn) => instance.mouse[(int)btn] = true;
+        void mouseDown(MouseButton btn) => mouse[(int)btn] = true;
 
-        void mouse_up(MouseButton btn) => instance.mouse[(int)btn] = false;
+        void mouseUp(MouseButton btn) => mouse[(int)btn] = false;
 
-        void text_input(char c) => instance.last_char = c;
+        void textInput(char c) => lastChar = c;
 
-        void mouse_scroll(Vector2 value) => instance.mscroll = value;
+        void mouseScroll(Vector2 value) => mouseScrollDelta = value;
 
-        void mouse_pos(Vector2 value) => instance.mpos = value;
-
-        void reset_key_state()
+        void resetKeyState()
         {
-            for (int i = 0; i < instance.keys.Length; i++)
-                instance.keys[i] = instance.keys_last[i] = false;
+            for (int i = 0; i < keys.Length; i++)
+                keys[i] = lastFrameKeys[i] = false;
 
-            for (int i = 0; i < instance.mouse.Length; i++)
-                instance.mouse[i] = instance.mouse_last[i] = false;
+            for (int i = 0; i < mouse.Length; i++)
+                mouse[i] = lastFrameMouse[i] = false;
         }
     }
 

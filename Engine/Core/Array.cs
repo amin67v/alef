@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
 namespace Engine
 {
     /// <summary>
-    /// Implements a resizable array, similar to List<T> but with direct
-    /// access to internal array, no bounds checks, no versioning, uses
-    /// assert in debug instead of exceptions.
+    /// Implements a resizable array, similar to List<T> but with ref
+    /// access to items, no bounds checks, no versioning
     /// </summary>
-    public class Array<T>
+    public class Array<T> : IReadOnlyArray<T>
     {
-        const int min_capacity = 4;
+        const int MinCapacity = 4;
 
         T[] array;
         int count;
@@ -19,7 +19,7 @@ namespace Engine
         /// <summary>
         /// Initialize a new instance of array with the given capacity.
         /// </summary>
-        public Array(int capacity = min_capacity) => array = new T[Math.Max(capacity, min_capacity)];
+        public Array(int capacity = MinCapacity) => array = new T[System.Math.Max(capacity, MinCapacity)];
 
         /// <summary>
         /// Initialize a new instance of the array and copy the content from the given data.
@@ -28,11 +28,11 @@ namespace Engine
         {
             if (data == null)
             {
-                array = new T[min_capacity];
+                array = new T[MinCapacity];
             }
             else
             {
-                array = new T[Math.Max(min_capacity, data.Length)];
+                array = new T[System.Math.Max(MinCapacity, data.Length)];
                 Array.Copy(data, 0, array, 0, data.Length);
                 count = data.Length;
             }
@@ -43,10 +43,7 @@ namespace Engine
         /// </summary>
         public ref T this[int index] => ref array[index];
 
-        /// <summary>
-        /// Access to internal array for performance, please do not use Items.Length, instead use 'Count' property on this object.
-        /// </summary>
-        public T[] Items => array;
+        //public T this[int index] => array[index];
 
         /// <summary>
         /// The number of items this array contains.
@@ -64,18 +61,23 @@ namespace Engine
         public ref T Last => ref array[count - 1];
 
         /// <summary>
+        /// Gets item at index
+        /// </summary>
+        public T GetItemAt(int index) => this[index];
+
+        /// <summary>
         /// Pushes an object as the last item to this array.
         /// </summary>
         public void Push(T item)
         {
-            grow_if_needed();
+            growIfNeeded();
             array[count++] = item;
         }
 
         /// <summary>
         /// Pushes all items from other array to this array.
         /// </summary>
-        public void Push(Array<T> other) => Push(other.Items, 0, other.Count);
+        public void Push(Array<T> other) => Push(other.array, 0, other.Count);
 
         /// <summary>
         /// Pushes all items from other array to this array.
@@ -87,7 +89,7 @@ namespace Engine
         /// </summary>
         public void Push(T[] other, int index, int length)
         {
-            grow_if_needed(length);
+            growIfNeeded(length);
             Array.Copy(other, index, array, count, length);
             count += length;
         }
@@ -97,7 +99,7 @@ namespace Engine
         /// </summary>
         public T Pop()
         {
-            Assert.IsTrue(count > 0, "Array is already empty.");
+            Assert.IsTrue(count > 0, "Array is empty.");
 
             var item = array[--count];
             array[count] = default(T);
@@ -174,7 +176,7 @@ namespace Engine
         }
 
         /// <summary>
-        /// Returns true of array contains item.
+        /// Returns true if array contains item.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item) => IndexOf(item) != -1;
@@ -185,7 +187,7 @@ namespace Engine
         public void Insert(int index, T item)
         {
             Assert.IsTrue((uint)index > count, "Index is out of range");
-            grow_if_needed();
+            growIfNeeded();
             Array.Copy(array, index, array, index + 1, count - index);
             array[index] = item;
             ++count;
@@ -218,6 +220,20 @@ namespace Engine
         }
 
         /// <summary>
+        /// Swaps item with the last item then pop it
+        /// </summary>
+        public bool SwapAndPop(T item)
+        {
+            var index = IndexOf(item);
+            if (index < 0)
+                return false;
+
+            Swap(index, Count - 1);
+            Pop();
+            return true;
+        }
+
+        /// <summary>
         /// Shuffle items inside this array.
         /// </summary>
         public void Shuffle()
@@ -226,7 +242,7 @@ namespace Engine
             while (n > 1)
             {
                 n--;
-                int k = Random.Int(0, n + 1);
+                int k = Random.Global.NextInt(0, n + 1);
                 T value = array[k];
                 array[k] = array[n];
                 array[n] = value;
@@ -266,23 +282,28 @@ namespace Engine
         /// </summary>
         public T[] ToArray()
         {
-            T[] new_arr = new T[count];
-            Array.Copy(array, new_arr, count);
-            return new_arr;
+            T[] newArray = new T[count];
+            Array.Copy(array, newArray, count);
+            return newArray;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void grow_if_needed(int new_items = 1)
-        {
-            var new_item_count = count + new_items;
+        /// <summary>
+        /// Returns pinned GCHandle for the internal array
+        /// </summary>
+        public GCHandle GetPinnedHandle() => GCHandle.Alloc(array,  GCHandleType.Pinned);
 
-            if (array.Length < new_item_count)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void growIfNeeded(int numGrow = 1)
+        {
+            var newItemCount = count + numGrow;
+
+            if (array.Length < newItemCount)
             {
-                var new_size = new_item_count * 2;
-                new_size = Math.Max(min_capacity, new_size);
-                T[] new_arr = new T[new_size];
-                Array.Copy(array, 0, new_arr, 0, count);
-                array = new_arr;
+                var newSize = newItemCount + newItemCount / 2;
+                newSize = System.Math.Max(MinCapacity, newSize);
+                T[] newArray = new T[newSize];
+                Array.Copy(array, 0, newArray, 0, count);
+                array = newArray;
             }
         }
     }

@@ -2,6 +2,8 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using static System.MathF;
+
 namespace Engine
 {
     [StructLayout(LayoutKind.Explicit)]
@@ -193,9 +195,36 @@ namespace Engine
             A = (byte)(a * 255);
         }
 
-        public Color(Vector4 vec) : this(vec.X, vec.Y, vec.Z, vec.W) { }
+        public Color(Vector4 rgba) : this(rgba.X, rgba.Y, rgba.Z, rgba.W) { }
+
+        public Color(Vector3 rgb) : this(rgb.X, rgb.Y, rgb.Z) { }
 
         public float Brightness => 0.00082914f * R + 0.00278928f * G + 0.00028158f * B;
+
+        public Color Invert => new Color(255 - R, 255 - G, 255 - B, A);
+
+        /// <summary>
+        /// Converts color from gamma space to linear space
+        /// </summary>
+        public static Color Linear(Color color)
+        {
+            var r = Pow(color.R / 255f, 2.2f);
+            var g = Pow(color.G / 255f, 2.2f);
+            var b = Pow(color.B / 255f, 2.2f);
+            return new Color(r, g, b, color.A / 255f);
+        }
+
+        /// <summary>
+        /// Converts color from linear space to gamma space
+        /// </summary>
+        public static Color Gamma(Color color)
+        {
+            const float gamma = 1f / 2.2f;
+            var r = Pow(color.R / 255f, gamma);
+            var g = Pow(color.G / 255f, gamma);
+            var b = Pow(color.B / 255f, gamma);
+            return new Color(r, g, b, color.A / 255f);
+        }
 
         /// <summary>
         /// Creates color from Rgb
@@ -221,7 +250,7 @@ namespace Engine
         /// <summary>
         /// Blends color a with color b with the given amount 
         /// </summary>
-        public static Color Blend(Color a, Color b, float amount)
+        public static Color Lerp(Color a, Color b, float amount)
         {
             return new Color((byte)((b.R - a.R) * amount + a.R),
                              (byte)((b.G - a.G) * amount + a.G),
@@ -274,8 +303,8 @@ namespace Engine
             float rf = R / 255f;
             float gf = G / 255f;
             float bf = B / 255f;
-            min = Math.Min(rf / 255f, Math.Min(gf, bf));
-            max = Math.Max(rf / 255f, Math.Min(gf, bf));
+            min = System.Math.Min(rf / 255f, System.Math.Min(gf, bf));
+            max = System.Math.Max(rf / 255f, System.Math.Min(gf, bf));
             v = max;
             delta = max - min;
             if (max != 0)
@@ -354,6 +383,12 @@ namespace Engine
         {
             const float inv255 = 0.003921568627451f;
             return new Vector4(R * inv255, G * inv255, B * inv255, A * inv255);
+        }
+
+         public Vector3 ToVector3()
+        {
+            const float inv255 = 0.003921568627451f;
+            return new Vector3(R * inv255, G * inv255, B * inv255);
         }
 
         public override bool Equals(object obj)

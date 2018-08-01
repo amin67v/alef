@@ -4,55 +4,25 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public interface IVertex
-    {
-        int SizeInBytes { get; }
-
-        string Format { get; }
-    }
-
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vertex : IEquatable<Vertex>, IVertex
+    public struct Vertex2D : IEquatable<Vertex2D>
     {
-        public static readonly Vertex Zero = new Vertex(0, 0, 0, 0, Color.White);
-
-        public int SizeInBytes
-        {
-            get
-            {
-                unsafe { return sizeof(Vertex); }
-            }
-        }
-
-        public string Format => "vec2.vec2.color";
+        public static readonly VertexFormat Format = 
+            new VertexFormat(VertexAttrib.Vector2, VertexAttrib.Vector2, VertexAttrib.Color);
 
         public Vector2 Position;
         public Vector2 Texcoord;
         public Color Color;
 
-        public Vertex(float x, float y, float tx, float ty, Color c)
-        {
-            Position = new Vector2(x, y);
-            Texcoord = new Vector2(tx, ty);
-            Color = c;
-        }
-
-        public Vertex(Vector2 pos, Vector2 texcoord, Color c)
-        {
-            Position = pos;
-            Texcoord = texcoord;
-            Color = c;
-        }
-
         public override bool Equals(object obj)
         {
-            if (obj is Vertex)
-                return Equals((Vertex)obj);
+            if (obj is Vertex2D)
+                return Equals((Vertex2D)obj);
             else
                 return false;
         }
 
-        public bool Equals(Vertex other)
+        public bool Equals(Vertex2D other)
         {
             return Position == other.Position &&
                    Texcoord == other.Texcoord &&
@@ -68,6 +38,50 @@ namespace Engine
                 hash = (hash + Position.GetHashCode()) * prime;
                 hash = (hash + Texcoord.GetHashCode()) * prime;
                 hash = (hash + Color.GetHashCode()) * prime;
+                return hash;
+            }
+        }
+
+        public static bool operator ==(Vertex2D a, Vertex2D b) => a.Equals(b);
+
+        public static bool operator !=(Vertex2D a, Vertex2D b) => !a.Equals(b);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Vertex : IEquatable<Vertex>
+    {
+        public static readonly VertexFormat Format = 
+            new VertexFormat(VertexAttrib.Vector3, VertexAttrib.Vector3, VertexAttrib.Vector3, VertexAttrib.Vector3);
+
+        public Vector3 Position;
+        public Vector3 Normal;
+        public Vector3 Tangent;
+        public Vector3 Texcoord;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Vertex)
+                return Equals((Vertex)obj);
+            else
+                return false;
+        }
+
+        public bool Equals(Vertex other)
+        {
+            return Position == other.Position &&
+                   Normal == other.Normal &&
+                   Texcoord == other.Texcoord;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                const int prime = 486187739;
+                int hash = prime;
+                hash = (hash + Position.GetHashCode()) * prime;
+                hash = (hash + Normal.GetHashCode()) * prime;
+                hash = (hash + Texcoord.GetHashCode()) * prime;
                 return hash;
             }
         }

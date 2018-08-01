@@ -1,0 +1,15 @@
+{
+    "Image": {
+        "Back": "DaySkybox/back.jpg",
+        "Bottom": "DaySkybox/bottom.jpg",
+        "Front": "DaySkybox/front.jpg",
+        "Left": "DaySkybox/left.jpg",
+        "Right": "DaySkybox/right.jpg",
+        "Top": "DaySkybox/top.jpg"
+    },
+    "FilterMode": "Linear",
+    "WrapMode": "Clamp",
+    "GenerateMipmap": false,
+    "Compress": false,
+    "sRgb": true
+}

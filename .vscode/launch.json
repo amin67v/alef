@@ -16,17 +16,6 @@
             "console": "internalConsole"
         },
         {
-            "name": "Debug->DataEditor",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceRoot}/bin/netcoreapp2.0/DataEditor.dll",
-            "args": [],
-            "cwd": "${workspaceRoot}/DataEditor",
-            "stopAtEntry": false,
-            "console": "internalConsole"
-        },
-        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",

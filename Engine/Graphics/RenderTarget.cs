@@ -4,35 +4,21 @@ using System.Runtime.InteropServices;
 
 namespace Engine
 {
-    public abstract class RenderTarget : Disposable
+    public abstract class RenderTarget : ObjectBase
     {
         /// <summary>
-        /// Gets the attached texture with the specified index
+        /// The width of the renderTarget
         /// </summary>
-        public abstract Texture this[int i] { get; }
+        public abstract int Width { get; }
 
         /// <summary>
-        /// Creates a render target
+        /// The height of the renderTarget
         /// </summary>
-        public static RenderTarget Create(Vector2 size)
-        {
-            return Create((int)size.X, (int)size.Y, FilterMode.Point, 1);
-        }
+        public abstract int Height { get; }
 
         /// <summary>
-        /// Creates a render target
+        /// Gets texture at the given index
         /// </summary>
-        public static RenderTarget Create(int width, int height)
-        {
-            return Create(width, height, FilterMode.Point, 1);
-        }
-
-        /// <summary>
-        /// Creates a render target
-        /// </summary>
-        public static RenderTarget Create(int width, int height, FilterMode filter, int count)
-        {
-            return App.Graphics.CreateRenderTarget(width, height, filter, count);
-        }
+        public abstract Texture2D this[int index] { get; }
     }
 }

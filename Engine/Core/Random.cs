@@ -9,10 +9,14 @@ namespace Engine
     /// </summary>
     public class Random
     {
-        const float inv_max_uint = 1f / (float)uint.MaxValue;
-        static readonly Random g_rand = new Random((int)DateTime.Now.ToBinary());
-
+        static readonly Random gRandom = new Random(System.DateTime.Now.Millisecond);
+        const float invMaxUint = 1f / (float)uint.MaxValue;
         int seed = 0;
+
+        /// <summary>
+        /// Returns a global instance of random class
+        /// </summary>
+        public static Random Global => gRandom;
 
         /// <summary>
         /// Creates an instance of random with the given seed number.
@@ -32,7 +36,7 @@ namespace Engine
         /// <summary>
         /// Returns a random float number between 0 and 1.
         /// </summary>
-        public float NextFloat() => (uint)NextInt() * inv_max_uint;
+        public float NextFloat() => (uint)NextInt() * invMaxUint;
 
         /// <summary>
         /// Returns a random float number between min and max.
@@ -40,29 +44,37 @@ namespace Engine
         public float NextFloat(float min, float max) => NextFloat() * (max - min) + min;
 
         /// <summary>
-        /// Return a random int number.
+        /// Returns a random color
         /// </summary>
-        public static int Int() => g_rand.NextInt();
+        /// <param name="randAlpha">randomize alpha if true</param>
+        public Color NextColor(bool randAlpha = false)
+        {
+            var r = NextInt(0, 256);
+            var g = NextInt(0, 256);
+            var b = NextInt(0, 256);
+            var a = randAlpha ? NextInt(0, 256) : 255;
+            return new Color(r, g, b, a);
+        }
 
         /// <summary>
-        /// Return a random int number between min and max.
+        /// Returns a normalized 3d direction vector
         /// </summary>
-        public static int Int(int min, int max) => g_rand.NextInt(min, max);
+        public Vector3 NextDir3D()
+        {
+            var x = NextFloat() * 2 - 1;
+            var y = NextFloat() * 2 - 1;
+            var z = NextFloat() * 2 - 1;
+            return Vector3.Normalize(new Vector3(x, y, z));
+        }
 
         /// <summary>
-        /// Returns a random float number between 0 and 1.
+        /// Returns a normalized 2d direction vector
         /// </summary>
-        public static float Float() => g_rand.NextFloat();
-
-        /// <summary>
-        /// Returns a random float number between min and max.
-        /// </summary>
-        public static float Float(float min, float max) => g_rand.NextFloat(min, max);
-
-        /// <summary>
-        /// Returns a random opaque color.
-        /// </summary>
-        public static Color Color() => Engine.Color.FromRgb(Int());
-
+        public Vector2 NextDir2D()
+        {
+            var x = NextFloat() * 2 - 1;
+            var y = NextFloat() * 2 - 1;
+            return Vector2.Normalize(new Vector2(x, y));
+        }
     }
 }

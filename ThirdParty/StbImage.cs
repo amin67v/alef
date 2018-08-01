@@ -22,9 +22,6 @@ public unsafe static class StbImage
     [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
     public static extern void stbi_image_free(void* data);
 
-    [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-    static extern void stbi_set_flip_vertically_on_load(int flip);
-
     // stb_image_write
     [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
     public static extern int stbi_write_png([In] [MarshalAs(UnmanagedType.LPStr)] string filename, int w, int h, int comp, [In] void* data, int stride_in_bytes);

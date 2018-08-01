@@ -6,6 +6,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="..\NativeLibs\win-x64\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
+    <None Update="Shaders\**" CopyToOutputDirectory="Always" />
+    <None Update="Roboto-Medium.ttf" CopyToOutputDirectory="Always" />
+    <None Update="Roboto-Medium License.txt" CopyToOutputDirectory="Always" />
+    <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
     <ProjectReference Include="..\ThirdParty\ThirdParty.csproj" />
     <PackageReference Include="System.Json" Version="4.4.0" />
   </ItemGroup>
