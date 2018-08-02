@@ -9,14 +9,19 @@ namespace Engine
         public event Action<int, int> OnReset;
 
         RenderTarget[,] tempRT;
-        GBufferFill gbuffer;
-        LightCompose lighting;
-        AmbientOcclusion ssao;
-        ShadowPass shadow;
         RenderTarget output;
-        Fxaa fxaa;
         DebugMode debug;
         bool reset = true;
+
+        public GBuffer GBuffer { get; private set; }
+
+        public Lighting Lighting { get; private set; }
+
+        public SSAO SSAO { get; private set; }
+
+        public Shadow Shadow { get; private set; }
+
+        public FXAA FXAA { get; private set; }
 
         public RenderTarget Output
         {
@@ -41,45 +46,6 @@ namespace Engine
 
         public int RenderHeight => Output?.Height ?? Window.Height;
 
-        public AmbientOcclusion SSAO => ssao;
-
-        public LightCompose Lighting => lighting;
-
-        public GBufferFill GBuffer => gbuffer;
-
-        public ShadowPass Shadow => shadow;
-
-        public Fxaa FXAA => fxaa;
-
-        public Renderer()
-        {
-            buildShaders();
-
-            Window.OnResize += (w, h) =>
-            {
-                if (Output == null)
-                    reset = true;
-            };
-
-            gbuffer = new GBufferFill(this);
-            ssao = new AmbientOcclusion(this);
-            lighting = new LightCompose(this);
-            fxaa = new Fxaa(this);
-            shadow = new ShadowPass(this);
-
-            OnReset += (w, h) =>
-            {
-                if (tempRT == null)
-                    tempRT = new RenderTarget[3, 2];
-
-                for (int i = 0; i < 3; i++)
-                    for (int j = 0; j < 2; j++)
-                    {
-                        Destroy(tempRT[i, j]);
-                        tempRT[i, j] = null;
-                    }
-            };
-        }
 
         public void Render(Scene scene)
         {
@@ -96,11 +62,11 @@ namespace Engine
                 Graphics.Scissor = Rect.Zero;
                 setShaderConstants(camera);
 
-                GBuffer.InternalRender(scene);
-                SSAO.InternalRender();
-                Shadow.InternalRender(scene);
-                Lighting.InternalRender(scene);
-                FXAA.InternalRender();
+                GBuffer.Draw(scene);
+                SSAO.Draw(scene);
+                Shadow.Draw(scene);
+                Lighting.Draw(scene);
+                FXAA.Draw(scene);
 
                 if (debug != DebugMode.Disabled)
                 {
@@ -109,49 +75,93 @@ namespace Engine
                     switch (debug)
                     {
                         case DebugMode.Albedo:
-                            Graphics.SetShader(getShader("Debug"), GBuffer.AlbedoTex);
+                            Graphics.SetShader(GetShader("Debug"), GBuffer.AlbedoTex);
                             break;
                         case DebugMode.Surface:
-                            Graphics.SetShader(getShader("Debug"), GBuffer.SurfaceTex);
+                            Graphics.SetShader(GetShader("Debug"), GBuffer.SurfaceTex);
                             break;
                         case DebugMode.Normal:
-                            Graphics.SetShader(getShader("Debug"), GBuffer.NormalTex);
+                            Graphics.SetShader(GetShader("Debug"), GBuffer.NormalTex);
                             break;
                         case DebugMode.Depth:
-                            Graphics.SetShader(getShader("Debug"), GBuffer.DepthTex);
+                            Graphics.SetShader(GetShader("Debug"), GBuffer.DepthTex);
                             break;
                         case DebugMode.ShadowMap:
-                            Graphics.SetShader(getShader("Debug"), Shadow.ShadowMap[0]);
+                            Graphics.SetShader(GetShader("Debug"), Shadow.ShadowMap[0]);
                             break;
                         case DebugMode.ShadowDepth:
-                            Graphics.SetShader(getShader("Debug"), Shadow.ShadowDepth[0]);
+                            Graphics.SetShader(GetShader("Debug"), Shadow.ShadowDepth[0]);
                             break;
                         case DebugMode.SSAO:
-                            Graphics.SetShader(getShader("Debug"), SSAO.Texture);
+                            Graphics.SetShader(GetShader("Debug"), SSAO.Texture);
                             break;
                         case DebugMode.LightBuffer:
-                            Graphics.SetShader(getShader("Debug"), Lighting.RenderTarget[0]);
+                            Graphics.SetShader(GetShader("Debug"), Lighting.LightTexture);
                             break;
-                        case DebugMode.UpsampleOffset:
-                            Graphics.SetShader(getShader("Debug"), gbuffer.DepthOffsetTex);
-                            break;
+                            //case DebugMode.UpsampleOffset:
+                            //    Graphics.SetShader(GetShader("Debug"), gbuffer.DepthOffsetTex);
+                            //    break;
                     }
                     Graphics.Draw(MeshBuffer.ScreenQuad);
                 }
             }
         }
 
+        internal void Init()
+        {
+            {
+                var debug = BuildShader("Debug", "post-fx.vert", null, "debug.frag");
+                var texId = debug.GetUniformID("InputTex");
+                var singleId = debug.GetUniformID("SingleChannel");
+                debug.OnSetUniforms = (object obj) =>
+                {
+                    var tex = obj as Texture2D;
+                    debug.SetUniform(texId, 0, tex);
+                    var singleChannel = tex.PixelFormat == PixelFormat.R8 ||
+                                        tex.PixelFormat == PixelFormat.R16 ||
+                                        tex.PixelFormat == PixelFormat.R32F;
+                    debug.SetUniform(singleId, singleChannel ? 1 : 0);
+                };
+            }
+
+            Window.OnResize += (w, h) =>
+            {
+                if (Output == null)
+                    reset = true;
+            };
+
+            OnReset += (w, h) =>
+            {
+                if (tempRT == null)
+                    tempRT = new RenderTarget[3, 2];
+
+                for (int i = 0; i < 3; i++)
+                    for (int j = 0; j < 2; j++)
+                    {
+                        Destroy(tempRT[i, j]);
+                        tempRT[i, j] = null;
+                    }
+            };
+
+            GBuffer = new GBuffer();
+            Lighting = new Lighting();
+            SSAO = new SSAO();
+            Shadow = new Shadow();
+            FXAA = new FXAA();
+        }
+
         protected override void OnDestroy()
         {
-            GBuffer?.Dispose();
+            Destroy(GBuffer);
             Destroy(SSAO);
-            Lighting?.Dispose();
-            FXAA?.Dispose();
+            Destroy(Lighting);
+            Destroy(Shadow);
+            Destroy(FXAA);
 
             // todo : dispose tmp RT
         }
 
-        RenderTarget getTempRT(int downsample, int index)
+        public RenderTarget getTempRT(int downsample, int index)
         {
             if (tempRT[downsample, index] == null || tempRT[downsample, index].IsDestroyed)
             {
@@ -165,21 +175,6 @@ namespace Engine
             return tempRT[downsample, index];
         }
 
-        void drawPass(RenderTarget target, Shader shader, object obj = null)
-        {
-            Graphics.RenderTarget = target;
-            Graphics.Viewport = new Rect(0, 0, target.Width, target.Height);
-            Graphics.Clear(BufferMask.All);
-
-            Graphics.SetDepthTest(DepthTest.Disable);
-            Graphics.SetBlendMode(BlendMode.Disable);
-            Graphics.SetFaceCull(FaceCull.None);
-            Graphics.SetDepthWrite(false);
-
-            Graphics.SetShader(shader, obj);
-            Graphics.Draw(MeshBuffer.ScreenQuad);
-        }
-
         public enum DebugMode
         {
             Disabled,
@@ -191,7 +186,7 @@ namespace Engine
             ShadowDepth,
             SSAO,
             LightBuffer,
-            UpsampleOffset
+            //UpsampleOffset
         }
     }
 

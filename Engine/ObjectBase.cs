@@ -13,6 +13,8 @@ namespace Engine
             Log.Error($"Potential memory leak, Destroy never called on object (Name: '{Name}' - Type: '{GetType().Name}')");
         }
 
+        public static Scene ActiveScene => Game.Current.ActiveScene;
+
         public static Log Log => Game.Current.Log;
         
         public static Time Time => Game.Current.Time;

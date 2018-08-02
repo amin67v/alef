@@ -78,7 +78,7 @@ namespace Engine
             Window = new SDLWindow(cfg);
             Graphics = new GLDriver();
             ResourceManager = new ResourceManager();
-            Renderer = new Renderer();
+            (Renderer = new Renderer()).Init();
             Input = new Input();
             Gui = new Gui();
 
