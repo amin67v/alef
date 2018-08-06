@@ -7,15 +7,22 @@ namespace Engine
 
     public class SSAO : RenderPass
     {
+        Matrix4x4 prevViewProj;
+        Matrix4x4 prevInvViewProj;
+        Vector3 prevCameraPos;
         Array<Vector3> kernel;
         RenderTarget rt;
+        RenderTarget temporalRT;
         Texture2D inputTex;
-        Texture2D noise;
+        Texture2D[] noise;
         Vector2 blurDir;
+        int noiseIndex = 0;
 
         public float Radius { get; set; } = 4;
 
-        public float Power { get; set; } = 2;
+        public float Power { get; set; } = 4;
+
+        public float BlurStride { get; set; } = 1.0f;
 
         public Texture2D Texture => (Quality == SSAOQuality.Disabled) ? Texture2D.White : rt[0];
 
@@ -26,26 +33,27 @@ namespace Engine
             if (Quality == SSAOQuality.Disabled)
                 return;
 
-            var tmpBuffer = Renderer.getTempRT(0, 0);
-            tmpBuffer[0].FilterMode = FilterMode.Linear;
+            var blurTempRT = Renderer.getTempRT(0, 0);
+            blurTempRT[0].FilterMode = FilterMode.Linear;
 
             DrawScreenEffect(rt, Renderer.GetShader("SSAO.1stPass." + (int)Quality));
 
             // vertical blur
             inputTex = rt[0];
-            blurDir = Vector2.UnitX;
-            DrawScreenEffect(tmpBuffer, Renderer.GetShader("SSAO.BlurPass"));
-
+            blurDir = Vector2.UnitX * BlurStride;
+            DrawScreenEffect(blurTempRT, Renderer.GetShader("SSAO.BlurPass"));
             // horizontal blur
-            inputTex = tmpBuffer[0];
-            blurDir = Vector2.UnitY;
+            inputTex = blurTempRT[0];
+            blurDir = Vector2.UnitY * BlurStride;
             DrawScreenEffect(rt, Renderer.GetShader("SSAO.BlurPass"));
+
+            Graphics.BlitRenderTarget(rt, temporalRT, 0, BufferMask.Color, FilterMode.Point);
         }
 
         protected override void OnBegin()
         {
             {
-                var rand = new Random(21);
+                var rand = new Random(8);
                 kernel = new Array<Vector3>(16);
                 for (int i = 0; i < 16; i++)
                 {
@@ -54,16 +62,21 @@ namespace Engine
                     kernel.Push(sample);
                 }
 
-                Image noiseImage = new Image(8, 8);
-                for (int i = 0; i < noiseImage.Width * noiseImage.Height; i++)
+                noise = new Texture2D[64];
+                for (int j = 0; j < noise.Length; j++)
                 {
-                    var vec = rand.NextDir3D();
-                    vec = vec * 0.5f + new Vector3(0.5f);
-                    noiseImage[i] = new Color(vec.X, vec.Y, vec.Z);
+                    Image noiseImage = new Image(64, 64);
+                    for (int i = 0; i < noiseImage.Width * noiseImage.Height; i++)
+                    {
+                        var vec = rand.NextDir3D();
+                        vec = vec * 0.5f + new Vector3(0.5f);
+                        noiseImage[i] = new Color(vec.X, vec.Y, vec.Z);
+                    }
+
+                    noise[j] = Graphics.CreateTexture2D(noiseImage, FilterMode.Point, WrapMode.Repeat, 0, false);
+                    noiseImage.Dispose();
                 }
 
-                noise = Graphics.CreateTexture2D(noiseImage, FilterMode.Point, WrapMode.Repeat, 0, false);
-                noiseImage.Dispose();
             }
 
             {
@@ -76,16 +89,27 @@ namespace Engine
                     var normalId = ssao.GetUniformID("GBufferNormal");
                     var depthId = ssao.GetUniformID("GBufferDepth");
                     var noiseId = ssao.GetUniformID("NoiseTex");
+                    var temporalId = ssao.GetUniformID("TemporalTex");
+                    var prevDepthId = ssao.GetUniformID("PrevDepthTex");
                     var kernelId = ssao.GetUniformID("SampleKernel");
                     var radiusId = ssao.GetUniformID("Radius");
+                    var bufferSizeId = ssao.GetUniformID("BufferSize");
+                    var prevViewProjId = ssao.GetUniformID("PrevViewProjMatrix");
 
                     ssao.OnSetUniforms = (object obj) =>
                     {
                         ssao.SetUniform(normalId, 0, GBuffer.NormalTex);
                         ssao.SetUniform(depthId, 1, GBuffer.DepthTex);
-                        ssao.SetUniform(noiseId, 2, noise);
+                        noiseIndex++;
+                        noiseIndex %= noise.Length;
+                        ssao.SetUniform(noiseId, 2, noise[noiseIndex]);
+                        ssao.SetUniform(temporalId, 3, temporalRT[0]);
+                        ssao.SetUniform(prevDepthId, 4, GBuffer.PrevHalfDepthTex);
                         ssao.SetUniform(kernelId, kernel);
                         ssao.SetUniform(radiusId, Radius);
+                        ssao.SetUniform(bufferSizeId, new Vector2(Graphics.RenderTarget.Width, Graphics.RenderTarget.Height));
+                        ssao.SetUniform(prevViewProjId, ref prevViewProj);
+                        prevViewProj = Renderer.Constants.ViewProjMatrix;
                     };
                 }
             }
@@ -108,7 +132,10 @@ namespace Engine
 
         protected override void OnDestroy()
         {
-            Destroy(noise);
+            for (int i = 0; i < noise.Length; i++)
+                Destroy(noise[i]);
+
+            noise = null;
             Destroy(rt);
         }
 
@@ -117,6 +144,10 @@ namespace Engine
             Destroy(rt);
             rt = Graphics.CreateRenderTarget(w, h, false, PixelFormat.R8);
             rt[0].FilterMode = FilterMode.Linear;
+
+            Destroy(temporalRT);
+            temporalRT = Graphics.CreateRenderTarget(w, h, false, PixelFormat.R8);
+            temporalRT[0].FilterMode = FilterMode.Linear;
         }
 
     }

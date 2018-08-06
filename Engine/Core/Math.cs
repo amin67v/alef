@@ -238,6 +238,8 @@ namespace Engine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Remap(float value, float a1, float b1, float a2, float b2) => Denormalize(Normalize(value, a1, b1), a2, b2);
 
+        public static Quaternion FromEuler(float x, float y, float z) => FromEuler(new Vector3(x, y, z));
+
         public static Quaternion FromEuler(Vector3 value)
         {
             double yawOver2 = value.Y * 0.5f;

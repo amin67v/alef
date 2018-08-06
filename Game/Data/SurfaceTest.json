@@ -1,0 +1,8 @@
+{
+    "Image": "SurfaceTest.png",
+    "FilterMode": "Linear",
+    "WrapMode": "Clamp",
+    "GenerateMipmap": false,
+    "Compress": false,
+    "sRgb": true
+}

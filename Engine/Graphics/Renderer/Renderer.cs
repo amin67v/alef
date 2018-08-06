@@ -98,9 +98,9 @@ namespace Engine
                         case DebugMode.LightBuffer:
                             Graphics.SetShader(GetShader("Debug"), Lighting.LightTexture);
                             break;
-                            //case DebugMode.UpsampleOffset:
-                            //    Graphics.SetShader(GetShader("Debug"), gbuffer.DepthOffsetTex);
-                            //    break;
+                        case DebugMode.Bloom:
+                            Graphics.SetShader(GetShader("Debug"), Lighting.BloomTexture);
+                            break;
                     }
                     Graphics.Draw(MeshBuffer.ScreenQuad);
                 }
@@ -186,7 +186,7 @@ namespace Engine
             ShadowDepth,
             SSAO,
             LightBuffer,
-            //UpsampleOffset
+            Bloom
         }
     }
 

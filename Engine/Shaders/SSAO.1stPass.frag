@@ -6,13 +6,16 @@ out float FragColor;
 uniform sampler2D GBufferNormal;
 uniform sampler2D GBufferDepth;
 uniform sampler2D NoiseTex;
+uniform sampler2D TemporalTex;
+uniform sampler2D PrevDepthTex;
+uniform mat4 PrevViewProjMatrix;
 uniform vec3 SampleKernel[16];
 uniform vec2 BufferSize;
 uniform float Radius;
 
 float SampleAO(vec3 inputSample, vec3 normal, float depth, vec3 position, vec3 randVec)
 {
-    vec3 sample = cross(randVec, inputSample);
+    vec3 sample = reflect(inputSample, randVec);
     sample *= sign(dot(sample, normal));
     sample = position + sample * Radius;
 
@@ -27,7 +30,7 @@ float SampleAO(vec3 inputSample, vec3 normal, float depth, vec3 position, vec3 r
     float gDepth = texture(GBufferDepth, offset.xy).r;
 
     float occ = float(sampleDepth >= gDepth + 0.01);
-    float dist = smoothstep(0, 1, Radius / abs(gDepth - depth));
+    float dist = smoothstep(0, 1, (Radius * 0.5) / abs(gDepth - depth));
 
     return occ * dist;
 }
@@ -44,12 +47,23 @@ void main()
     }
 
     vec3 position = DEPTH2POS(depth, normalize(v2f_WorldPos - CameraPos.xyz));
-    vec3 randVec = texture(NoiseTex, v2f_Texcoord * (RenderSize / textureSize(NoiseTex, 0).xy)).rgb * 2 - 1;
+    vec3 randVec = texture(NoiseTex, v2f_Texcoord * (BufferSize / textureSize(NoiseTex, 0).xy)).rgb * 2 - 1;
 
     float ao = 0;
     for(int i = 0; i < NUM_SAMPLES; ++i)
         ao += SampleAO(SampleKernel[i], normal, depth, position, randVec);
     
     ao = 1 - (ao / NUM_SAMPLES);
+
+    vec4 prevClipPos = PrevViewProjMatrix * vec4(position, 1);
+    prevClipPos.xy /= prevClipPos.w;
+    prevClipPos.xy = prevClipPos.xy * 0.5 + 0.5;
+
+    float prevAO = texture(TemporalTex, prevClipPos.xy).r;
+    float pDepth = G_DEPTH(PrevDepthTex, prevClipPos.xy);
+
+    float temporalBlend = 1.0 / (abs(pDepth - depth) * 2.5 + 1.0);
+    ao = mix(ao, prevAO , mix(0.2, 0.9, temporalBlend));
+
     FragColor = ao;
 }

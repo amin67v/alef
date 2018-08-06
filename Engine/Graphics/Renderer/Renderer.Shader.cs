@@ -8,6 +8,10 @@ namespace Engine
 {
     public partial class Renderer : ObjectBase
     {
+        ShaderConstants constants;
+
+        public ShaderConstants Constants => constants;
+
         public Shader GetShader(string name) => ResourceManager.Get<Shader>("Shaders." + name);
 
         public Shader BuildShader(string name, string vertFiles, string geomFiles, string fragFiles, params string[] defines)
@@ -45,24 +49,21 @@ namespace Engine
         }
 
         unsafe void setShaderConstants(CameraNode camera)
-        {
-            ShaderConstants constants;
-            constants.InvViewMatrix = camera.Matrix;
-            Matrix4x4.Invert(camera.Matrix, out constants.ViewMatrix);
+        {           
+            Matrix4x4.Invert(camera.Matrix, out Matrix4x4 viewMatrix);
 
             constants.FieldOfView = camera.FieldOfView * Math.DegToRad;
             constants.WindowSize = new Vector2(Window.Width, Window.Height);
 
             constants.RenderSize = new Vector2(RenderWidth, RenderHeight);
 
-            var aspect = constants.WindowSize.X / (float)constants.WindowSize.Y;
+            var aspect = Constants.WindowSize.X / (float)Constants.WindowSize.Y;
             constants.NearClip = camera.NearClip;
             constants.FarClip = camera.FarClip;
-            constants.ProjMatrix = Matrix4x4.CreatePerspectiveFieldOfView(constants.FieldOfView, aspect, constants.NearClip, constants.FarClip);
-            Matrix4x4.Invert(constants.ProjMatrix, out constants.InvProjMatrix);
+            var projMatrix = Matrix4x4.CreatePerspectiveFieldOfView(Constants.FieldOfView, aspect, Constants.NearClip, Constants.FarClip);
 
-            constants.ViewProjMatrix = constants.ViewMatrix * constants.ProjMatrix;
-            constants.InvViewProjMatrix = constants.InvProjMatrix * constants.InvViewMatrix;
+            constants.ViewProjMatrix = viewMatrix * projMatrix;
+            Matrix4x4.Invert(Constants.ViewProjMatrix, out constants.InvViewProjMatrix);
 
             constants.CameraPos = new Vector4(camera.WorldPosition, 1);
             constants.CameraDir = new Vector4(camera.Forward, 0);
@@ -74,18 +75,17 @@ namespace Engine
             var shadowProMatrix = Matrix4x4.CreateOrthographic(Shadow.Range, Shadow.Range, 0, Shadow.Range * 4);
             constants.ShadowMatrix = shadowViewMatrix * shadowProMatrix;
 
-            var ptr = new IntPtr(&constants);
-            Graphics.SetUniformBlock(0, ptr, Marshal.SizeOf<ShaderConstants>());
+            fixed (void* ptr = &constants)
+            {
+                Graphics.SetUniformBlock(0, new IntPtr(ptr), Marshal.SizeOf<ShaderConstants>());
+            }
+            
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct ShaderConstants
+        public struct ShaderConstants
         {
-            public Matrix4x4 ViewMatrix;
-            public Matrix4x4 ProjMatrix;
             public Matrix4x4 ViewProjMatrix;
-            public Matrix4x4 InvViewMatrix;
-            public Matrix4x4 InvProjMatrix;
             public Matrix4x4 InvViewProjMatrix;
             public Matrix4x4 ShadowMatrix;
 

@@ -18,7 +18,7 @@ namespace Game
     {
         static void Main(string[] args)
         {
-            Engine.Game.Run<MyGame>(new GameConfig(1280, 720, false, false));
+            Engine.Game.Run<MyGame>(new GameConfig(1280, 720, false, true));
         }
     }
 
@@ -26,6 +26,8 @@ namespace Game
     {
         CameraNode camera;
         Vector3 camRot;
+        ModelNode suzanne;
+        float suzanneY;
 
         public override string Name => "My Test Game !";
 
@@ -39,7 +41,15 @@ namespace Game
             Renderer.Lighting.ReflectionSource = CubeMap.Load("DaySkybox.json");
 
             var modelNode = ActiveScene.Spawn<ModelNode>("Model");
-            modelNode.Model = Model.Load("TestModel2.dae");
+            var mdl = Model.Load("TestModel2.dae");
+            for (int i = 0; i < mdl.EntryCount; i++)
+                mdl[i].Material.SurfaceMap = Texture2D.Load("SurfaceTest.json");
+
+            modelNode.Model = mdl;
+
+            suzanne = ActiveScene.Spawn<ModelNode>("Suzanne");
+            suzanne.Model = Model.Load("Suzanne.dae");
+            suzanne.Position = new Vector3(10, 10, -10);
 
             camRot = ToEuler(camera.Rotation) * RadToDeg;
         }
@@ -76,6 +86,9 @@ namespace Game
                 xMove *= 10f;
             }
 
+            suzanneY += dt * 2;
+            suzanne.Rotation = FromEuler(0, suzanneY, 0);
+
             camera.Position += camera.Forward * zMove * dt * 4f;
             camera.Position += camera.Right * xMove * dt * 4f;
 
@@ -105,8 +118,11 @@ namespace Game
 
                 Renderer.SSAO.Radius = gui.FloatEdit("SSAO Radius", Renderer.SSAO.Radius);
                 Renderer.SSAO.Quality = gui.EnumEdit<SSAOQuality>("SSAO Quality", Renderer.SSAO.Quality);
-
+                Renderer.SSAO.BlurStride = gui.FloatEdit("SSAO Blur Stride", Renderer.SSAO.BlurStride);
                 Renderer.SSAO.Power = gui.FloatEdit("SSAO Power", Renderer.SSAO.Power);
+
+                Renderer.Lighting.BloomThreshold = gui.FloatEdit("Bloom Threshold", Renderer.Lighting.BloomThreshold);
+                Renderer.Lighting.BloomIntensity = gui.FloatEdit("Bloom Intensity", Renderer.Lighting.BloomIntensity);
 
                 Renderer.Lighting.FogColor = gui.ColorEdit("Fog Color", Renderer.Lighting.FogColor);
                 Renderer.Lighting.FogIntensity = gui.FloatEdit("Fog Intensity", Renderer.Lighting.FogIntensity);

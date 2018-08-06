@@ -6,11 +6,11 @@ out vec4 FragColor;
 uniform sampler2D GBufferAlbedo;
 uniform sampler2D GBufferSurface;
 uniform sampler2D GBufferNormal;
-uniform sampler2D AoBuffer;
+uniform sampler2D SSAOBuffer;
 
 uniform vec3 SkyAmbient;
 uniform vec3 GroundAmbient;
-uniform float AoPower;
+uniform float SSAOPower;
 
 void main() 
 {
@@ -18,8 +18,8 @@ void main()
     vec4 surface = G_SURFACE(GBufferSurface, v2f_Texcoord);
     vec3 normal = G_NORMAL(GBufferNormal, v2f_Texcoord);
 
-    float ao = texture(AoBuffer, v2f_Texcoord).r;
-    ao = pow(ao, AoPower);
+    float ao = texture(SSAOBuffer, v2f_Texcoord).r;
+    ao = pow(ao, SSAOPower);
 
     vec3 ambient = mix(GroundAmbient, SkyAmbient, normal.y * 0.5 + 0.5) * ao * albedo.rgb;
     ambient = mix(ambient, albedo.rgb, pow(surface.x, 4));

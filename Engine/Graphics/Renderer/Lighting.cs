@@ -7,13 +7,18 @@ namespace Engine
     {
         RenderTarget composeRT;
         RenderTarget lightRT;
+        RenderTarget[] bloomRTArray;
         MeshBuffer pointLightMesh;
         MeshBuffer[] skyboxMeshes;
         Vector3 sunDir = Vector3.Normalize(new Vector3(-1.11f, -1.22f, -1.33f));
+        Texture2D bloomInput;
+        Vector2 bloomDirection;
 
         public Texture2D LightTexture => lightRT[0];
 
         public Texture2D LightComposeTexture => composeRT[0];
+
+        public Texture2D BloomTexture => bloomRTArray[0][0];
 
         public CubeMap ReflectionSource { get; set; }
 
@@ -25,13 +30,19 @@ namespace Engine
 
         public Color GroundColor { get; set; } = new Color(80, 80, 70, 255);
 
+        public float BloomIntensity { get; set; } = 1f;
+
+        public float BloomThreshold { get; set; } = 1f;
+
+        //public float BloomDesaturate { get; set; } = 0.75f;
+
         public float FogDensity { get; set; } = 0.003f;
 
         public float FogIntensity { get; set; } = 1;
 
         public float SunIntensity { get; set; } = 15;
 
-        public float SkyIntensity { get; set; } = 2;
+        public float SkyIntensity { get; set; } = 1.5f;
 
         public float GroundIntensity { get; set; } = 0.2f;
 
@@ -84,6 +95,26 @@ namespace Engine
                     Graphics.SetShader(shader, node);
                     Graphics.Draw(pointLightMesh);
                 }
+            }
+
+            // draw bloom
+            bloomInput = lightRT[0];
+            DrawScreenEffect(bloomRTArray[0], Renderer.GetShader("Bloom.BrightPass"));
+
+            // blur down
+            for (int i = 1; i < bloomRTArray.Length; ++i)
+            {
+                bloomInput = bloomRTArray[i - 1][0];
+                bloomDirection = (i % 2 == 0) ? Vector2.UnitX * 1.5f : Vector2.UnitY * 1.5f;
+                DrawScreenEffect(bloomRTArray[i], Renderer.GetShader("Bloom.BlurPass"));
+            }
+
+            // blur up
+            for (int i = bloomRTArray.Length - 2; i >= 0; --i)
+            {
+                bloomInput = bloomRTArray[i + 1][0];
+                bloomDirection = (i % 2 == 0) ? Vector2.UnitX * 1.5f : Vector2.UnitY * 1.5f;
+                DrawScreenEffect(bloomRTArray[i], Renderer.GetShader("Bloom.BlurPass"));
             }
 
             // light combine pass
@@ -151,8 +182,8 @@ namespace Engine
                 var albedoId = ambient.GetUniformID("GBufferAlbedo");
                 var surfaceId = ambient.GetUniformID("GBufferSurface");
                 var normalId = ambient.GetUniformID("GBufferNormal");
-                var aoBufferId = ambient.GetUniformID("AoBuffer");
-                var aoPowerId = ambient.GetUniformID("AoPower");
+                var ssaoBufferId = ambient.GetUniformID("SSAOBuffer");
+                var ssaoPowerId = ambient.GetUniformID("SSAOPower");
                 var skyId = ambient.GetUniformID("SkyAmbient");
                 var groundId = ambient.GetUniformID("GroundAmbient");
 
@@ -161,10 +192,10 @@ namespace Engine
                     ambient.SetUniform(albedoId, 0, GBuffer.AlbedoTex);
                     ambient.SetUniform(surfaceId, 1, GBuffer.SurfaceTex);
                     ambient.SetUniform(normalId, 2, GBuffer.NormalTex);
-                    ambient.SetUniform(aoBufferId, 3, Renderer.SSAO.Texture);
+                    ambient.SetUniform(ssaoBufferId, 3, Renderer.SSAO.Texture);
                     ambient.SetUniform(skyId, SkyColor.ToVector3() * SkyIntensity);
                     ambient.SetUniform(groundId, GroundColor.ToVector3() * GroundIntensity);
-                    ambient.SetUniform(aoPowerId, Renderer.SSAO.Power);
+                    ambient.SetUniform(ssaoPowerId, Renderer.SSAO.Power);
                 };
             }
 
@@ -172,6 +203,7 @@ namespace Engine
                 var compose = Renderer.BuildShader("LightCompose", "post-fx.vert", null, "light-compose.frag");
                 var depthId = compose.GetUniformID("GBufferDepth");
                 var lbufferId = compose.GetUniformID("LightBuffer");
+                var bloomId = compose.GetUniformID("BloomTexture");
                 var fogColorId = compose.GetUniformID("FogColor");
                 var fogdensId = compose.GetUniformID("FogDensity");
                 var exposureId = compose.GetUniformID("Exposure");
@@ -180,9 +212,38 @@ namespace Engine
                 {
                     compose.SetUniform(depthId, 0, GBuffer.DepthTex);
                     compose.SetUniform(lbufferId, 1, lightRT[0]);
+                    compose.SetUniform(bloomId, 2, BloomTexture);
                     compose.SetUniform(fogColorId, Color.Linear(FogColor).ToVector4() * FogIntensity);
                     compose.SetUniform(fogdensId, FogDensity);
                     compose.SetUniform(exposureId, Exposure);
+                };
+            }
+
+            {
+                var bloomBrightPass = Renderer.BuildShader("Bloom.BrightPass", "post-fx.vert", null, "Bloom.BrightPass.frag");
+                var inputId = bloomBrightPass.GetUniformID("InputTex");
+                var thresholdId = bloomBrightPass.GetUniformID("Threshold");
+                var intensityId = bloomBrightPass.GetUniformID("Intensity");
+                //var desaturateId = bloomBrightPass.GetUniformID("Desaturate");
+
+                bloomBrightPass.OnSetUniforms = (object obj) =>
+                {
+                    bloomBrightPass.SetUniform(inputId, 0, bloomInput);
+                    bloomBrightPass.SetUniform(thresholdId, BloomThreshold - 0.5f);
+                    //bloomBrightPass.SetUniform(desaturateId, BloomDesaturate);
+                    bloomBrightPass.SetUniform(intensityId, BloomIntensity);
+                };
+            }
+
+            {
+                var bloomblur = Renderer.BuildShader("Bloom.BlurPass", "post-fx.vert", null, "Bloom.BlurPass.frag");
+                var inputId = bloomblur.GetUniformID("InputTex");
+                var dirId = bloomblur.GetUniformID("Direction");
+
+                bloomblur.OnSetUniforms = (object obj) =>
+                {
+                    bloomblur.SetUniform(inputId, 0, bloomInput);
+                    bloomblur.SetUniform(dirId, bloomDirection);
                 };
             }
         }
@@ -191,6 +252,10 @@ namespace Engine
         {
             Destroy(lightRT);
             Destroy(composeRT);
+            for (int i = 0; i < bloomRTArray.Length; i++)
+                Destroy(bloomRTArray[i]);
+
+            bloomRTArray = null;
         }
 
         protected override void OnReset(int w, int h)
@@ -200,7 +265,23 @@ namespace Engine
 
             Destroy(composeRT);
             composeRT = Graphics.CreateRenderTarget(w, h, PixelFormat.Rgba8);
-            composeRT[0].FilterMode = FilterMode.Linear;
+            composeRT[0].FilterMode = FilterMode.Linear; // for FXAA
+
+            if (bloomRTArray == null)
+                bloomRTArray = new RenderTarget[4];
+
+            for (int i = 0; i < bloomRTArray.Length; i++)
+                Destroy(bloomRTArray[i]);
+
+            bloomRTArray[0] = Graphics.CreateRenderTarget(w / 2, h / 2, PixelFormat.R11G11B10F);
+            bloomRTArray[1] = Graphics.CreateRenderTarget(w / 2, h / 2, PixelFormat.R11G11B10F);
+            bloomRTArray[2] = Graphics.CreateRenderTarget(w / 4, h / 4, PixelFormat.R11G11B10F);
+            bloomRTArray[3] = Graphics.CreateRenderTarget(w / 4, h / 4, PixelFormat.R11G11B10F);
+            //bloomRTArray[4] = Graphics.CreateRenderTarget(w / 8, h / 8, PixelFormat.R11G11B10F);
+            //bloomRTArray[5] = Graphics.CreateRenderTarget(w / 8, h / 8, PixelFormat.R11G11B10F);
+
+            for (int i = 0; i < bloomRTArray.Length; i++)
+                bloomRTArray[i][0].FilterMode = FilterMode.Linear;
         }
     }
 }

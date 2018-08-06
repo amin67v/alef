@@ -19,11 +19,7 @@ layout(location = 3) in vec3 v_Texcoord;
 
 layout(std140) uniform Constants
 {
-    mat4 ViewMatrix; 
-    mat4 ProjMatrix; 
     mat4 ViewProjMatrix; 
-    mat4 InvViewMatrix; 
-    mat4 InvProjMatrix;
     mat4 InvViewProjMatrix;
     mat4 ShadowMatrix;
 
@@ -36,6 +32,11 @@ layout(std140) uniform Constants
     float NearClip;
     float Time;
 };
+
+vec3 FilmicACES(vec3 hdr)
+{
+    return (hdr * (2.51 * hdr + 0.03)) / (hdr * (2.43 * hdr + 0.59) + 0.14);
+}
 
 // encode normal to spherical coord
 vec2 EncodeNormal(vec3 n)

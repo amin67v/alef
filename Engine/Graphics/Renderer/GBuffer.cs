@@ -7,6 +7,7 @@ namespace Engine
         RenderTarget gbufferRT;
         RenderTarget halfDepthRT;
         RenderTarget halfNormalRT;
+        RenderTarget prevHalfDepthRT;
 
         public Texture2D AlbedoTex => gbufferRT[0];
 
@@ -20,18 +21,17 @@ namespace Engine
 
         public Texture2D HalfNormalTex => halfNormalRT[0];
 
+        public Texture2D PrevHalfDepthTex => prevHalfDepthRT[0];
+
         public void BlitDepth(RenderTarget target)
         {
-            Graphics.BlitRenderTarget(gbufferRT, target, 3, BufferMask.Depth, FilterMode.Point);
-        }
-
-        public void BlitNormal(RenderTarget target)
-        {
-            Graphics.BlitRenderTarget(gbufferRT, target, 2, BufferMask.Depth, FilterMode.Point);
+            Graphics.BlitRenderTarget(gbufferRT, target, 0, BufferMask.Depth, FilterMode.Point);
         }
 
         public override void Draw(Scene scene)
         {
+            Graphics.BlitRenderTarget(gbufferRT, prevHalfDepthRT, 3, BufferMask.Color, FilterMode.Point);
+
             Graphics.RenderTarget = gbufferRT;
             Graphics.SetClearValue(0, Color.Black);
             Graphics.SetClearValue(1, Color.Black);
@@ -59,8 +59,8 @@ namespace Engine
                 }
             }
 
-            BlitDepth(halfDepthRT);
-            BlitNormal(halfNormalRT);
+            Graphics.BlitRenderTarget(gbufferRT, halfNormalRT, 2, BufferMask.Color, FilterMode.Point);
+            Graphics.BlitRenderTarget(gbufferRT, halfDepthRT, 3, BufferMask.Color, FilterMode.Point);
         }
 
         protected override void OnBegin()
@@ -95,6 +95,9 @@ namespace Engine
         {
             Destroy(gbufferRT);
             gbufferRT = Graphics.CreateRenderTarget(w, h, PixelFormat.Rgba8, PixelFormat.Rgba8, PixelFormat.Rg16F, PixelFormat.R32F);
+
+            Destroy(prevHalfDepthRT);
+            prevHalfDepthRT = Graphics.CreateRenderTarget(w, h, PixelFormat.R32F);
 
             Destroy(halfDepthRT);
             halfDepthRT = Graphics.CreateRenderTarget(w / 2, h / 2, PixelFormat.R32F);
