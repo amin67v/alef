@@ -9,7 +9,7 @@ uniform sampler2D NoiseTex;
 uniform sampler2D TemporalTex;
 uniform sampler2D PrevDepthTex;
 uniform mat4 PrevViewProjMatrix;
-uniform vec3 SampleKernel[16];
+uniform vec3 SampleKernel[NUM_KERNEL];
 uniform vec2 BufferSize;
 uniform float Radius;
 

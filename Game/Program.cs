@@ -29,19 +29,19 @@ namespace Game
         ModelNode suzanne;
         float suzanneY;
 
-        public override string Name => "My Test Game !";
+        public override string Name => "SampleGame";
 
         protected override void Load()
         {
             ActiveScene = new Scene();
             ActiveScene.MainCamera = camera = ActiveScene.Spawn<CameraNode>("Camera");
-            camera.Position = new Vector3(12f, 18f, 20f);
-            camera.Rotation = FromEuler(new Vector3(-32, 40, 0) * DegToRad);
+            camera.Position = new Vector3(12f, 18f, -15f);
+            camera.Rotation = FromEuler(new Vector3(-32, 160, 0) * DegToRad);
 
             Renderer.Lighting.ReflectionSource = CubeMap.Load("DaySkybox.json");
 
             var modelNode = ActiveScene.Spawn<ModelNode>("Model");
-            var mdl = Model.Load("TestModel2.dae");
+            var mdl = Model.Load("tavern.dae");
             for (int i = 0; i < mdl.EntryCount; i++)
                 mdl[i].Material.SurfaceMap = Texture2D.Load("SurfaceTest.json");
 

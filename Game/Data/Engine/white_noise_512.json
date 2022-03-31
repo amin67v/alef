@@ -1,5 +1,5 @@
 {
-    "Image": "Engine/white_noise_512.png",
+    "Image": "Engine/BlueNoise64.png",
     "FilterMode": "Point",
     "WrapMode": "Repeat",
     "GenerateMipmap": false,

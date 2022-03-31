@@ -3,10 +3,15 @@ using System.Numerics;
 
 namespace Engine
 {
+    
     public enum SSAOQuality { Disabled, Normal, High }
 
     public class SSAO : RenderPass
     {
+        const int k_NumKernel = 16;
+        const int k_NormalSamples = 8;
+        const int k_HighSamples = 16;
+
         Matrix4x4 prevViewProj;
         Matrix4x4 prevInvViewProj;
         Vector3 prevCameraPos;
@@ -26,7 +31,7 @@ namespace Engine
 
         public Texture2D Texture => (Quality == SSAOQuality.Disabled) ? Texture2D.White : rt[0];
 
-        public SSAOQuality Quality { get; set; } = SSAOQuality.Normal;
+        public SSAOQuality Quality { get; set; } = SSAOQuality.High;
 
         public override void Draw(Scene Scene)
         {
@@ -53,19 +58,19 @@ namespace Engine
         protected override void OnBegin()
         {
             {
-                var rand = new Random(8);
-                kernel = new Array<Vector3>(16);
-                for (int i = 0; i < 16; i++)
+                var rand = new Random(87456);
+                kernel = new Array<Vector3>(k_NumKernel);
+                for (int i = 0; i < k_NumKernel; i++)
                 {
                     var length = rand.NextFloat(0.1f, 1f);
                     var sample = rand.NextDir3D() * length * length;
                     kernel.Push(sample);
                 }
 
-                noise = new Texture2D[64];
+                noise = new Texture2D[16];
                 for (int j = 0; j < noise.Length; j++)
                 {
-                    Image noiseImage = new Image(64, 64);
+                    Image noiseImage = new Image(128, 128);
                     for (int i = 0; i < noiseImage.Width * noiseImage.Height; i++)
                     {
                         var vec = rand.NextDir3D();
@@ -80,8 +85,8 @@ namespace Engine
             }
 
             {
-                Renderer.BuildShader("SSAO.1stPass.1", "post-fx.vert", null, "SSAO.1stPass.frag", "NUM_SAMPLES 8"); // ssao normal
-                Renderer.BuildShader("SSAO.1stPass.2", "post-fx.vert", null, "SSAO.1stPass.frag", "NUM_SAMPLES 16"); // ssao high
+                Renderer.BuildShader("SSAO.1stPass.1", "post-fx.vert", null, "SSAO.1stPass.frag", $"NUM_SAMPLES {k_NormalSamples}", $"NUM_KERNEL {k_NumKernel}"); // ssao normal
+                Renderer.BuildShader("SSAO.1stPass.2", "post-fx.vert", null, "SSAO.1stPass.frag", $"NUM_SAMPLES {k_HighSamples}", $"NUM_KERNEL {k_NumKernel}"); // ssao high
 
                 for (int i = 1; i <= 2; i++)
                 {

@@ -14,7 +14,7 @@ namespace Engine
         Texture2D blurInput;
         Texture2D noise;
         Vector2 blurDir;
-        int size = 1024;
+        int size = 2048;
 
         public IReadOnlyArray<Vector2> ShadowSampleKernel => shadowKernel;
 
@@ -26,7 +26,7 @@ namespace Engine
 
         public Vector3 Center { get; set; }
 
-        public float Softness { get; set; } = 40;
+        public float Softness { get; set; } = 30;
 
         public float Bias { get; set; } = 0.05f;
 
